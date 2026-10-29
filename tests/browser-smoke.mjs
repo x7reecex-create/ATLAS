@@ -88,7 +88,7 @@ try {
     // Ten-tool page: verify calculator arithmetic and switch to text counting.
     await page.locator('#nav button[data-page="library"]').click();
     await page.locator('#content button.signature-library-row[data-page="quickTools"]').click();
-    assert.equal(await page.locator('#atlas-quick-select option').count(),10,size.name+' exposes ten tools');
+    assert.equal(await page.locator('#atlas-quick-select option').count(),12,size.name+' exposes twelve tools');
     await page.locator('#atlas-quick-a').fill('100');
     await page.locator('#atlas-quick-b').fill('20');
     assert.equal(await page.locator('#atlas-quick-result').textContent(),'£80.00 after discount',size.name+' discount calculation');
@@ -99,6 +99,14 @@ try {
     await page.locator('#atlas-quick-select').selectOption('words');
     await page.locator('#atlas-quick-text').fill('Hello world');
     assert.equal(await page.locator('#atlas-quick-result').textContent(),'2 words · 11 characters',size.name+' text counter');
+    await page.locator('#atlas-quick-select').selectOption('subscriptions');
+    await page.locator('#atlas-quick-a').fill('8.50');
+    await page.locator('#atlas-quick-b').fill('4');
+    assert.equal(await page.locator('#atlas-quick-result').textContent(),'£34.00 per month · £408.00 per year',size.name+' annual subscription audit');
+    await page.locator('#atlas-quick-select').selectOption('runway');
+    await page.locator('#atlas-quick-a').fill('900');
+    await page.locator('#atlas-quick-b').fill('600');
+    assert.equal(await page.locator('#atlas-quick-result').textContent(),'1.5 months covered · £900.00 to reach a 3-month fund',size.name+' emergency runway');
     await page.evaluate(() => document.activeElement?.blur());
     await page.evaluate(() => document.querySelector('#nav button[data-page="home"]').click());
     const graphics = await page.evaluate(() => {
