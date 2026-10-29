@@ -131,7 +131,9 @@ try {
     assert.equal(quickEvent.startTime,'15:00',size.name+' quick-add time preserved');
     if (size.width < size.height) {
       // The real newly-added event must render as a readable, layered agenda card.
-      await page.locator('.calendar-tools > summary').click();
+      // Quick-add re-renders Calendar and can close Tools automatically; do not toggle it open again.
+      const calendarTools=page.locator('.calendar-tools');
+      if (await calendarTools.evaluate(el=>el.open)) await calendarTools.locator('summary').click();
       await page.locator('.cal-period [data-action="cal-next"]').click();
       await page.locator('.cal-portrait-date[data-date="2026-11-02"]').click();
       const appointment=page.locator('.cal-portrait-appointment').filter({hasText:'ATLAS smoke'});
