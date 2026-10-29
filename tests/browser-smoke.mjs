@@ -513,6 +513,18 @@ try {
       await page.locator('#nav button[data-page="library"]').click();
       await page.locator('.signature-library-row[data-page="journal"]').click();
       assert.equal(await page.locator('#content').getAttribute('data-view'),'journal',size.name+' journal route');
+      if (mobile && size.width < size.height) {
+        // The Journal date control uses the operating system's picker, not a text keyboard.
+        await page.locator('#atlas-journal-day').focus();
+        assert.equal(await page.evaluate(()=>document.body.classList.contains('atlas-mobile-editing')),false,size.name+' native date picker does not activate keyboard layout');
+        assert.notEqual(await page.locator('#nav').evaluate(el=>getComputedStyle(el).display),'none',size.name+' date picker keeps bottom navigation available');
+        await page.locator('#atlas-journal-body').focus();
+        await page.waitForFunction(()=>document.body.classList.contains('atlas-mobile-editing'));
+        assert.equal(await page.locator('#nav').evaluate(el=>getComputedStyle(el).display),'none',size.name+' journal writing still clears navigation');
+        await page.locator('#atlas-journal-body').evaluate(el=>el.blur());
+        await page.waitForFunction(()=>!document.body.classList.contains('atlas-mobile-editing'));
+        assert.notEqual(await page.locator('#nav').evaluate(el=>getComputedStyle(el).display),'none',size.name+' navigation restores after writing');
+      }
       assert.equal(await page.locator('.atlas-journal-bar').count(),0,size.name+' no fabricated mood trend');
       await page.locator('#atlas-journal-body').fill('A good day with family and some progress.');
       await page.locator('#atlas-journal-mood').selectOption('good');
