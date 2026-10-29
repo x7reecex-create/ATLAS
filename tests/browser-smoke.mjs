@@ -48,6 +48,29 @@ try {
       assert.notEqual(await nav.evaluate(el=>getComputedStyle(el).display),'none',size.name+' nav restores after text entry');
       assert.notEqual(await fab.evaluate(el=>getComputedStyle(el).display),'none',size.name+' floating capture restores after text entry');
     }
+    // Large-text regression: real viewport geometry, not screenshot-only inspection.
+    // Check persistent preference, horizontal overflow and obstructed primary navigation.
+    await page.evaluate(() => {
+      const key='atlas-preview:v1';
+      const saved=JSON.parse(localStorage.getItem(key));
+      saved.appearance={...saved.appearance,textSize:'large'};
+      localStorage.setItem(key,JSON.stringify(saved));
+    });
+    await page.reload();
+    await page.locator('#nav button[data-page="home"]').waitFor();
+    const largeTextGeometry=await page.evaluate(() => {
+      const nav=document.querySelector('#nav');
+      const buttons=[...nav.querySelectorAll('button')].filter(el=>getComputedStyle(el).display!=='none');
+      return {
+        overflow:document.documentElement.scrollWidth-document.documentElement.clientWidth,
+        navButtons:buttons.length,
+        navVisible:getComputedStyle(nav).display!=='none',
+        buttonBounds:buttons.map(el=>{const r=el.getBoundingClientRect();return {left:r.left,right:r.right,width:r.width,height:r.height};}),
+      };
+    });
+    assert.ok(largeTextGeometry.overflow<=2,size.name+' larger text never creates horizontal document overflow');
+    assert.ok(largeTextGeometry.navVisible&&largeTextGeometry.navButtons>0,size.name+' larger text preserves navigation');
+    assert.ok(largeTextGeometry.buttonBounds.every(r=>r.left>=-2&&r.right<=size.width+2&&r.width>=24&&r.height>=24),size.name+' larger text navigation remains onscreen and tappable');
     const graphics = await page.evaluate(() => {
       const hero = document.querySelector('.signature-hero h1 span');
       const tiles = [...document.querySelectorAll('.signature-links button')];
