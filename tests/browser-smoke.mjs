@@ -121,6 +121,33 @@ try {
       assert.ok(portrait.stripLeft>=-2&&portrait.stripRight<=size.width+2,size.name+' date rail does not overflow');
       assert.notEqual(portrait.selectedBackground,'rgba(0, 0, 0, 0)',size.name+' selected date visibly highlighted');
     }
+    if (size.width < size.height && mobile) {
+      // Send trusted Chrome touch events, rather than merely invoking a handler.
+      // A horizontal date-rail swipe changes the week; vertical panning and taps do not.
+      const rail = page.locator('.cal-portrait-date-strip');
+      await rail.scrollIntoViewIfNeeded();
+      const box = await rail.boundingBox();
+      assert.ok(box, size.name+' date rail visible');
+      const client = await context.newCDPSession(page);
+      async function swipe(fromX,fromY,toX,toY) {
+        await client.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:fromX,y:fromY}]});
+        await client.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:fromX+(toX-fromX)*.5,y:fromY+(toY-fromY)*.5}]});
+        await client.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:toX,y:toY}]});
+        await client.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+      }
+      const railX=box.x+box.width*.5,railY=box.y+box.height*.5;
+      const firstDate=()=>rail.locator('.cal-portrait-date').first().getAttribute('data-date');
+      assert.equal(await firstDate(),'2026-10-26',size.name+' initial week');
+      await swipe(railX+38,railY,railX-62,railY+4);
+      assert.equal(await firstDate(),'2026-11-02',size.name+' swipe left advances week');
+      await swipe(railX-38,railY,railX+62,railY-4);
+      assert.equal(await firstDate(),'2026-10-26',size.name+' swipe right returns week');
+      await swipe(railX,railY,railX+5,railY+92);
+      assert.equal(await firstDate(),'2026-10-26',size.name+' vertical scroll never switches week');
+      await rail.locator('.cal-portrait-date[data-date="2026-10-30"]').click();
+      assert.equal(await rail.locator('.cal-portrait-date[aria-pressed="true"]').getAttribute('data-date'),'2026-10-30',size.name+' ordinary date tap still works');
+      await client.detach();
+    }
     // Exercise the actual quick-add form with a fixed London date in every viewport.
     await page.locator('.calendar-tools > summary').click();
     await page.locator('#cal-quick-form input[name="quick"]').fill('ATLAS smoke next Monday at 3pm');
