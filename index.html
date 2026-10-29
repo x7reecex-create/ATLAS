@@ -1830,7 +1830,7 @@ function showImportReport(result){
   const report=importReport(result);
   $('modal-root').innerHTML=`<div class="modalback" data-action="modal-bg"><section class="sheet" role="dialog" aria-modal="true" aria-label="Import result"><div class="titlebar"><h2>Import result</h2><button class="iconbtn" data-action="modal-close" aria-label="Close import result">×</button></div><p class="fine" style="white-space:pre-line">${esc(report)}</p><p class="fine" style="margin-top:14px">Nothing was uploaded. A local recovery checkpoint is available in Settings after a successful import.</p></section></div>`;
 }
-function navigate(destination){page=destination;projectOpen=null;window.scrollTo(0,0);render()}
+function navigate(destination){if(page==='decisionTool'&&destination!=='decisionTool'){atlasDecisionOptions=['',''];atlasDecisionResult=null;atlasDecisionPointerTarget=null;}page=destination;projectOpen=null;window.scrollTo(0,0);render()}
 function handleCalAction(element){const a=element.dataset.action,ref=element.dataset.id,origin=element.dataset.origin||'',kind=element.dataset.kind||'event';
 if(a==='cal-prev')return calStep(-1);if(a==='cal-next')return calStep(1);if(a==='cal-today'){calAnchor=calLondonToday();return render();}
 if(a==='cal-view'){calView=element.dataset.view;return render()};if(a==='cal-week-date'){calAnchor=element.dataset.date;return render()};if(a==='cal-day'){calAnchor=element.dataset.date;calView='day';return render()}
