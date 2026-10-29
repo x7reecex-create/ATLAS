@@ -91,6 +91,36 @@ try {
     }
     await page.locator('#nav button[data-page="calendar"]').click();
     assert.equal(await page.locator('#content').getAttribute('data-view'),'calendar',size.name+' calendar route');
+    // Calendar graphic design: seven tappable, legible days and layered agenda on portrait screens.
+    if (size.width < size.height) {
+      const dateButtons=page.locator('.cal-portrait-date-strip .cal-portrait-date');
+      assert.equal(await dateButtons.count(),7,size.name+' seven-day date rail');
+      const portrait=await page.evaluate(()=>{
+        const strip=document.querySelector('.cal-portrait-date-strip');
+        const selected=document.querySelector('.cal-portrait-date.is-selected');
+        const selectedStyle=getComputedStyle(selected);
+        const stripStyle=getComputedStyle(strip);
+        const outer=strip.getBoundingClientRect();
+        return {
+          grid:stripStyle.display,
+          material:stripStyle.backgroundImage,
+          selectedText:selectedStyle.color,
+          selectedBorder:selectedStyle.borderTopColor,
+          selectedBackground:selectedStyle.backgroundColor,
+          selectedWidth:selected.getBoundingClientRect().width,
+          selectedHeight:selected.getBoundingClientRect().height,
+          stripLeft:outer.left,stripRight:outer.right,
+          pressed:[...strip.querySelectorAll('[aria-pressed="true"]')].length
+        };
+      });
+      assert.equal(portrait.grid,'grid',size.name+' seven-day grid');
+      assert.match(portrait.material,/gradient/i,size.name+' calendar strip textured depth');
+      assert.equal(portrait.pressed,1,size.name+' selected date accessible state');
+      assert.ok(portrait.selectedHeight>=70,size.name+' large day touch area');
+      assert.ok(portrait.selectedWidth>=28,size.name+' sufficient day touch width');
+      assert.ok(portrait.stripLeft>=-2&&portrait.stripRight<=size.width+2,size.name+' date rail does not overflow');
+      assert.notEqual(portrait.selectedBackground,'rgba(0, 0, 0, 0)',size.name+' selected date visibly highlighted');
+    }
     // Exercise the actual quick-add form with a fixed London date in every viewport.
     await page.locator('.calendar-tools > summary').click();
     await page.locator('#cal-quick-form input[name="quick"]').fill('ATLAS smoke next Monday at 3pm');
@@ -99,6 +129,31 @@ try {
     assert.ok(quickEvent, size.name+' quick-add event saved');
     assert.equal(quickEvent.startDate,'2026-11-02',size.name+' next Monday is in the next calendar week');
     assert.equal(quickEvent.startTime,'15:00',size.name+' quick-add time preserved');
+    if (size.width < size.height) {
+      // The real newly-added event must render as a readable, layered agenda card.
+      await page.locator('.calendar-tools > summary').click();
+      await page.locator('.cal-period [data-action="cal-next"]').click();
+      await page.locator('.cal-portrait-date[data-date="2026-11-02"]').click();
+      const appointment=page.locator('.cal-portrait-appointment').filter({hasText:'ATLAS smoke'});
+      assert.equal(await appointment.count(),1,size.name+' saved appointment visible in agenda');
+      const card=await appointment.evaluate(el=>{
+        const style=getComputedStyle(el),rect=el.getBoundingClientRect();
+        return {
+          title:el.querySelector('.cal-portrait-appointment-label strong')?.textContent,
+          background:style.backgroundImage,
+          leftBorder:style.borderLeftWidth,
+          radius:style.borderTopLeftRadius,
+          width:rect.width,
+          viewport:document.documentElement.clientWidth,
+          left:rect.left,right:rect.right
+        };
+      });
+      assert.equal(card.title,'ATLAS smoke',size.name+' actual event text');
+      assert.match(card.background,/gradient/i,size.name+' agenda card surface depth');
+      assert.ok(parseFloat(card.leftBorder)>=3,size.name+' category indicator');
+      assert.ok(parseFloat(card.radius)>=12,size.name+' rounded agenda cards');
+      assert.ok(card.left>=-2&&card.right<=card.viewport+2,size.name+' agenda card fits viewport');
+    }
     const dimensions=await page.evaluate(()=>({
       scroll:document.documentElement.scrollWidth,
       viewport:document.documentElement.clientWidth
