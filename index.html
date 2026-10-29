@@ -992,6 +992,34 @@ body{background:radial-gradient(ellipse 80% 26% at 50% -9%,var(--mat-veil),trans
  }
 }
 
+
+/* Appearance Studio 01 — adjustable visual density, corners and grain, mobile-safe. */
+.atlas-appearance-studio{margin-top:18px;padding-top:16px;border-top:1px solid var(--mat-line);display:grid;gap:14px}
+.atlas-appearance-intro{display:grid;gap:5px}
+.atlas-appearance-intro strong{font-weight:760;font-size:16px;letter-spacing:-.03em}
+.atlas-appearance-intro span{font-size:12px;color:var(--muted);line-height:1.5}
+.atlas-appearance-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.atlas-appearance-row label{display:grid;gap:5px;font-weight:710;font-size:13px}
+.atlas-appearance-row label small{color:var(--muted);font-size:11px;font-weight:450;line-height:1.4}
+.atlas-appearance-row input[type=color]{appearance:none;-webkit-appearance:none;width:58px;height:48px;flex:none;border:1px solid var(--border);padding:5px;background:var(--surface2);border-radius:13px;cursor:pointer}
+.atlas-appearance-row input[type=color]::-webkit-color-swatch-wrapper{padding:0}
+.atlas-appearance-row input[type=color]::-webkit-color-swatch{border:0;border-radius:8px}
+.atlas-appearance-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.atlas-appearance-grid label{min-width:0;display:grid;gap:6px;font-size:12px;font-weight:690}
+.atlas-appearance-grid select{min-width:0;min-height:44px}
+.atlas-appearance-studio .action{justify-self:start;min-height:44px}
+:root[data-atlas-texture="off"]{--matte:none}
+:root[data-atlas-density="compact"] :is(.card,.project,.note){padding:13px}
+:root[data-atlas-density="compact"] .task{padding-block:10px}
+:root[data-atlas-density="compact"] .signature-library-row{padding-block:10px;min-height:68px}
+:root[data-atlas-density="compact"] .signature-links button{min-height:92px}
+:root[data-atlas-corners="subtle"] :is(.card,.project,.note,.tile,.sheet,.signature-next,.signature-links button,.signature-library-row){border-radius:10px}
+:root[data-atlas-corners="subtle"] :is(.action,.iconbtn,.input,.select,.textarea,.capture input){border-radius:9px}
+:root[data-atlas-custom-accent="true"] :is(.signature-hero h1 span,.signature-heading>button,.signature-links .ui-icon,.signature-library .library-icon,.signature-overline,.eyebrow){color:var(--accent-text)}
+:root[data-atlas-custom-accent="true"] .signature-next{border-left-color:var(--accent-text)}
+:root[data-atlas-custom-accent="true"] .signature-kicker i{background:var(--accent-text);box-shadow:0 0 12px var(--mat-veil)}
+@media(max-width:360px){.atlas-appearance-grid{grid-template-columns:minmax(0,1fr)}}
+
 </style>
 </head>
 <body>
@@ -1378,7 +1406,17 @@ function notes(){return atlasNotesLayout(notesBody())}
 function notesBody(){const items=[...data.notes].sort((a,b)=>Number(b.pinned)-Number(a.pinned)||(b.updatedAt||0)-(a.updatedAt||0));return `<div class="eyebrow">YOUR SECOND BRAIN</div><div class="page-head"><div><h1>Notes</h1><p class="sub">Ideas, reference, plans and things worth keeping.</p></div>${btn('＋ Note','new-note','','action small')}</div><div class="card" style="padding:13px 15px"><div class="fine">Tip: link a note to a project so its research and tasks stay together. Notes support simple Markdown.</div></div>${items.length?items.map(noteCard).join(''):`<div class="card">${blank('▤','Start with one note. You can pin it or attach it to a project.','new-note','Write a note')}</div>`}`}
 function money(){const sorted=[...data.money].sort((a,b)=>Number(a.paid)-Number(b.paid)||(a.due||'9999').localeCompare(b.due||'9999'));return `<div class="eyebrow">MANUAL FINANCES</div><div class="page-head"><div><h1>Money</h1><p class="sub">Know what you have and what is already spoken for.</p></div>${btn('Edit balance','edit-balance')}</div><div class="card card-accent"><div class="card-head">ENTERED BALANCE</div><div class="metric">${data.balance===null?'Not set':fmt(data.balance)}</div><div class="line"></div><div class="number-grid"><div><small>Unpaid bills & debts</small><strong>${fmt(totalUnpaid())}</strong></div><div><small>After obligations</small><strong class="${data.balance!==null&&data.balance-totalUnpaid()<0?'danger':''}">${data.balance===null?'—':fmt(data.balance-totalUnpaid())}</strong></div></div><p class="fine" style="margin-top:13px">Calculated from only the records you enter. This is not your bank balance or an automatic forecast.</p></div>${btn('▥ View financial graphs','goto-insights','','action ghost small')}${heading(`Bills & debts · ${data.money.length}`,'new-money','＋ Add')}<div class="card">${sorted.length?sorted.map(x=>`<div class="task ${x.paid?'completed':''}"><input class="check" type="checkbox" data-action="toggle-money" data-id="${esc(x.id)}" ${x.paid?'checked':''} aria-label="Mark ${esc(x.title)} paid"><button class="taskbody" data-action="edit" data-type="money" data-id="${esc(x.id)}"><div class="tasktitle">${esc(x.title)}</div><div class="taskmeta"><span>${esc(x.kind==='debt'?'Debt':'Bill')}</span><span class="${!x.paid&&dayDiff(x.due)!==null&&dayDiff(x.due)<0?'danger':''}">${x.paid?'Paid':esc(humanDate(x.due))}</span></div></button><b class="small">${fmt(x.amount)}</b></div>`).join(''):blank('▣','No obligations recorded. Add bills, repayments or anything you need to reserve money for.','new-money','Add a bill')}</div>${heading(`Goals · ${data.goals.length}`,'new-goal','＋ Add')}<div class="card">${data.goals.length?data.goals.map(goalCard).join(''):blank('⚑','Track savings, driving or any measurable target.','new-goal','Add a goal')}</div>`}
 function goals(){return `<div class="eyebrow">LONG-TERM PROGRESS</div><div class="page-head"><div><h1>Goals</h1><p class="sub">Know what you’re moving towards.</p></div>${btn('＋ New','new-goal','','action small')}</div><div class="card">${data.goals.length?data.goals.map(goalCard).join(''):blank('⚑','A goal is a destination. Give it a target you can measure.','new-goal','Create a goal')}</div>`}
-function settings(){return `<div class="eyebrow">SYSTEM SETTINGS</div><h1>Settings</h1><p class="sub">Make ATLAS yours, and keep control of your data.</p>${heading('Appearance')}<div class="card"><div class="fine" style="margin-bottom:12px">Blood Red & Black is the default.</div><div class="swatches">${Object.keys(palettes).map(k=>`<button class="swatch ${data.theme===k?'selected':''}" data-action="theme" data-theme="${k}" style="background:${palettes[k][1]};color:${palettes[k][4]}"><span class="dot" style="background:${palettes[k][6]}"></span>${k==='midnight'?'Blood Red':k[0].toUpperCase()+k.slice(1)}</button>`).join('')}</div></div>${heading('Personal details')}<div class="card"><div class="between"><div><div class="fine">What should ATLAS call you?</div><b>${esc(data.displayName||'Sir')}</b></div>${btn('Change','edit-name')}</div></div>${heading('Connection')}<div class="card"><b>↔ ATLAS Link</b><p class="fine" style="margin:9px 0">Optional authenticated bridge to this ChatGPT conversation. Tasks and goals can be shared manually. Projects and notes are private to your device.</p>${btn(bridgeProfile?'Open connected link':'Set up connection','goto-link','','action small')}</div>${heading('Data & privacy')}<div class="card"><b>Local-first storage</b><p class="fine" style="margin:10px 0">Tasks, projects, notes, calendar, finances, tracked habits and Insights live in this browser. Export a backup before changing devices, deleting Safari data or resetting ATLAS. The optional Link stores only what you explicitly share.</p><div class="btn-row">${btn('↥ Export backup','export','','action small')}${btn('＋ Merge information pack','merge','','action small')}${btn('↧ Replace from backup','import','','action ghost small')}</div><p class="fine" style="margin-top:10px">Merge adds new tasks, projects, notes and goals without replacing existing items. Download your private pack from ChatGPT first, then select it here. Replace from backup overwrites local data.</p><input id="import-file" type="file" accept=".json,application/json" hidden><input id="merge-file" type="file" accept=".json,application/json" hidden><div class="line"></div>${btn('Restore last local checkpoint','restore-checkpoint','','action ghost small')}${btn('Export recovery checkpoint','export-checkpoint','','action ghost small')}<p class="fine" style="margin:10px 0">A checkpoint contains private unencrypted data on this device. It is overwritten by the next import or restore. Backup files are also unencrypted; keep them private.</p>${storageLoadError?btn('Export preserved storage','export-preserved','','action ghost small'):''}${btn('Erase all local data','reset','','dangerbtn')}</div><p class="fine">ATLAS v1.8.1 · Local stabilisation candidate · Portrait & landscape calendar</p>`}
+function settings(){return `<div class="eyebrow">SYSTEM SETTINGS</div><h1>Settings</h1><p class="sub">Make ATLAS yours, and keep control of your data.</p>${heading('Appearance')}<div class="card"><div class="fine" style="margin-bottom:12px">Blood Red & Black is the default.</div><div class="swatches">${Object.keys(palettes).map(k=>`<button class="swatch ${data.theme===k?'selected':''}" data-action="theme" data-theme="${k}" style="background:${palettes[k][1]};color:${palettes[k][4]}"><span class="dot" style="background:${palettes[k][6]}"></span>${k==='midnight'?'Blood Red':k[0].toUpperCase()+k.slice(1)}</button>`).join('')}</div><div class="atlas-appearance-studio">
+ <div class="atlas-appearance-intro"><strong>Appearance Studio</strong><span>Build your own look. Changes stay on this device and are included in backups.</span></div>
+ <div class="atlas-appearance-row"><label for="atlas-accent-input">Accent colour <small>Automatically adjusted for readable contrast</small></label>
+ <input id="atlas-accent-input" type="color" value="${data.appearance.accent||palettes[data.theme][6]}" aria-label="Custom accent colour" title="Choose custom accent"></div>
+ <div class="atlas-appearance-grid">
+  <label for="atlas-density-select">Spacing<select id="atlas-density-select" class="select"><option value="comfortable" ${data.appearance.density==='comfortable'?'selected':''}>Comfortable</option><option value="compact" ${data.appearance.density==='compact'?'selected':''}>Compact</option></select></label>
+  <label for="atlas-corners-select">Corners<select id="atlas-corners-select" class="select"><option value="rounded" ${data.appearance.corners==='rounded'?'selected':''}>Rounded</option><option value="subtle" ${data.appearance.corners==='subtle'?'selected':''}>Subtle</option></select></label>
+  <label for="atlas-texture-select">Texture<select id="atlas-texture-select" class="select"><option value="subtle" ${data.appearance.texture==='subtle'?'selected':''}>Subtle grain</option><option value="off" ${data.appearance.texture==='off'?'selected':''}>Smooth</option></select></label>
+ </div>
+ <button class="action ghost small" type="button" data-action="appearance-reset">Reset custom appearance</button>
+ </div></div>${heading('Personal details')}<div class="card"><div class="between"><div><div class="fine">What should ATLAS call you?</div><b>${esc(data.displayName||'Sir')}</b></div>${btn('Change','edit-name')}</div></div>${heading('Connection')}<div class="card"><b>↔ ATLAS Link</b><p class="fine" style="margin:9px 0">Optional authenticated bridge to this ChatGPT conversation. Tasks and goals can be shared manually. Projects and notes are private to your device.</p>${btn(bridgeProfile?'Open connected link':'Set up connection','goto-link','','action small')}</div>${heading('Data & privacy')}<div class="card"><b>Local-first storage</b><p class="fine" style="margin:10px 0">Tasks, projects, notes, calendar, finances, tracked habits and Insights live in this browser. Export a backup before changing devices, deleting Safari data or resetting ATLAS. The optional Link stores only what you explicitly share.</p><div class="btn-row">${btn('↥ Export backup','export','','action small')}${btn('＋ Merge information pack','merge','','action small')}${btn('↧ Replace from backup','import','','action ghost small')}</div><p class="fine" style="margin-top:10px">Merge adds new tasks, projects, notes and goals without replacing existing items. Download your private pack from ChatGPT first, then select it here. Replace from backup overwrites local data.</p><input id="import-file" type="file" accept=".json,application/json" hidden><input id="merge-file" type="file" accept=".json,application/json" hidden><div class="line"></div>${btn('Restore last local checkpoint','restore-checkpoint','','action ghost small')}${btn('Export recovery checkpoint','export-checkpoint','','action ghost small')}<p class="fine" style="margin:10px 0">A checkpoint contains private unencrypted data on this device. It is overwritten by the next import or restore. Backup files are also unencrypted; keep them private.</p>${storageLoadError?btn('Export preserved storage','export-preserved','','action ghost small'):''}${btn('Erase all local data','reset','','dangerbtn')}</div><p class="fine">ATLAS v1.8.1 · Local stabilisation candidate · Portrait & landscape calendar</p>`}
 function searchScreen(){
  const q=searchText.trim().toLocaleLowerCase(),results=[];
  const matches=(values)=>values.some(x=>String(x??'').toLocaleLowerCase().includes(q));
@@ -1642,7 +1680,7 @@ if(a==='result'){
  if(type==='habit'){page='insights';insTab='habits';return render()}
  return openModal(type,ref)
 }
-if(a==='set-view'){view=element.dataset.view;return render()};if(a==='theme'){data.theme=element.dataset.theme;return commit('Theme changed')}
+if(a==='set-view'){view=element.dataset.view;return render()};if(a==='theme'){data.theme=element.dataset.theme;return commit('Theme changed')};if(a==='appearance-reset'){data.appearance=atlasAppearanceDefaults();return commit('Appearance reset')}
 if(a==='toggle-task')return toggleTask(ref,!!element.checked);
 if(a==='toggle-money'){const m=byId(data.money,ref);if(m){m.paid=!!element.checked;commit(m.paid?'Marked paid':'Marked unpaid')}return}
 if(a==='focus'){const t=byId(data.tasks,ref);if(!t)return;if(!t.focus&&openTasks().filter(x=>x.focus).length>=3){showToast('Choose a maximum of three focus tasks.');return}t.focus=!t.focus;t.stage='planned';return commit(t.focus?'Added to focus':'Removed from focus')}
@@ -1654,7 +1692,19 @@ if(a==='export-preserved'){try{downloadPreservedStorage()}catch(err){alert(err.m
 if(a==='reset'){if(!confirm('Erase all local ATLAS data, including Insights, on this device? This does NOT delete the separately stored ATLAS Link snapshot.'))return;if(!confirm('Final confirmation: permanently erase the local workspace AND its recovery checkpoint? Export a backup first. ATLAS Link sign-in is separate.'))return;try{persistWorkspace(defaults());localStorage.removeItem(RECOVERY_KEY);page='home';render();showToast('Local workspace and recovery checkpoint erased.')}catch(err){alert('Erase failed: '+err.message)}return}
 }
 document.addEventListener('click',e=>{const target=e.target.closest('[data-action]');if(!target)return;if(Date.now()<calSuppressClickUntil&&target.dataset.action==='cal-open'){e.preventDefault();return}if(target.dataset.action==='modal-bg'&&e.target!==target)return;if(target.dataset.action.startsWith('bridge-'))return;handleAction(target)});
-document.addEventListener('change',async e=>{if(e.target.id==='merge-file'){const input=e.target,file=input.files?.[0];if(!file)return;try{
+document.addEventListener('input',e=>{
+ if(e.target.id==='atlas-accent-input'&&atlasHex(e.target.value)){data.appearance.accent=e.target.value;setTheme()}
+});
+document.addEventListener('change',async e=>{
+ if(e.target.id==='atlas-accent-input'){
+  if(!atlasHex(e.target.value))return showToast('Choose a valid colour.');
+  data.appearance.accent=e.target.value;return commit('Accent colour saved');
+ }
+ const setting=({ 'atlas-density-select':['density',['comfortable','compact']],
+  'atlas-corners-select':['corners',['rounded','subtle']],
+  'atlas-texture-select':['texture',['subtle','off']] })[e.target.id];
+ if(setting){if(!setting[1].includes(e.target.value))return showToast('Invalid appearance setting.');data.appearance[setting[0]]=e.target.value;return commit('Appearance saved');}
+if(e.target.id==='merge-file'){const input=e.target,file=input.files?.[0];if(!file)return;try{
   if(file.size>5_000_000)throw Error('File too large (5 MB limit).');
   const incoming=validateImport(JSON.parse(await file.text()),{mode:'merge'}),result=mergeImport(incoming);
   const total=Object.values(result.counts).reduce((a,b)=>a+b,0);
