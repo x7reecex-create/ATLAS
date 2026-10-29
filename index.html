@@ -1246,7 +1246,17 @@ function calOpenOccurrence(kind,ref,origin){if(kind==='task'||kind==='deadline')
 function calMoveOccurrence(kind,ref,origin,targetDate,targetTime=''){if(!targetDate||!validDate(targetDate))throw Error('Invalid date.');if(kind==='deadline')kind='task';if(kind==='task'){const t=byId(data.tasks,ref);if(!t)throw Error('Task missing.');t.planned=targetDate;t.stage='planned';if(targetTime)t.scheduledTime=targetTime;commit('Task moved; deadline unchanged');return}const e=byId(data.calendarEvents,ref);if(!e)throw Error('Event missing.');if(e.repeat!=='none'&&origin){e.exceptions={...e.exceptions,[origin]:{...(e.exceptions[origin]||{}),date:targetDate,...(targetTime?{startTime:targetTime}:{})}}}else{e.startDate=targetDate;if(targetTime)e.startTime=targetTime}commit('Event moved');}
 function calMoveDialog(kind,ref,origin=''){const e=kind==='event'?byId(data.calendarEvents,ref):byId(data.tasks,ref);if(!e)return;const d=kind==='event'?(e.exceptions?.[origin]?.date||origin||e.startDate):(e.planned||e.due||calAnchor);calMove={kind,ref,origin};$('modal-root').innerHTML=`<div class="modalback" data-action="modal-bg"><div class="sheet" role="dialog" aria-modal="true" aria-label="Reschedule"><div class="titlebar"><h2>Reschedule</h2><button class="iconbtn" data-action="modal-close">×</button></div><p class="fine">${esc(e.title)}. ${kind==='task'||kind==='deadline'?'The task deadline will not change.':origin?'Recurring event: only the selected occurrence will move.':'This will move the whole event or series.'}</p><form id="cal-move-form">${field('date','Move to date',d,'date','required')}${field('time','Start time (optional)',e.scheduledTime||e.startTime||'','time')}<div id="cal-error" class="status error" role="alert" hidden></div><button class="action full" type="submit">Move item</button></form></div></div>`;}
 function calShowConflictsCandidate(date,time,duration,skipUid=''){if(!time)return [];return calOccurrences(date,date).filter(o=>!o.allDay&&o.uid!==skipUid&&calMins(time)<calMins(o.startTime)+o.durationMins&&calMins(o.startTime)<calMins(time)+duration);}
-function calICSEscape(s){return String(s||'').replace(/\\/g,'\\\\').replace(/\n/g,'\\n').replace(/,/g,'\\,').replace(/;/g,'\\;');}
+function calICSEscape(s){return String(s||'').replace(/\\/g,'\\\\').replace(/\r\n?|\n/g,'\\n').replace(/,/g,'\\,').replace(/;/g,'\\;');}
+// iCalendar content lines must be at most 75 UTF-8 octets, not 75 UTF-16 units.
+function calICSFold(line){
+ const parts=[];let part='',bytes=0;
+ for(const ch of line){
+  const point=ch.codePointAt(0),length=point<128?1:point<2048?2:point<65536?3:4;
+  if(bytes+length>75){parts.push(part);part=' ';bytes=1;}
+  part+=ch;bytes+=length;
+ }
+ parts.push(part);return parts.join('\r\n');
+}
 function calICSDate(date,time=''){return date.replace(/-/g,'')+(time?'T'+time.replace(':','').padEnd(6,'0'):'');}
 function calICSExport(){
  const lines=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//ATLAS//Personal Calendar//EN','CALSCALE:GREGORIAN','X-WR-CALNAME:ATLAS','X-WR-TIMEZONE:Europe/London'];
@@ -1257,7 +1267,7 @@ function calICSExport(){
  for(const [origin,ex] of Object.entries(e.exceptions||{})){if(ex.cancel)lines.push('EXDATE'+(e.allDay?';VALUE=DATE':';TZID=Europe/London')+':'+calICSDate(origin,e.allDay?'':e.startTime))}lines.push('END:VEVENT');
  for(const [origin,ex] of Object.entries(e.exceptions||{})){if(ex.cancel)continue;const day=ex.date||origin,time=ex.startTime||e.startTime,allDay=ex.allDay??e.allDay;lines.push('BEGIN:VEVENT','UID:'+uid,'RECURRENCE-ID'+(e.allDay?';VALUE=DATE':';TZID=Europe/London')+':'+calICSDate(origin,e.allDay?'':e.startTime),'DTSTAMP:'+stamp,'SUMMARY:'+calICSEscape(ex.title||e.title),'DESCRIPTION:'+calICSEscape(ex.details??e.details),'CATEGORIES:'+calICSEscape(ex.category||e.category),...times(day,time,ex.durationMins||e.durationMins,allDay),'END:VEVENT')}
  }
- lines.push('END:VCALENDAR');return lines.flatMap(line=>{const chunks=[];let t=line;while(t.length>73){chunks.push((chunks.length?' ':'')+t.slice(0,73));t=t.slice(73)}chunks.push((chunks.length?' ':'')+t);return chunks}).join('\r\n')+'\r\n';
+  lines.push('END:VCALENDAR');return lines.map(calICSFold).join('\r\n')+'\r\n';
 }
 function calDownload(name,content,type){const blob=new Blob([content],{type}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),20000);}
 // This parser intentionally accepts a safe, restricted iCalendar subset. Unsupported recurrence or timezones are reported, not guessed.
