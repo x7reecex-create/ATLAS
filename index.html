@@ -864,6 +864,106 @@ body{background:radial-gradient(ellipse 80% 26% at 50% -9%,var(--mat-veil),trans
   box-shadow:inset 0 1px var(--mat-glint),0 6px 18px #0002
  }
 }
+
+/* ATLAS TIMETABLE FINISH 08 — restrained, palette-aware landscape time grid. */
+@media (orientation:landscape) and (min-width:620px){
+ .content[data-view="calendar"]{
+  --cal-graphic-rule:color-mix(in srgb,var(--text) 10%,var(--border));
+  --cal-graphic-today:color-mix(in srgb,var(--accent-text) 9%,var(--surface));
+  --cal-graphic-hour:color-mix(in srgb,var(--text) 11%,transparent);
+ }
+ .content[data-view="calendar"] .cal-week-scroller{
+  border:1px solid var(--cal-graphic-rule);border-radius:15px;
+  background:var(--surface);box-shadow:inset 0 1px var(--mat-glint),0 10px 28px #0002;
+  scrollbar-color:var(--border) var(--surface);scrollbar-width:thin
+ }
+ .content[data-view="calendar"] .cal-grid-gutter,
+ .content[data-view="calendar"] .cal-grid-axis{
+  background:var(--surface2);border-color:var(--cal-graphic-rule)
+ }
+ .content[data-view="calendar"] .cal-grid-dayhead{
+  background-image:var(--matte),linear-gradient(165deg,var(--surface2),var(--surface));
+  background-size:128px 128px,auto;background-repeat:repeat,no-repeat;
+  color:var(--text);border-color:var(--cal-graphic-rule)
+ }
+ .content[data-view="calendar"] .cal-grid-dayhead span{
+  color:var(--muted);font-weight:750;letter-spacing:.055em
+ }
+ .content[data-view="calendar"] .cal-grid-dayhead strong{
+  font-weight:760;font-variant-numeric:tabular-nums
+ }
+ .content[data-view="calendar"] .cal-grid-dayhead.is-today{
+  background:var(--cal-graphic-today);
+  box-shadow:inset 0 -2px var(--accent-text)
+ }
+ .content[data-view="calendar"] .cal-grid-dayhead.is-today strong{
+  background:var(--accent);color:var(--accent-on)
+ }
+ .content[data-view="calendar"] .cal-grid-allday{
+  background:var(--surface);border-color:var(--cal-graphic-rule)
+ }
+ .content[data-view="calendar"] .cal-grid-allday.is-today{
+  background:var(--cal-graphic-today)
+ }
+ .content[data-view="calendar"] .cal-grid-timeday{
+  border-color:var(--cal-graphic-rule);background-color:var(--surface);
+  background-image:
+   linear-gradient(to bottom,transparent 47px,var(--cal-graphic-hour) 47px,var(--cal-graphic-hour) 48px),
+   repeating-linear-gradient(to bottom,transparent 0,transparent 48px,var(--mat-veil) 48px,var(--mat-veil) 96px);
+  background-size:100% 48px,100% 96px
+ }
+ .content[data-view="calendar"] .cal-grid-timeday.is-today{
+  background-color:var(--cal-graphic-today)
+ }
+ .content[data-view="calendar"] .cal-axis-hour{
+  color:var(--muted);font-size:10px;font-weight:680;letter-spacing:-.02em
+ }
+ .content[data-view="calendar"] .cal-grid-slot{
+  border-top-color:var(--cal-graphic-hour)
+ }
+ .content[data-view="calendar"] .cal-grid-event{
+  border:1px solid color-mix(in srgb,var(--cal-hue) 35%,var(--cal-graphic-rule));
+  border-left:3px solid var(--cal-hue);border-radius:9px;
+  background:color-mix(in srgb,var(--cal-hue) 13%,var(--surface2));
+  box-shadow:inset 0 1px var(--mat-glint),0 3px 12px #0003
+ }
+ .content[data-view="calendar"] .cal-grid-event button{
+  padding:4px 5px;gap:3px;line-height:1.22
+ }
+ .content[data-view="calendar"] .cal-grid-event-time{
+  color:var(--text);font-size:9px;font-weight:760;
+  font-variant-numeric:tabular-nums
+ }
+ .content[data-view="calendar"] .cal-grid-event strong{
+  font-size:10px;line-height:1.24;font-weight:690;
+  overflow-wrap:anywhere
+ }
+ .content[data-view="calendar"] .cal-current-line{
+  height:2px;background:var(--accent-text);box-shadow:none
+ }
+ .content[data-view="calendar"] .cal-current-line span{
+  width:8px;height:8px;left:-4px;top:-3px;background:var(--accent-text)
+ }
+ .content[data-view="calendar"] .cal-week-hint{color:var(--muted);line-height:1.5}
+}
+@media (orientation:landscape) and (min-width:620px) and (max-height:450px){
+ .content[data-view="calendar"] .cal-grid-event button{padding:3px 4px;gap:1px}
+ .content[data-view="calendar"] .cal-grid-event strong{font-size:9px;line-height:1.16}
+ .content[data-view="calendar"] .cal-grid-dayhead span{font-size:9px}
+}
+@media (orientation:landscape) and (min-width:1000px) and (min-height:590px){
+ .content[data-view="calendar"] .cal-grid-event strong{font-size:11px}
+ .content[data-view="calendar"] .cal-grid-event-time{font-size:10px}
+ .content[data-view="calendar"] .cal-grid-dayhead strong{font-size:16px}
+}
+@media (hover:hover) and (pointer:fine) and (orientation:landscape) and (min-width:620px){
+ .content[data-view="calendar"] .cal-grid-dayhead:hover{
+  background:var(--cal-graphic-today)
+ }
+ .content[data-view="calendar"] .cal-grid-event:hover{
+  border-color:var(--cal-hue);box-shadow:inset 0 1px var(--mat-glint),0 7px 17px #0003
+ }
+}
 </style>
 </head>
 <body>
