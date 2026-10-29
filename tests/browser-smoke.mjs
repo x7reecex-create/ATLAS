@@ -109,6 +109,19 @@ try {
     assert.equal(await page.locator('#atlas-quick-result').textContent(),'1.5 months covered · £900.00 to reach a 3-month fund',size.name+' emergency runway');
     await page.evaluate(() => document.activeElement?.blur());
     await page.evaluate(() => document.querySelector('#nav button[data-page="home"]').click());
+    // Decision helper: enter two choices, pick one, then clear.
+    await page.locator('#nav button[data-page="library"]').click();
+    await page.locator('#content button.signature-library-row[data-page="decisionTool"]').click();
+    await page.locator('[data-decision-option="0"]').fill('Walk');
+    await page.locator('[data-decision-option="1"]').fill('Read');
+    assert.deepEqual(await page.locator('[data-decision-option]').evaluateAll(nodes=>nodes.map(n=>n.value)),['Walk','Read'],size.name+' decision inputs retain values');
+    await page.locator('[data-action="decision-pick"]').click();
+    const decision=await page.locator('#content [role="status"] h2').first().textContent({timeout:5000}).catch(async()=>{throw new Error('Decision pick did not render: '+JSON.stringify(await page.locator('#content').innerText())+' | inputs '+JSON.stringify(await page.locator('[data-decision-option]').evaluateAll(nodes=>nodes.map(n=>n.value)))+' | errors '+JSON.stringify(errors));});
+    assert.ok(['Walk','Read'].includes(decision),size.name+' decision picks a supplied option');
+    await page.locator('[data-action="decision-clear"]').click();
+    assert.equal(await page.locator('[data-decision-option="0"]').inputValue(),'',size.name+' decision scratchpad clears');
+    await page.evaluate(() => document.activeElement?.blur());
+    await page.evaluate(() => document.querySelector('#nav button[data-page="home"]').click());
     const graphics = await page.evaluate(() => {
       const hero = document.querySelector('.signature-hero h1 span');
       const tiles = [...document.querySelectorAll('.signature-links button')];
