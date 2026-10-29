@@ -91,7 +91,7 @@ try {
     await page.locator('[data-decision-option="0"]').fill('Walk');
     await page.locator('[data-decision-option="1"]').fill('Read');
     await page.locator('[data-action="decision-pick"]').click();
-    const decision=await page.locator('#content .card[role="status"] h2').textContent({timeout:5000});
+    const decision=await page.locator('#content [role="status"] h2').first().textContent({timeout:5000}).catch(async()=>{throw new Error('Decision pick did not render: '+JSON.stringify(await page.locator('#content').innerText())+' | errors: '+JSON.stringify(pageErrors));});
     assert.ok(['Walk','Read'].includes(decision),size.name+' decision picks a supplied option');
     await page.locator('[data-action="decision-clear"]').click();
     assert.equal(await page.locator('[data-decision-option="0"]').inputValue(),'',size.name+' decision scratchpad clears');
