@@ -18,7 +18,7 @@ test('large text preference is bounded and backward compatible',()=>{
 test('larger text is opt-in and applies to real workspace copy',()=>{
   assert.match(html,/root\.dataset\.atlasTextSize=appearance\.textSize/);
   assert.match(html,/id="atlas-text-size-select"/);
-  assert.match(html,/\['accent','density','corners','texture','textSize'\]/,'strict backup validator recognises the new safe field');
+  assert.match(html,/\['accent','density','corners','texture','textSize','motion'\]/,'strict backup validator recognises the new safe field');
   assert.match(html,/\['textSize',\['standard','large'\]\]/,'backup validator rejects unbounded text size');
   assert.match(html,/data-atlas-text-size="large"[^\n]*\.signature-hero p/);
   assert.match(html,/data-atlas-text-size="large"[^\n]*\.taskmeta/);

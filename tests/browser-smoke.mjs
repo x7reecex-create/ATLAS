@@ -356,6 +356,7 @@ try {
       await page.locator('#atlas-corners-select').selectOption('subtle');
       await page.locator('#atlas-texture-select').selectOption('off');
       await page.locator('#atlas-text-size-select').selectOption('large');
+      await page.locator('#atlas-motion-select').selectOption('reduce');
       const appearance=await page.evaluate(()=>{
         const root=document.documentElement,style=getComputedStyle(root),stored=JSON.parse(localStorage.getItem('atlas-preview:v1'));
         const lumen=h=>('#'+h.replace('#','').toLowerCase()).match(/\w\w/g).map(x=>parseInt(x,16)/255).map(x=>x<=.04045?x/12.92:((x+.055)/1.055)**2.4).reduce((a,v,i)=>a+v*[.2126,.7152,.0722][i],0);
@@ -368,6 +369,7 @@ try {
           corners:stored.appearance?.corners,
           texture:stored.appearance?.texture,
           textSize:stored.appearance?.textSize,
+          motion:stored.appearance?.motion,
           custom:root.dataset.atlasCustomAccent,
           accentRatio:ratio(customAccent,style.getPropertyValue('--surface').trim()),
           buttonRatio:ratio(buttonAccent,style.getPropertyValue('--accent-on').trim()),
@@ -377,7 +379,7 @@ try {
           scroll:document.documentElement.scrollWidth
         };
       });
-      assert.deepEqual([appearance.accent,appearance.density,appearance.corners,appearance.texture,appearance.textSize],['#222222','compact','subtle','off','large'],size.name+' appearance settings safely persisted');
+      assert.deepEqual([appearance.accent,appearance.density,appearance.corners,appearance.texture,appearance.textSize,appearance.motion],['#222222','compact','subtle','off','large','reduce'],size.name+' appearance settings safely persisted');
       assert.equal(appearance.custom,'true',size.name+' custom accent active');
       assert.ok(appearance.accentRatio>=4.5,size.name+' contrast-safe accent text');
       assert.ok(appearance.buttonRatio>=4.5,size.name+' contrast-safe button');
@@ -387,11 +389,18 @@ try {
       await page.locator('#nav button[data-page="library"]').click();
       await page.locator('#content button.signature-library-row[data-page="settings"]').click();
       assert.equal(await page.locator('#atlas-density-select').inputValue(),'compact',size.name+' compact layout survived reload');
+      assert.equal(await page.locator('#atlas-motion-select').inputValue(),'reduce',size.name+' reduced motion survived reload');
+      const motionProbe=()=>page.evaluate(()=>{const el=document.createElement('div');el.style.transition='opacity 1s';document.body.appendChild(el);const duration=parseFloat(getComputedStyle(el).transitionDuration);el.remove();return duration});
+      await page.emulateMedia({reducedMotion:'no-preference'});
+      assert.ok(await motionProbe()<0.001,size.name+' user reduced motion works without OS preference');
       await page.locator('#content button.swatch[data-theme="arctic"]').click();
       assert.equal(await page.locator('#atlas-accent-input').inputValue(),'#222222',size.name+' custom accent preserved across palettes');
       await page.locator('[data-action="appearance-reset"]').click();
       const reset=await page.evaluate(()=>JSON.parse(localStorage.getItem('atlas-preview:v1')).appearance);
-      assert.deepEqual(reset,{accent:'',density:'comfortable',corners:'rounded',texture:'subtle',textSize:'standard'},size.name+' reset restores safe appearance defaults');
+      assert.deepEqual(reset,{accent:'',density:'comfortable',corners:'rounded',texture:'subtle',textSize:'standard',motion:'system'},size.name+' reset restores safe appearance defaults');
+      assert.ok(await motionProbe()>=0.9,size.name+' reset restores device-controlled motion');
+      await page.emulateMedia({reducedMotion:'reduce'});
+      assert.ok(await motionProbe()<0.001,size.name+' device reduced-motion preference always wins');
     }
     if (size.name === 'iphone' || size.name === 'desktop') {
       // Use the actual Journal form, local storage and graph, not sample records.
