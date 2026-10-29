@@ -156,6 +156,64 @@ try {
       assert.ok(parseFloat(card.radius)>=12,size.name+' rounded agenda cards');
       assert.ok(card.left>=-2&&card.right<=card.viewport+2,size.name+' agenda card fits viewport');
     }
+    if (size.width > size.height && size.width >= 620) {
+      // The real landscape time grid must retain seven accessible date columns.
+      const grid = await page.evaluate(() => {
+        const root=document.querySelector('.cal-landscape-week');
+        const scroller=root.querySelector('.cal-week-scroller');
+        const headers=[...root.querySelectorAll('.cal-grid-dayhead')];
+        const today=root.querySelector('.cal-grid-dayhead.is-today');
+        const other=headers.find(el=>el!==today);
+        const todayStyle=getComputedStyle(today);
+        const background=getComputedStyle(root.querySelector('.cal-grid-timeday'));
+        return {
+          display:getComputedStyle(root).display,
+          dates:headers.length,
+          namedDates:headers.every(el=>el.hasAttribute('aria-label')),
+          scrollerBorder:getComputedStyle(scroller).borderTopWidth,
+          scrollerRadius:getComputedStyle(scroller).borderTopLeftRadius,
+          todayBackground:todayStyle.backgroundColor,
+          ordinaryBackground:getComputedStyle(other).backgroundColor,
+          todayMarker:todayStyle.boxShadow,
+          hourGrid:background.backgroundImage,
+          axis:root.querySelectorAll('.cal-axis-hour').length
+        };
+      });
+      assert.notEqual(grid.display,'none',size.name+' seven-day desktop timetable visible');
+      assert.equal(grid.dates,7,size.name+' seven clickable day headers');
+      assert.ok(grid.namedDates,size.name+' dates retain accessible names');
+      assert.equal(grid.axis,24,size.name+' 24 labelled hour positions');
+      assert.ok(parseFloat(grid.scrollerBorder)>=1,size.name+' timetable panel boundary');
+      assert.ok(parseFloat(grid.scrollerRadius)>=12,size.name+' rounded timetable frame');
+      assert.notEqual(grid.todayBackground,grid.ordinaryBackground,size.name+' current day highlighted');
+      assert.match(grid.todayMarker,/inset/i,size.name+' current-day underline');
+      assert.match(grid.hourGrid,/gradient/i,size.name+' hourly grid texture');
+
+      // After the quick-add has saved the event, navigate to the following week
+      // and inspect the actual rendered time block, not a fabricated fixture.
+      const toolsPanel=page.locator('.calendar-tools');
+      if (await toolsPanel.evaluate(el=>el.open)) await toolsPanel.locator('summary').click();
+      await page.locator('.cal-period [data-action="cal-next"]').click();
+      const entry=page.locator('.cal-grid-event').filter({hasText:'ATLAS smoke'});
+      assert.equal(await entry.count(),1,size.name+' saved event exists in time grid');
+      const block=await entry.evaluate(el=>{
+        const s=getComputedStyle(el),r=el.getBoundingClientRect();
+        return {
+          label:el.querySelector('strong')?.textContent,
+          borderLeft:s.borderLeftWidth,
+          radius:s.borderTopLeftRadius,
+          fill:s.backgroundColor,
+          shadow:s.boxShadow,
+          width:r.width,
+          height:r.height
+        };
+      });
+      assert.equal(block.label,'ATLAS smoke',size.name+' event title preserved');
+      assert.ok(parseFloat(block.borderLeft)>=3,size.name+' colored category edge');
+      assert.ok(parseFloat(block.radius)>=8,size.name+' rounded event block');
+      assert.ok(block.width>30&&block.height>=20,size.name+' event still has usable size');
+      assert.notEqual(block.fill,'rgba(0, 0, 0, 0)',size.name+' event has opaque category surface');
+    }
     const dimensions=await page.evaluate(()=>({
       scroll:document.documentElement.scrollWidth,
       viewport:document.documentElement.clientWidth
