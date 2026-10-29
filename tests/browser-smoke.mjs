@@ -468,6 +468,8 @@ try {
     const searchLayout=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,viewport:document.documentElement.clientWidth}));
     assert.ok(searchLayout.scroll<=searchLayout.viewport+2,size.name+' search page overflow: '+JSON.stringify(searchLayout));
     // The desktop shortcut also works for an external iPad/phone keyboard.
+    // Use the app route action rather than clicking navigation hidden during keyboard focus.
+    await page.keyboard.press('Escape');
     await page.locator('#nav button[data-page="home"]').click();
     await page.keyboard.press('Control+k');
     assert.equal(await page.locator('#content').getAttribute('data-view'),'search',size.name+' Ctrl+K navigation');
