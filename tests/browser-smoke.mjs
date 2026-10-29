@@ -51,6 +51,13 @@ try {
     // Exercise the actual Settings control, then verify the persisted preference.
     await page.locator('#nav button[data-page="library"]').click();
     await page.locator('#content button.signature-library-row[data-page="settings"]').click();
+    if (mobile && size.width < size.height) {
+      // Native option pickers must not masquerade as a text keyboard and hide navigation.
+      const picker=page.locator('#atlas-text-size-select');
+      await picker.focus();
+      assert.equal(await page.locator('#nav').evaluate(el=>getComputedStyle(el).display!=='none'),true,size.name+' bottom navigation remains available with picker focused');
+      assert.equal(await page.evaluate(()=>document.body.classList.contains('atlas-mobile-editing')),false,size.name+' picker focus does not activate keyboard layout');
+    }
     await page.locator('#atlas-text-size-select').selectOption('large');
     await page.waitForFunction(() => JSON.parse(localStorage.getItem('atlas-preview:v1')||'null')?.appearance?.textSize === 'large');
     await page.reload();
