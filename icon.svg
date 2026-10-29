@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="ATLAS geometric compass A">
+<defs><linearGradient id="red" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c42b38"/><stop offset="1" stop-color="#73050d"/></linearGradient></defs>
+<rect width="512" height="512" rx="118" fill="#0a090b"/>
+<rect x="24" y="24" width="464" height="464" rx="109" fill="#1b0e12" stroke="#79212b" stroke-width="4"/>
+<path d="M88 350 256 72 424 350" fill="none" stroke="#47202a" stroke-width="12" stroke-linecap="round"/>
+<path d="M139 372 255 147 373 372" fill="none" stroke="#fff2ef" stroke-width="39" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M205 299 256 196 306 299" fill="none" stroke="url(#red)" stroke-width="17" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M196 325 H323" fill="none" stroke="url(#red)" stroke-width="30" stroke-linecap="round"/>
+<circle cx="256" cy="76" r="16" fill="#d13b48"/>
+<path d="M162 411 H350" stroke="#7d2731" stroke-width="8" stroke-linecap="round"/>
+</svg>

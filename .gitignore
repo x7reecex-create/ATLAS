@@ -1,0 +1,12 @@
+.env
+.env.*
+!.env.example
+node_modules/
+.DS_Store
+*.log
+atlas-backup-*.json
+atlas-recovery-*.json
+*.token
+*.session
+.superpowers/
+.worktrees/
