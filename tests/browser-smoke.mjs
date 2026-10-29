@@ -84,6 +84,16 @@ try {
     assert.equal(await page.locator('#content').getAttribute('data-view'),'search',size.name+' search route');
     const searchLayout=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,viewport:document.documentElement.clientWidth}));
     assert.ok(searchLayout.scroll<=searchLayout.viewport+2,size.name+' search page overflow: '+JSON.stringify(searchLayout));
+    // The desktop shortcut also works for an external iPad/phone keyboard.
+    await page.locator('#nav button[data-page="home"]').click();
+    await page.keyboard.press('Control+k');
+    assert.equal(await page.locator('#content').getAttribute('data-view'),'search',size.name+' Ctrl+K navigation');
+    assert.equal(await page.locator('#search-input').evaluate(el=>document.activeElement===el),true,size.name+' search receives focus');
+    await page.keyboard.press('Escape');
+    assert.equal(await page.locator('#content').getAttribute('data-view'),'home',size.name+' Esc closes search');
+    await page.keyboard.press('Meta+k');
+    assert.equal(await page.locator('#content').getAttribute('data-view'),'search',size.name+' Cmd+K navigation');
+    await page.keyboard.press('Escape');
     assert.deepEqual(errors,[],size.name+' browser JavaScript errors');
     console.log('PASS '+size.name+' '+size.width+'x'+size.height+' 12 screens/reduced-motion/no-overflow/no-JS-errors');
     await context.close();
