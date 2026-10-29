@@ -56,8 +56,9 @@ try {
       for (const theme of ['arctic','forest','ember','midnight']) {
         await page.evaluate(nextTheme => {
           const key='atlas-preview:v1';
-          const current=JSON.parse(localStorage.getItem(key)||'{}');
-          localStorage.setItem(key,JSON.stringify({...current,theme:nextTheme}));
+          const current=JSON.parse(localStorage.getItem(key)||'{"tasks":[]}');
+          // Preserve the validated workspace schema; an empty object is deliberately rejected.
+          localStorage.setItem(key,JSON.stringify({...current,tasks:current.tasks||[],theme:nextTheme}));
         },theme);
         await page.reload();
         await page.locator('.signature-links button').first().waitFor();
