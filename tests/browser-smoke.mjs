@@ -32,6 +32,22 @@ try {
     await page.goto('http://127.0.0.1:8765/index.html', {waitUntil:'load'});
     await page.locator('#nav button[data-page="home"]').waitFor({timeout:12000});
     assert.equal(await page.locator('#content').getAttribute('data-view'),'home',size.name+' home route');
+    if (mobile && size.width < size.height) {
+      const nav=page.locator('#nav'),fab=page.locator('#fab');
+      assert.notEqual(await nav.evaluate(el=>getComputedStyle(el).display),'none',size.name+' nav initially visible');
+      assert.notEqual(await fab.evaluate(el=>getComputedStyle(el).display),'none',size.name+' capture initially visible');
+      const capture=page.locator('#capture-text');
+      await capture.focus();
+      await page.waitForFunction(()=>document.body.classList.contains('atlas-mobile-editing'));
+      assert.equal(await nav.evaluate(el=>getComputedStyle(el).display),'none',size.name+' nav clears typing space');
+      assert.equal(await fab.evaluate(el=>getComputedStyle(el).display),'none',size.name+' floating button clears typing space');
+      const font=await capture.evaluate(el=>getComputedStyle(el).fontSize);
+      assert.ok(parseFloat(font)>=16,size.name+' input does not trigger iOS zoom');
+      await capture.evaluate(el=>el.blur());
+      await page.waitForFunction(()=>!document.body.classList.contains('atlas-mobile-editing'));
+      assert.notEqual(await nav.evaluate(el=>getComputedStyle(el).display),'none',size.name+' nav restores after text entry');
+      assert.notEqual(await fab.evaluate(el=>getComputedStyle(el).display),'none',size.name+' floating capture restores after text entry');
+    }
     const graphics = await page.evaluate(() => {
       const hero = document.querySelector('.signature-hero h1 span');
       const tiles = [...document.querySelectorAll('.signature-links button')];
@@ -240,6 +256,31 @@ try {
       assert.ok(parseFloat(block.radius)>=8,size.name+' rounded event block');
       assert.ok(block.width>30&&block.height>=20,size.name+' event still has usable size');
       assert.notEqual(block.fill,'rgba(0, 0, 0, 0)',size.name+' event has opaque category surface');
+    }
+    if (mobile && size.width < size.height) {
+      // The real Calendar event sheet must stay inside the visible viewport while focused.
+      await page.locator('.calendar-actions button[data-action="cal-add"]').click();
+      const dialog=page.locator('.modalback .sheet');
+      await dialog.waitFor();
+      await page.locator('.modalback #f-title').focus();
+      await page.waitForFunction(()=>document.body.classList.contains('atlas-mobile-editing'));
+      const editing=await dialog.evaluate(el=>{
+        const r=el.getBoundingClientRect(),vv=visualViewport;
+        return {
+          top:r.top,bottom:r.bottom,visibleTop:vv?.offsetTop??0,
+          visibleBottom:(vv?.offsetTop??0)+(vv?.height??innerHeight),
+          maxHeight:getComputedStyle(el).maxHeight,
+          nav:getComputedStyle(document.querySelector('#nav')).display,
+          fab:getComputedStyle(document.querySelector('#fab')).display
+        };
+      });
+      assert.ok(editing.top>=editing.visibleTop-2,size.name+' form top within visual viewport '+JSON.stringify(editing));
+      assert.ok(editing.bottom<=editing.visibleBottom+2,size.name+' form bottom within visual viewport '+JSON.stringify(editing));
+      assert.equal(editing.nav,'none',size.name+' no navigation overlapping event editor');
+      assert.equal(editing.fab,'none',size.name+' no floating capture overlapping event editor');
+      await page.locator('.modalback [data-action="modal-close"]').click();
+      await page.waitForFunction(()=>!document.body.classList.contains('atlas-mobile-editing'));
+      assert.notEqual(await page.locator('#nav').evaluate(el=>getComputedStyle(el).display),'none',size.name+' navigation back after editor closes');
     }
     const dimensions=await page.evaluate(()=>({
       scroll:document.documentElement.scrollWidth,
