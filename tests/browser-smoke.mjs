@@ -1,6 +1,7 @@
 // Browser-only smoke suite. Runs in GitHub Actions, not in the app bundle.
 // Playwright is installed in CI and is never a production dependency.
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import { chromium } from 'playwright';
 
 const browser = await chromium.launch({
@@ -526,6 +527,7 @@ try {
         assert.notEqual(await page.locator('#nav').evaluate(el=>getComputedStyle(el).display),'none',size.name+' navigation restores after writing');
       }
       assert.equal(await page.locator('.atlas-journal-bar').count(),0,size.name+' no fabricated mood trend');
+      assert.equal(await page.locator('[data-action="journal-export"]').isDisabled(),true,size.name+' empty journal cannot export');
       await page.locator('#atlas-journal-body').fill('A good day with family and some progress.');
       await page.locator('#atlas-journal-mood').selectOption('good');
       await page.locator('#atlas-journal-energy').selectOption('4');
@@ -547,6 +549,15 @@ try {
       await page.locator('#atlas-journal-energy').selectOption('1');
       await page.locator('#atlas-journal-form button[type="submit"]').click();
       assert.equal(await page.locator('.atlas-journal-bar').count(),2,size.name+' chart contains both recorded days');
+      // Export the actual saved entries and inspect the resulting local file.
+      await page.evaluate(()=>Object.defineProperty(navigator,'canShare',{configurable:true,value:()=>false}));
+      const [journalDownload]=await Promise.all([page.waitForEvent('download'),page.locator('[data-action="journal-export"]').click()]);
+      assert.match(journalDownload.suggestedFilename(),/^atlas-journal-\d{4}-\d{2}-\d{2}\.txt$/,size.name+' safe journal filename');
+      const journalText=await readFile(await journalDownload.path(),'utf8');
+      assert.match(journalText,/ATLAS PRIVATE JOURNAL\nSaved entries: 2/);
+      assert.match(journalText,/Date: 2026-10-28[\s\S]*A hard day\. Rest and reset\.[\s\S]*Date: 2026-10-29[\s\S]*A good day with family and some progress\./,size.name+' chronological complete journal download');
+      assert.match(journalText,/Mood: Rough[\s\S]*Energy: 1\/5[\s\S]*Mood: Good[\s\S]*Energy: 4\/5/,size.name+' journal metadata included');
+      assert.doesNotMatch(journalText,/"balanceHistory"|"calendarEvents"|"bridgeSession"/,size.name+' journal export excludes unrelated workspace fields');
       const heights=await page.locator('.atlas-journal-bar span').evaluateAll(items=>items.map(el=>el.style.height));
       assert.deepEqual(heights,['20%','80%'],size.name+' mood graph faithfully renders rough and good scores');
       await page.locator('#atlas-journal-search').fill('family');
