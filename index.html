@@ -1079,6 +1079,9 @@ body{background:radial-gradient(ellipse 80% 26% at 50% -9%,var(--mat-veil),trans
 :root[data-atlas-text-size="large"] .cal-portrait-day-head{align-items:flex-start}
 :root[data-atlas-text-size="large"] .cal-portrait-day-head h2{overflow-wrap:anywhere}
 
+/* Explicit motion reduction adds to (never overrides) the device accessibility preference. */
+:root[data-atlas-motion="reduce"]{scroll-behavior:auto!important}
+:root[data-atlas-motion="reduce"] *, :root[data-atlas-motion="reduce"] *::before, :root[data-atlas-motion="reduce"] *::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
 </style>
 </head>
 <body>
@@ -1110,7 +1113,7 @@ body{background:radial-gradient(ellipse 80% 26% at 50% -9%,var(--mat-veil),trans
 const KEY='atlas-preview:v1', AUTH_KEY='atlas-bridge:auth:v1';
 const palettes={midnight:['#08090b','#121315','#1c1d20','#2b2c30','#f2f1f3','#a7a5ad','#9f2938','#26171c','#80bda1','#ed8f95'],arctic:['#f2f6fc','#ffffff','#e8f0f9','#d3dfed','#172a44','#677d94','#126ebc','#e0f0ff','#0c9470','#cf4357'],forest:['#0c1715','#162923','#203b31','#315247','#e7f7ec','#a2c3ae','#94e1ae','#254536','#83e8ad','#ffa29f'],ember:['#171015','#2a1b25','#412733','#5d3645','#fff3f3','#d7aeba','#ffb58b','#51362f','#b7df9c','#ff939c']};
 /* Appearance Studio: local-first, bounded controls with no arbitrary CSS/HTML import. */
-const atlasAppearanceDefaults=()=>({accent:'',density:'comfortable',corners:'rounded',texture:'subtle',textSize:'standard'});
+const atlasAppearanceDefaults=()=>({accent:'',density:'comfortable',corners:'rounded',texture:'subtle',textSize:'standard',motion:'system'});
 const atlasHex=v=>typeof v==='string'&&/^#[0-9a-f]{6}$/i.test(v);
 function atlasNormalizeAppearance(value){
  const v=value&&typeof value==='object'&&!Array.isArray(value)?value:{};
@@ -1119,7 +1122,8 @@ function atlasNormalizeAppearance(value){
   density:['comfortable','compact'].includes(v.density)?v.density:'comfortable',
   corners:['rounded','subtle'].includes(v.corners)?v.corners:'rounded',
   texture:['subtle','off'].includes(v.texture)?v.texture:'subtle',
-  textSize:['standard','large'].includes(v.textSize)?v.textSize:'standard'
+  textSize:['standard','large'].includes(v.textSize)?v.textSize:'standard',
+  motion:['system','reduce'].includes(v.motion)?v.motion:'system'
  };
 }
 function atlasColorRgb(hex){return [1,3,5].map(i=>parseInt(hex.slice(i,i+2),16))}
@@ -1425,6 +1429,7 @@ function setTheme(){
  root.dataset.atlasCorners=appearance.corners;
  root.dataset.atlasTexture=appearance.texture;
   root.dataset.atlasTextSize=appearance.textSize;
+ root.dataset.atlasMotion=appearance.motion;
  root.style.colorScheme=data.theme==='arctic'?'light':'dark';
  document.querySelector('meta[name="theme-color"]').content=p[0];
 }
@@ -1511,6 +1516,7 @@ function settings(){return `<div class="eyebrow">SYSTEM SETTINGS</div><h1>Settin
   <label for="atlas-corners-select">Corners<select id="atlas-corners-select" class="select"><option value="rounded" ${data.appearance.corners==='rounded'?'selected':''}>Rounded</option><option value="subtle" ${data.appearance.corners==='subtle'?'selected':''}>Subtle</option></select></label>
   <label for="atlas-texture-select">Texture<select id="atlas-texture-select" class="select"><option value="subtle" ${data.appearance.texture==='subtle'?'selected':''}>Subtle grain</option><option value="off" ${data.appearance.texture==='off'?'selected':''}>Smooth</option></select></label>
    <label for="atlas-text-size-select">Text size<select id="atlas-text-size-select" class="select" aria-describedby="atlas-text-size-help"><option value="standard" ${data.appearance.textSize==='standard'?'selected':''}>Standard</option><option value="large" ${data.appearance.textSize==='large'?'selected':''}>Larger text</option></select><small id="atlas-text-size-help" class="fine">Enlarges everyday text across ATLAS.</small></label>
+   <label for="atlas-motion-select">Motion<select id="atlas-motion-select" class="select" aria-describedby="atlas-motion-help"><option value="system" ${data.appearance.motion==='system'?'selected':''}>Follow device</option><option value="reduce" ${data.appearance.motion==='reduce'?'selected':''}>Reduce motion</option></select><small id="atlas-motion-help" class="fine">Device accessibility settings always take priority.</small></label>
  </div>
  <button class="action ghost small" type="button" data-action="appearance-reset">Reset custom appearance</button>
  </div></div>${heading('Personal details')}<div class="card"><div class="between"><div><div class="fine">What should ATLAS call you?</div><b>${esc(data.displayName||'Sir')}</b></div>${btn('Change','edit-name')}</div></div>${heading('Connection')}<div class="card"><b>↔ ATLAS Link</b><p class="fine" style="margin:9px 0">Optional authenticated bridge to this ChatGPT conversation. Tasks and goals can be shared manually. Projects and notes are private to your device.</p>${btn(bridgeProfile?'Open connected link':'Set up connection','goto-link','','action small')}</div>${heading('Data & privacy')}<div class="card"><b>Local-first storage</b><p class="fine" style="margin:10px 0">Tasks, projects, notes, calendar, finances, tracked habits and Insights live in this browser. Export a backup before changing devices, deleting Safari data or resetting ATLAS. The optional Link stores only what you explicitly share.</p><div class="btn-row">${btn('↥ Export backup','export','','action small')}${btn('＋ Merge information pack','merge','','action small')}${btn('↧ Replace from backup','import','','action ghost small')}</div><p class="fine" style="margin-top:10px">Merge adds new tasks, projects, notes and goals without replacing existing items. Download your private pack from ChatGPT first, then select it here. Replace from backup overwrites local data.</p><input id="import-file" type="file" accept=".json,application/json" hidden><input id="merge-file" type="file" accept=".json,application/json" hidden><div class="line"></div>${btn('Restore last local checkpoint','restore-checkpoint','','action ghost small')}${btn('Export recovery checkpoint','export-checkpoint','','action ghost small')}<p class="fine" style="margin:10px 0">A checkpoint contains private unencrypted data on this device. It is overwritten by the next import or restore. Backup files are also unencrypted; keep them private.</p>${storageLoadError?btn('Export preserved storage','export-preserved','','action ghost small'):''}${btn('Erase all local data','reset','','dangerbtn')}</div><p class="fine">ATLAS v1.8.1 · Local stabilisation candidate · Portrait & landscape calendar</p>`}
@@ -1702,9 +1708,9 @@ function validateImport(source,{mode='backup'}={}){
   for(const g of d.goals){text(g.title,200,'goal',true);number(g.target,Number.MIN_VALUE,Number.MAX_SAFE_INTEGER,'goal');if(g.current!==undefined)number(g.current,0,Number.MAX_SAFE_INTEGER,'goal');text(g.unit,24,'goal');}
   for(const [kind,validate] of [['transactions',insNormalizeTransaction],['timeEntries',insNormalizeTime],['habits',insNormalizeHabit],['habitLogs',insNormalizeCheck],['goalHistory',insNormalizeGoalLog],['balanceHistory',insNormalizeBalance]])for(const x of d[kind])if(!validate(x))fail(kind,'invalid record');
   if(d.appearance!==undefined){
-   if(!object(d.appearance)||Object.keys(d.appearance).some(k=>!['accent','density','corners','texture','textSize'].includes(k)))fail('appearance','invalid settings');
+   if(!object(d.appearance)||Object.keys(d.appearance).some(k=>!['accent','density','corners','texture','textSize','motion'].includes(k)))fail('appearance','invalid settings');
    if(d.appearance.accent!==undefined&&d.appearance.accent!==''&&!atlasHex(d.appearance.accent))fail('appearance','invalid accent');
-   for(const [key,choices] of [['density',['comfortable','compact']],['corners',['rounded','subtle']],['texture',['subtle','off']],['textSize',['standard','large']]])
+   for(const [key,choices] of [['density',['comfortable','compact']],['corners',['rounded','subtle']],['texture',['subtle','off']],['textSize',['standard','large']],['motion',['system','reduce']]])
     if(d.appearance[key]!==undefined&&!choices.includes(d.appearance[key]))fail('appearance','invalid '+key);
   }
   if(d.balance!==undefined&&d.balance!==null)number(d.balance,0,Number.MAX_SAFE_INTEGER,'balance');
@@ -1823,7 +1829,8 @@ document.addEventListener('change',async e=>{
  const setting=({ 'atlas-density-select':['density',['comfortable','compact']],
   'atlas-corners-select':['corners',['rounded','subtle']],
   'atlas-texture-select':['texture',['subtle','off']],
-   'atlas-text-size-select':['textSize',['standard','large']] })[e.target.id];
+   'atlas-text-size-select':['textSize',['standard','large']],
+   'atlas-motion-select':['motion',['system','reduce']] })[e.target.id];
  if(setting){if(!setting[1].includes(e.target.value))return showToast('Invalid appearance setting.');data.appearance[setting[0]]=e.target.value;return commit('Appearance saved');}
 if(e.target.id==='merge-file'){const input=e.target,file=input.files?.[0];if(!file)return;try{
   if(file.size>5_000_000)throw Error('File too large (5 MB limit).');
