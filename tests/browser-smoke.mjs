@@ -91,6 +91,7 @@ try {
     await page.locator('[data-decision-option="0"]').fill('Walk');
     await page.locator('[data-decision-option="1"]').fill('Read');
     assert.deepEqual(await page.locator('[data-decision-option]').evaluateAll(nodes=>nodes.map(n=>n.value)),['Walk','Read'],size.name+' decision inputs retain values');
+    await page.locator('[data-decision-option="1"]').blur();
     await page.locator('[data-action="decision-pick"]').click();
     const debug=await page.locator('html').getAttribute('data-atlas-decision-debug');
     assert.ok(debug?.startsWith('picked-'),size.name+' decision click sets result: '+debug);
