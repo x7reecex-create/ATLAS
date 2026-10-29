@@ -12,3 +12,8 @@ jobs:
         with:
           persist-credentials: false
       - run: node --test tests/*.test.mjs
+      - name: Browser smoke (Chrome, six viewports)
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts playwright@1.64.1
+          python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/atlas-web.log 2>&1 &
+          node tests/browser-smoke.mjs
