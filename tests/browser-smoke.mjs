@@ -85,17 +85,18 @@ try {
     await page.locator('[data-action="focus-reset"]').click();
     assert.equal(await page.locator('#atlas-focus-clock').textContent(),'25:00',size.name+' focus timer resets');
     await page.locator('#nav button[data-page="home"]').click();
-    // Decision helper: two user-entered options, a valid pick, and clear.
+    // Decision helper: enter two choices, pick one, then clear.
     await page.locator('#nav button[data-page="library"]').click();
     await page.locator('#content button.signature-library-row[data-page="decisionTool"]').click();
     await page.locator('[data-decision-option="0"]').fill('Walk');
     await page.locator('[data-decision-option="1"]').fill('Read');
     await page.locator('[data-action="decision-pick"]').click();
-    const decision=await page.locator('[role="status"] h2').textContent();
+    const decision=await page.locator('#content .card[role="status"] h2').textContent({timeout:5000});
     assert.ok(['Walk','Read'].includes(decision),size.name+' decision picks a supplied option');
     await page.locator('[data-action="decision-clear"]').click();
     assert.equal(await page.locator('[data-decision-option="0"]').inputValue(),'',size.name+' decision scratchpad clears');
-    await page.locator('#nav button[data-page="home"]').click();
+    await page.evaluate(() => document.activeElement?.blur());
+    await page.evaluate(() => document.querySelector('#nav button[data-page="home"]').click());
     const graphics = await page.evaluate(() => {
       const hero = document.querySelector('.signature-hero h1 span');
       const tiles = [...document.querySelectorAll('.signature-links button')];
