@@ -639,6 +639,13 @@ body{background:radial-gradient(ellipse 80% 26% at 50% -9%,var(--mat-veil),trans
  .cal-hour-add{min-width:44px;min-height:44px;top:8px;right:6px;border-radius:10px;opacity:.8;}
  .content[data-view="calendar"] .cal-views button{min-height:44px;}
 }
+/* ATLAS narrow portrait: let Calendar header actions wrap instead of widening the page. */
+@media (orientation:portrait) and (max-width:360px){
+ .content[data-view="calendar"] .page-head{flex-wrap:wrap;gap:8px 10px}
+ .content[data-view="calendar"] .page-head>div:first-child{min-width:0;flex:1 1 155px}
+ .content[data-view="calendar"] .calendar-actions{flex:0 0 auto;max-width:100%;gap:7px}
+}
+
 </style>
 </head>
 <body>
