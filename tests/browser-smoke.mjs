@@ -107,6 +107,8 @@ try {
     await page.locator('#atlas-quick-a').fill('900');
     await page.locator('#atlas-quick-b').fill('600');
     assert.equal(await page.locator('#atlas-quick-result').textContent(),'1.5 months covered · £900.00 to reach a 3-month fund',size.name+' emergency runway');
+    await page.evaluate(() => document.activeElement?.blur());
+    await page.evaluate(() => document.querySelector('#nav button[data-page="home"]').click());
     // Decision helper: enter two choices, pick one, then clear.
     await page.locator('#nav button[data-page="library"]').click();
     await page.locator('#content button.signature-library-row[data-page="decisionTool"]').click();
