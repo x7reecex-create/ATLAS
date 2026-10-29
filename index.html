@@ -969,6 +969,29 @@ body{background:radial-gradient(ellipse 80% 26% at 50% -9%,var(--mat-veil),trans
  .content[data-view="calendar"] .cal-portrait-date-strip{touch-action:pan-y;overscroll-behavior-x:contain}
 }
 
+
+/* ATLAS MOBILE EDITOR SPACE 10 — keep essential text editing unobstructed. */
+@media (orientation:portrait) and (pointer:coarse) and (max-width:900px){
+ body.atlas-mobile-editing .bottomnav,
+ body.atlas-mobile-editing #fab{display:none!important}
+ body.atlas-mobile-editing .content{
+  padding-bottom:max(28px,env(safe-area-inset-bottom));
+  scroll-padding-bottom:calc(25px + env(safe-area-inset-bottom))
+ }
+ body.atlas-mobile-editing .modalback{
+  top:var(--atlas-visual-top,0px);
+  bottom:auto;
+  height:var(--atlas-visual-height,100dvh);
+  padding-top:max(5px,env(safe-area-inset-top));
+  padding-bottom:max(5px,env(safe-area-inset-bottom))
+ }
+ body.atlas-mobile-editing .modalback .sheet{
+  max-height:calc(var(--atlas-visual-height,100dvh) - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 10px);
+  scroll-padding-bottom:24px;
+  overscroll-behavior:contain
+ }
+}
+
 </style>
 </head>
 <body>
@@ -1784,6 +1807,30 @@ document.addEventListener('touchend',e=>{
  render();
 },{passive:false});
 document.addEventListener('touchcancel',()=>{atlasWeekSwipe=null},{passive:true});
+
+/* Editing focus/visual viewport management is deliberately local to presentation.
+   Do not infer that a keyboard opened purely because a text input has focus. */
+const atlasIsTextEdit=el=>el instanceof Element && (
+ el.matches('textarea,[contenteditable="true"],select') ||
+ (el.matches('input')&&!['checkbox','radio','range','color','button','submit','reset','file','hidden'].includes(el.type))
+);
+function atlasRefreshMobileEditor(){
+ const portraitTouch=matchMedia('(orientation:portrait) and (pointer:coarse) and (max-width:900px)').matches;
+ const editing=portraitTouch&&atlasIsTextEdit(document.activeElement);
+ document.body.classList.toggle('atlas-mobile-editing',editing);
+ if(!editing)return;
+ const vv=window.visualViewport;
+ if(vv){
+  document.documentElement.style.setProperty('--atlas-visual-height',Math.max(120,Math.round(vv.height))+'px');
+  document.documentElement.style.setProperty('--atlas-visual-top',Math.max(0,Math.round(vv.offsetTop))+'px');
+ }
+}
+document.addEventListener('focusin',atlasRefreshMobileEditor,true);
+document.addEventListener('focusout',()=>requestAnimationFrame(atlasRefreshMobileEditor),true);
+window.visualViewport?.addEventListener('resize',atlasRefreshMobileEditor,{passive:true});
+window.visualViewport?.addEventListener('scroll',atlasRefreshMobileEditor,{passive:true});
+window.addEventListener('resize',atlasRefreshMobileEditor,{passive:true});
+
 if('serviceWorker' in navigator&&window.isSecureContext&&location.protocol==='https:')navigator.serviceWorker.register('./sw.js').catch(()=>{});
 })();
 
