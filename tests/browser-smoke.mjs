@@ -70,6 +70,21 @@ try {
     assert.ok(largeTextGeometry.overflow<=2,size.name+' larger text never creates horizontal document overflow');
     assert.ok(largeTextGeometry.navVisible&&largeTextGeometry.navButtons>0,size.name+' larger text preserves navigation');
     assert.ok(largeTextGeometry.buttonBounds.every(r=>r.left>=-2&&r.right<=size.width+2&&r.width>=24&&r.height>=24),size.name+' larger text navigation remains onscreen and tappable');
+    // Focus tool is reachable, starts, pauses and survives a reload without user data leaving the device.
+    await page.locator('#nav button[data-page="library"]').click();
+    await page.locator('#content button.signature-library-row[data-page="focusTool"]').click();
+    assert.equal(await page.locator('#atlas-focus-clock').textContent(),'25:00',size.name+' focus timer defaults to 25 minutes');
+    await page.locator('[data-action="focus-toggle"]').click();
+    assert.equal(await page.locator('#atlas-focus-status').textContent(),'Focus session running',size.name+' focus timer starts');
+    await page.reload();
+    await page.locator('#nav button[data-page="library"]').click();
+    await page.locator('#content button.signature-library-row[data-page="focusTool"]').click();
+    assert.equal(await page.locator('#atlas-focus-status').textContent(),'Focus session running',size.name+' focus timer survives reload');
+    await page.locator('[data-action="focus-toggle"]').click();
+    assert.equal(await page.locator('#atlas-focus-status').textContent(),'Ready when you are',size.name+' focus timer pauses');
+    await page.locator('[data-action="focus-reset"]').click();
+    assert.equal(await page.locator('#atlas-focus-clock').textContent(),'25:00',size.name+' focus timer resets');
+    await page.locator('#nav button[data-page="home"]').click();
     const graphics = await page.evaluate(() => {
       const hero = document.querySelector('.signature-hero h1 span');
       const tiles = [...document.querySelectorAll('.signature-links button')];
