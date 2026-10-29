@@ -316,6 +316,54 @@ try {
       }
       assert.ok(layout.scroll <= layout.viewport + 2,size.name+' '+destination+' page horizontal overflow: '+JSON.stringify(layout));
     }
+    if (size.name === 'iphone' || size.name === 'desktop') {
+      // Real Appearance Studio controls must change the app, survive reload,
+      // pass contrast checks, export through workspace storage and reset safely.
+      await page.locator('#nav button[data-page="library"]').click();
+      await page.locator('#content button.signature-library-row[data-page="settings"]').click();
+      const picker=page.locator('#atlas-accent-input');
+      await picker.waitFor();
+      await picker.fill('#222222');
+      await page.waitForFunction(()=>document.documentElement.dataset.atlasCustomAccent==='true');
+      await page.locator('#atlas-density-select').selectOption('compact');
+      await page.locator('#atlas-corners-select').selectOption('subtle');
+      await page.locator('#atlas-texture-select').selectOption('off');
+      const appearance=await page.evaluate(()=>{
+        const root=document.documentElement,style=getComputedStyle(root),stored=JSON.parse(localStorage.getItem('atlas-preview:v1'));
+        const lumen=h=>('#'+h.replace('#','').toLowerCase()).match(/\w\w/g).map(x=>parseInt(x,16)/255).map(x=>x<=.04045?x/12.92:((x+.055)/1.055)**2.4).reduce((a,v,i)=>a+v*[.2126,.7152,.0722][i],0);
+        const ratio=(a,b)=>{const x=lumen(a),y=lumen(b);return (Math.max(x,y)+.05)/(Math.min(x,y)+.05)};
+        const customAccent=style.getPropertyValue('--accent-text').trim();
+        const buttonAccent=style.getPropertyValue('--accent').trim();
+        return {
+          accent:stored.appearance?.accent,
+          density:stored.appearance?.density,
+          corners:stored.appearance?.corners,
+          texture:stored.appearance?.texture,
+          custom:root.dataset.atlasCustomAccent,
+          accentRatio:ratio(customAccent,style.getPropertyValue('--surface').trim()),
+          buttonRatio:ratio(buttonAccent,style.getPropertyValue('--accent-on').trim()),
+          matte:style.getPropertyValue('--matte').trim(),
+          libraryRadius:getComputedStyle(document.querySelector('.signature-library-row')||document.querySelector('.card')).borderTopLeftRadius,
+          viewport:document.documentElement.clientWidth,
+          scroll:document.documentElement.scrollWidth
+        };
+      });
+      assert.deepEqual([appearance.accent,appearance.density,appearance.corners,appearance.texture],['#222222','compact','subtle','off'],size.name+' appearance settings safely persisted');
+      assert.equal(appearance.custom,'true',size.name+' custom accent active');
+      assert.ok(appearance.accentRatio>=4.5,size.name+' contrast-safe accent text');
+      assert.ok(appearance.buttonRatio>=4.5,size.name+' contrast-safe button');
+      assert.equal(appearance.matte,'none',size.name+' grain disabled');
+      assert.ok(appearance.scroll<=appearance.viewport+2,size.name+' appearance controls do not overflow');
+      await page.reload();
+      await page.locator('#nav button[data-page="library"]').click();
+      await page.locator('#content button.signature-library-row[data-page="settings"]').click();
+      assert.equal(await page.locator('#atlas-density-select').inputValue(),'compact',size.name+' compact layout survived reload');
+      await page.locator('#content button.swatch[data-theme="arctic"]').click();
+      assert.equal(await page.locator('#atlas-accent-input').inputValue(),'#222222',size.name+' custom accent preserved across palettes');
+      await page.locator('[data-action="appearance-reset"]').click();
+      const reset=await page.evaluate(()=>JSON.parse(localStorage.getItem('atlas-preview:v1')).appearance);
+      assert.deepEqual(reset,{accent:'',density:'comfortable',corners:'rounded',texture:'subtle'},size.name+' reset restores safe appearance defaults');
+    }
     await page.locator('.top-actions button[data-action="search"]').click();
     assert.equal(await page.locator('#content').getAttribute('data-view'),'search',size.name+' search route');
     const searchLayout=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,viewport:document.documentElement.clientWidth}));
