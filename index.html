@@ -628,6 +628,17 @@ body{background:radial-gradient(ellipse 80% 26% at 50% -9%,var(--mat-veil),trans
 
 /* ATLAS ACCESSIBILITY 04B — AA secondary text on Arctic */
 :root[data-atlas-theme="arctic"]{--muted:#4f627c!important}
+
+/* ATLAS MOBILE TOUCH TARGETS */
+@media (pointer:coarse){
+ .signature-heading>button{min-width:44px;min-height:44px;}
+ .micro{min-width:44px;min-height:44px;}
+ .tabs button{min-width:44px;min-height:44px;}
+ .content[data-view="calendar"] .cal-period>button{min-width:44px;min-height:44px;height:44px;}
+ .content[data-view="calendar"] .cal-period>button.cal-now{min-width:56px;}
+ .cal-hour-add{min-width:44px;min-height:44px;top:8px;right:6px;border-radius:10px;opacity:.8;}
+ .content[data-view="calendar"] .cal-views button{min-height:44px;}
+}
 </style>
 </head>
 <body>
