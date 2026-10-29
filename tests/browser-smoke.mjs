@@ -32,6 +32,49 @@ try {
     await page.goto('http://127.0.0.1:8765/index.html', {waitUntil:'load'});
     await page.locator('#nav button[data-page="home"]').waitFor({timeout:12000});
     assert.equal(await page.locator('#content').getAttribute('data-view'),'home',size.name+' home route');
+    const graphics = await page.evaluate(() => {
+      const hero = document.querySelector('.signature-hero h1 span');
+      const tiles = [...document.querySelectorAll('.signature-links button')];
+      const next = document.querySelector('.signature-next');
+      return {
+        headlineColor:getComputedStyle(hero).color,
+        paragraphColor:getComputedStyle(document.querySelector('.signature-hero p')).color,
+        tileCount:tiles.length,
+        tiles:tiles.map(el=>({layout:getComputedStyle(el).display,width:el.clientWidth,scroll:el.scrollWidth})),
+        panelBackground:getComputedStyle(next).backgroundImage,
+        documentWidth:document.documentElement.scrollWidth,
+        viewportWidth:document.documentElement.clientWidth
+      };
+    });
+    assert.notEqual(graphics.headlineColor,graphics.paragraphColor,size.name+' personalized greeting is visually distinct');
+    assert.equal(graphics.tileCount,3,size.name+' three workspace destinations');
+    assert.ok(graphics.tiles.every(tile=>tile.layout==='grid'&&tile.scroll<=tile.width+2),size.name+' compact graphic tiles fit');
+    assert.match(graphics.panelBackground,/gradient/i,size.name+' upcoming card has layered depth');
+    assert.ok(graphics.documentWidth<=graphics.viewportWidth+2,size.name+' graphic home fits viewport');
+
+    if (size.name === 'iphone') {
+      for (const theme of ['arctic','forest','ember','midnight']) {
+        await page.evaluate(nextTheme => {
+          const key='atlas-preview:v1';
+          const current=JSON.parse(localStorage.getItem(key)||'{}');
+          localStorage.setItem(key,JSON.stringify({...current,theme:nextTheme}));
+        },theme);
+        await page.reload();
+        await page.locator('.signature-links button').first().waitFor();
+        const themeResult=await page.evaluate(()=>({
+          theme:document.documentElement.dataset.atlasTheme,
+          colorScheme:getComputedStyle(document.documentElement).colorScheme,
+          headlineColor:getComputedStyle(document.querySelector('.signature-hero h1 span')).color,
+          bodyColor:getComputedStyle(document.querySelector('.signature-hero h1')).color,
+          width:document.documentElement.scrollWidth,
+          viewport:document.documentElement.clientWidth
+        }));
+        assert.equal(themeResult.theme,theme,'theme '+theme+' persisted');
+        assert.notEqual(themeResult.headlineColor,themeResult.bodyColor,'theme '+theme+' accent hierarchy');
+        assert.equal(themeResult.colorScheme,theme==='arctic'?'light':'dark','theme '+theme+' system contrast');
+        assert.ok(themeResult.width<=themeResult.viewport+2,'theme '+theme+' no horizontal overflow');
+      }
+    }
     const motion = await page.locator('#toast').evaluate(el=>({
       transition: getComputedStyle(el).transitionDuration,
       animation: getComputedStyle(el).animationDuration
