@@ -107,16 +107,16 @@ try {
     await page.locator('#atlas-quick-a').fill('900');
     await page.locator('#atlas-quick-b').fill('600');
     assert.equal(await page.locator('#atlas-quick-result').textContent(),'1.5 months covered · £900.00 to reach a 3-month fund',size.name+' emergency runway');
-    await page.locator('[data-decision-option="0"]').fill('Private option');
-    await page.evaluate(() => document.activeElement?.blur());
-    await page.evaluate(() => document.querySelector('#nav button[data-page="home"]').click());
-    await page.locator('#nav button[data-page="library"]').click();
-    await page.locator('#content button.signature-library-row[data-page="decisionTool"]').click();
-    assert.equal(await page.locator('[data-decision-option="0"]').inputValue(),'',size.name+' decision choices clear on navigation');
-    await page.locator('#nav button[data-page="home"]').click();
     // Decision helper: enter two choices, pick one, then clear.
     await page.locator('#nav button[data-page="library"]').click();
     await page.locator('#content button.signature-library-row[data-page="decisionTool"]').click();
+    await page.locator('[data-decision-option="0"]').fill('Walk');
+    await page.locator('[data-decision-option="1"]').fill('Read');
+    await page.evaluate(() => document.activeElement?.blur());
+    await page.locator('#nav button[data-page="home"]').click();
+    await page.locator('#nav button[data-page="library"]').click();
+    await page.locator('#content button.signature-library-row[data-page="decisionTool"]').click();
+    assert.deepEqual(await page.locator('[data-decision-option]').evaluateAll(nodes=>nodes.map(n=>n.value)),['',''],size.name+' decision options clear after navigation');
     await page.locator('[data-decision-option="0"]').fill('Walk');
     await page.locator('[data-decision-option="1"]').fill('Read');
     assert.deepEqual(await page.locator('[data-decision-option]').evaluateAll(nodes=>nodes.map(n=>n.value)),['Walk','Read'],size.name+' decision inputs retain values');
