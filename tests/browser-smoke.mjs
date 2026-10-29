@@ -92,7 +92,7 @@ try {
     await page.locator('[data-decision-option="1"]').fill('Read');
     assert.deepEqual(await page.locator('[data-decision-option]').evaluateAll(nodes=>nodes.map(n=>n.value)),['Walk','Read'],size.name+' decision inputs retain values');
     await page.locator('[data-action="decision-pick"]').click();
-    const debug=await page.evaluate(()=>({page,options:atlasDecisionOptions,result:atlasDecisionResult,dialog:!!atlasDialog(),pick:typeof atlasDecisionPick,button:document.querySelector('[data-action="decision-pick"]')?.outerHTML}));
+    const debug=await page.evaluate(()=>({currentPage:document.querySelector('#content')?.dataset.view,options:atlasDecisionOptions,result:atlasDecisionResult,dialog:!!atlasDialog(),pick:typeof atlasDecisionPick,button:document.querySelector('[data-action="decision-pick"]')?.outerHTML}));
     assert.ok(debug.result!==null,size.name+' decision click sets result '+JSON.stringify(debug));
     const decision=await page.locator('#content [role="status"] h2').first().textContent({timeout:5000}).catch(async()=>{throw new Error('Decision pick did not render: '+JSON.stringify(await page.locator('#content').innerText())+' | inputs '+JSON.stringify(await page.locator('[data-decision-option]').evaluateAll(nodes=>nodes.map(n=>n.value)))+' | errors '+JSON.stringify(errors));});
     assert.ok(['Walk','Read'].includes(decision),size.name+' decision picks a supplied option');
