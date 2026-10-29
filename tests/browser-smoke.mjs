@@ -49,7 +49,8 @@ try {
       assert.notEqual(await fab.evaluate(el=>getComputedStyle(el).display),'none',size.name+' floating capture restores after text entry');
     }
     // Exercise the actual Settings control, then verify the persisted preference.
-    await page.locator('#nav button[data-page="settings"]').click();
+    await page.locator('#nav button[data-page="library"]').click();
+    await page.locator('#content button.signature-library-row[data-page="settings"]').click();
     await page.locator('#atlas-text-size-select').selectOption('large');
     await page.waitForFunction(() => JSON.parse(localStorage.getItem('atlas-preview:v1')||'null')?.appearance?.textSize === 'large');
     await page.reload();
