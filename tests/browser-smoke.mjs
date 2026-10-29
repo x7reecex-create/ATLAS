@@ -48,8 +48,8 @@ try {
       assert.notEqual(await nav.evaluate(el=>getComputedStyle(el).display),'none',size.name+' nav restores after text entry');
       assert.notEqual(await fab.evaluate(el=>getComputedStyle(el).display),'none',size.name+' floating capture restores after text entry');
     }
-    // Large-text regression: real viewport geometry, not screenshot-only inspection.
-    // Check persistent preference, horizontal overflow and obstructed primary navigation.
+    // Navigation geometry regression across six real browser viewports.
+    // Apply larger text when a persisted workspace is already available.
     await page.evaluate(() => {
       const key='atlas-preview:v1';
       const saved=JSON.parse(localStorage.getItem(key));
