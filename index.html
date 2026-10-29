@@ -992,6 +992,34 @@ body{background:radial-gradient(ellipse 80% 26% at 50% -9%,var(--mat-veil),trans
  }
 }
 
+
+/* Appearance Studio 01 — adjustable visual density, corners and grain, mobile-safe. */
+.atlas-appearance-studio{margin-top:18px;padding-top:16px;border-top:1px solid var(--mat-line);display:grid;gap:14px}
+.atlas-appearance-intro{display:grid;gap:5px}
+.atlas-appearance-intro strong{font-weight:760;font-size:16px;letter-spacing:-.03em}
+.atlas-appearance-intro span{font-size:12px;color:var(--muted);line-height:1.5}
+.atlas-appearance-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.atlas-appearance-row label{display:grid;gap:5px;font-weight:710;font-size:13px}
+.atlas-appearance-row label small{color:var(--muted);font-size:11px;font-weight:450;line-height:1.4}
+.atlas-appearance-row input[type=color]{appearance:none;-webkit-appearance:none;width:58px;height:48px;flex:none;border:1px solid var(--border);padding:5px;background:var(--surface2);border-radius:13px;cursor:pointer}
+.atlas-appearance-row input[type=color]::-webkit-color-swatch-wrapper{padding:0}
+.atlas-appearance-row input[type=color]::-webkit-color-swatch{border:0;border-radius:8px}
+.atlas-appearance-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.atlas-appearance-grid label{min-width:0;display:grid;gap:6px;font-size:12px;font-weight:690}
+.atlas-appearance-grid select{min-width:0;min-height:44px}
+.atlas-appearance-studio .action{justify-self:start;min-height:44px}
+:root[data-atlas-texture="off"]{--matte:none}
+:root[data-atlas-density="compact"] :is(.card,.project,.note){padding:13px}
+:root[data-atlas-density="compact"] .task{padding-block:10px}
+:root[data-atlas-density="compact"] .signature-library-row{padding-block:10px;min-height:68px}
+:root[data-atlas-density="compact"] .signature-links button{min-height:92px}
+:root[data-atlas-corners="subtle"] :is(.card,.project,.note,.tile,.sheet,.signature-next,.signature-links button,.signature-library-row){border-radius:10px}
+:root[data-atlas-corners="subtle"] :is(.action,.iconbtn,.input,.select,.textarea,.capture input){border-radius:9px}
+:root[data-atlas-custom-accent="true"] :is(.signature-hero h1 span,.signature-heading>button,.signature-links .ui-icon,.signature-library .library-icon,.signature-overline,.eyebrow){color:var(--accent-text)}
+:root[data-atlas-custom-accent="true"] .signature-next{border-left-color:var(--accent-text)}
+:root[data-atlas-custom-accent="true"] .signature-kicker i{background:var(--accent-text);box-shadow:0 0 12px var(--mat-veil)}
+@media(max-width:360px){.atlas-appearance-grid{grid-template-columns:minmax(0,1fr)}}
+
 </style>
 </head>
 <body>
@@ -1022,7 +1050,35 @@ body{background:radial-gradient(ellipse 80% 26% at 50% -9%,var(--mat-veil),trans
 // ATLAS v1.1. Local-first app; retain the original v0.x localStorage key for seamless migration.
 const KEY='atlas-preview:v1', AUTH_KEY='atlas-bridge:auth:v1';
 const palettes={midnight:['#08090b','#121315','#1c1d20','#2b2c30','#f2f1f3','#a7a5ad','#9f2938','#26171c','#80bda1','#ed8f95'],arctic:['#f2f6fc','#ffffff','#e8f0f9','#d3dfed','#172a44','#677d94','#126ebc','#e0f0ff','#0c9470','#cf4357'],forest:['#0c1715','#162923','#203b31','#315247','#e7f7ec','#a2c3ae','#94e1ae','#254536','#83e8ad','#ffa29f'],ember:['#171015','#2a1b25','#412733','#5d3645','#fff3f3','#d7aeba','#ffb58b','#51362f','#b7df9c','#ff939c']};
-const defaults=()=>({version:4,tasks:[],projects:[],notes:[],calendarEvents:[],money:[],goals:[],transactions:[],timeEntries:[],habits:[],habitLogs:[],goalHistory:[],balanceHistory:[],balance:null,widgets:[],theme:'midnight',displayName:'Sir'});
+/* Appearance Studio: local-first, bounded controls with no arbitrary CSS/HTML import. */
+const atlasAppearanceDefaults=()=>({accent:'',density:'comfortable',corners:'rounded',texture:'subtle'});
+const atlasHex=v=>typeof v==='string'&&/^#[0-9a-f]{6}$/i.test(v);
+function atlasNormalizeAppearance(value){
+ const v=value&&typeof value==='object'&&!Array.isArray(value)?value:{};
+ return {
+  accent:atlasHex(v.accent)?v.accent.toLowerCase():'',
+  density:['comfortable','compact'].includes(v.density)?v.density:'comfortable',
+  corners:['rounded','subtle'].includes(v.corners)?v.corners:'rounded',
+  texture:['subtle','off'].includes(v.texture)?v.texture:'subtle'
+ };
+}
+function atlasColorRgb(hex){return [1,3,5].map(i=>parseInt(hex.slice(i,i+2),16))}
+function atlasLuminance(hex){
+ return atlasColorRgb(hex).map(n=>{const s=n/255;return s<=.04045?s/12.92:((s+.055)/1.055)**2.4}).reduce((a,n,i)=>a+n*[.2126,.7152,.0722][i],0)
+}
+function atlasContrast(a,b){const x=atlasLuminance(a),y=atlasLuminance(b);return (Math.max(x,y)+.05)/(Math.min(x,y)+.05)}
+function atlasContrastSafe(hex,against){
+ const background=atlasHex(against)?against:'#121315';
+ if(atlasContrast(hex,background)>=4.5)return hex;
+ const base=atlasColorRgb(hex),target=atlasLuminance(background)>.179?0:255;
+ for(let i=1;i<=100;i++){
+  const fraction=i/100;
+  const mixed='#'+base.map(v=>Math.round(v+(target-v)*fraction).toString(16).padStart(2,'0')).join('');
+  if(atlasContrast(mixed,background)>=4.5)return mixed;
+ }
+ return target===0?'#000000':'#ffffff';
+}
+const defaults=()=>({version:4,tasks:[],projects:[],notes:[],calendarEvents:[],money:[],goals:[],transactions:[],timeEntries:[],habits:[],habitLogs:[],goalHistory:[],balanceHistory:[],balance:null,widgets:[],theme:'midnight',displayName:'Sir',appearance:atlasAppearanceDefaults()});
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const id=()=>crypto?.randomUUID?.() || Date.now().toString(36)+Math.random().toString(36).slice(2);
@@ -1043,7 +1099,7 @@ const projectName=pid=>byId(data.projects,pid)?.title||'';
 const totalUnpaid=()=>data.money.filter(x=>!x.paid).reduce((v,x)=>v+saneNum(x.amount),0);
 const goalPct=g=>Math.max(0,Math.min(100,Math.round(saneNum(g.current)/Math.max(1,saneNum(g.target))*100)));
 function normalizeTask(t){return {...t,scheduledTime:calValidTime(t.scheduledTime)?t.scheduledTime:'',durationMins:Math.max(5,Math.min(720,Number(t.durationMins)||30)),category:CAL_CATEGORIES[t.category]?t.category:'focus',id:String(t.id||id()),title:String(t.title||'Untitled'),due:validDate(t.due)?(t.due||''):'',planned:validDate(t.planned)?(t.planned||''):'',priority:['high','normal','low'].includes(t.priority)?t.priority:'normal',done:!!t.done,createdAt:Number(t.createdAt)||Date.now(),createdAtInferred:!!t.createdAtInferred||!Number(t.createdAt),completedAt:t.completedAt||null,repeat:['none','daily','weekdays','weekly','monthly'].includes(t.repeat)?t.repeat:'none',projectId:String(t.projectId||''),focus:!!t.focus,stage:t.stage==='inbox'?'inbox':'planned',details:String(t.details||''),subtasks:Array.isArray(t.subtasks)?t.subtasks.filter(s=>s&&typeof s.title==='string').map(s=>({id:String(s.id||id()),title:s.title,done:!!s.done})):[]}};
-function normalizeData(raw){const d={...defaults(),...raw};for(const name of ['tasks','projects','notes','calendarEvents','money','goals','transactions','timeEntries','habits','habitLogs','goalHistory','balanceHistory'])if(!Array.isArray(d[name]))d[name]=[];d.tasks=d.tasks.filter(t=>t&&typeof t==='object').map(normalizeTask);d.projects=d.projects.filter(p=>p&&typeof p.title==='string'&&typeof p.id==='string').map(p=>({...p,status:['active','paused','done'].includes(p.status)?p.status:'active',description:String(p.description||'')}));d.notes=d.notes.filter(n=>n&&typeof n.title==='string'&&typeof n.id==='string').map(n=>({...n,body:String(n.body||''),pinned:!!n.pinned,projectId:String(n.projectId||'')}));d.calendarEvents=d.calendarEvents.filter(e=>e&&typeof e==='object').slice(0,10000).flatMap(e=>{try{return [calValidateEvent(e)]}catch(_){return []}});d.transactions=d.transactions.slice(0,10000).map(insNormalizeTransaction).filter(Boolean);d.timeEntries=d.timeEntries.slice(0,10000).map(insNormalizeTime).filter(Boolean);d.habits=d.habits.slice(0,1000).map(insNormalizeHabit).filter(Boolean);d.habitLogs=d.habitLogs.slice(0,10000).map(insNormalizeCheck).filter(c=>c&&d.habits.some(h=>h.id===c.habitId));d.habitLogs=d.habitLogs.filter((c,i,a)=>a.findIndex(x=>x.habitId===c.habitId&&x.date===c.date)===i);d.goalHistory=d.goalHistory.slice(0,10000).map(insNormalizeGoalLog).filter(x=>x&&d.goals.some(g=>g.id===x.goalId));d.balanceHistory=d.balanceHistory.slice(0,10000).map(insNormalizeBalance).filter(Boolean);d.theme=palettes[d.theme]?d.theme:'midnight';d.displayName=typeof d.displayName==='string'?d.displayName.slice(0,50):'Sir';if(d.balance!==null&&(!Number.isFinite(Number(d.balance))||Number(d.balance)<0))d.balance=null;d.version=4;return d;}
+function normalizeData(raw){const d={...defaults(),...raw};for(const name of ['tasks','projects','notes','calendarEvents','money','goals','transactions','timeEntries','habits','habitLogs','goalHistory','balanceHistory'])if(!Array.isArray(d[name]))d[name]=[];d.tasks=d.tasks.filter(t=>t&&typeof t==='object').map(normalizeTask);d.projects=d.projects.filter(p=>p&&typeof p.title==='string'&&typeof p.id==='string').map(p=>({...p,status:['active','paused','done'].includes(p.status)?p.status:'active',description:String(p.description||'')}));d.notes=d.notes.filter(n=>n&&typeof n.title==='string'&&typeof n.id==='string').map(n=>({...n,body:String(n.body||''),pinned:!!n.pinned,projectId:String(n.projectId||'')}));d.calendarEvents=d.calendarEvents.filter(e=>e&&typeof e==='object').slice(0,10000).flatMap(e=>{try{return [calValidateEvent(e)]}catch(_){return []}});d.transactions=d.transactions.slice(0,10000).map(insNormalizeTransaction).filter(Boolean);d.timeEntries=d.timeEntries.slice(0,10000).map(insNormalizeTime).filter(Boolean);d.habits=d.habits.slice(0,1000).map(insNormalizeHabit).filter(Boolean);d.habitLogs=d.habitLogs.slice(0,10000).map(insNormalizeCheck).filter(c=>c&&d.habits.some(h=>h.id===c.habitId));d.habitLogs=d.habitLogs.filter((c,i,a)=>a.findIndex(x=>x.habitId===c.habitId&&x.date===c.date)===i);d.goalHistory=d.goalHistory.slice(0,10000).map(insNormalizeGoalLog).filter(x=>x&&d.goals.some(g=>g.id===x.goalId));d.balanceHistory=d.balanceHistory.slice(0,10000).map(insNormalizeBalance).filter(Boolean);d.theme=palettes[d.theme]?d.theme:'midnight';d.appearance=atlasNormalizeAppearance(d.appearance);d.displayName=typeof d.displayName==='string'?d.displayName.slice(0,50):'Sir';if(d.balance!==null&&(!Number.isFinite(Number(d.balance))||Number(d.balance)<0))d.balance=null;d.version=4;return d;}
 
 // ATLAS Calendar 1.2: private local-first calendar, operating in Europe/London wall-clock time.
 const CAL_ZONE='Europe/London';
@@ -1291,7 +1347,26 @@ function downloadPreservedStorage(){
   const blob=new Blob([storageBaseline],{type:'text/plain'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='atlas-preserved-storage-'+dateKey()+'.txt';a.click();setTimeout(()=>URL.revokeObjectURL(url),15000);
 }
 function showToast(message){const el=$('toast');if(!el)return;el.textContent=message;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),3300)}
-function setTheme(){document.documentElement.dataset.atlasTheme=data.theme;const p=palettes[data.theme]||palettes.midnight;['bg','surface','surface2','border','text','muted','accent','soft','positive','danger'].forEach((k,i)=>document.documentElement.style.setProperty('--'+k,p[i]));document.documentElement.style.setProperty('--accent-text',data.theme==='midnight'?'#d68c94':p[6]);document.documentElement.style.setProperty('--accent-on',data.theme==='midnight'?'#fff8f6':p[0]);document.documentElement.style.colorScheme=data.theme==='arctic'?'light':'dark';document.querySelector('meta[name="theme-color"]').content=p[0]}
+function setTheme(){
+ const root=document.documentElement,p=palettes[data.theme]||palettes.midnight;
+ root.dataset.atlasTheme=data.theme;
+ ['bg','surface','surface2','border','text','muted','accent','soft','positive','danger'].forEach((k,i)=>root.style.setProperty('--'+k,p[i]));
+ const appearance=atlasNormalizeAppearance(data.appearance);
+ data.appearance=appearance;
+ const accentOn=data.theme==='midnight'?'#fff8f6':p[0];
+ root.style.setProperty('--accent-on',accentOn);
+ root.style.setProperty('--accent-text',appearance.accent?atlasContrastSafe(appearance.accent,p[1]):data.theme==='midnight'?'#d68c94':p[6]);
+ if(appearance.accent){
+  root.style.setProperty('--accent',atlasContrastSafe(appearance.accent,accentOn));
+  root.style.setProperty('--soft','color-mix(in srgb,var(--surface) 84%,var(--accent-text) 16%)');
+ }
+ root.dataset.atlasCustomAccent=appearance.accent?'true':'false';
+ root.dataset.atlasDensity=appearance.density;
+ root.dataset.atlasCorners=appearance.corners;
+ root.dataset.atlasTexture=appearance.texture;
+ root.style.colorScheme=data.theme==='arctic'?'light':'dark';
+ document.querySelector('meta[name="theme-color"]').content=p[0];
+}
 const uiPaths={library:'M4 4h7v7H4z M13 4h7v7h-7z M4 13h7v7H4z M13 13h7v7h-7z',home:'m3 10 9-7 9 7v10H3z M9 20v-7h6v7',today:'M5 3h14v18H5z M8 8h8 M8 12h8 M8 16h4',calendar:'M4 5h16v16H4z M8 3v4 M16 3v4 M4 10h16 M8 14h2 M14 14h2 M8 17h2',projects:'M3 7h7l2-3h9v16H3z',notes:'M5 3h14v18H5z M8 8h8 M8 12h8 M8 16h5',money:'M3 6h18v14H3z M3 10h18 M16 15h2',insights:'M4 20V10 M10 20V4 M16 20v-8 M22 20H2',link:'M10 14 14 10 M8 16l-1 1a4 4 0 0 1-6-6l4-4a4 4 0 0 1 6 0 M16 8l1-1a4 4 0 0 1 6 6l-4 4a4 4 0 0 1-6 0',search:'M20 20l-5-5 M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0',settings:'M4 7h16 M4 17h16 M8 4v6 M16 14v6',plus:'M12 5v14 M5 12h14'};
 /* Lucide Static v1.64.0 icons, ISC licence; see THIRD_PARTY_NOTICES.md. */ const lucideMarkup={home:"<path d=\"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8\" /><path d=\"M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\" />",calendar:"<path d=\"M8 2v3\" /><path d=\"M16 2v3\" /><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\" /><path d=\"M3 9h18\" /><path d=\"M8 13h.01\" /><path d=\"M12 13h.01\" /><path d=\"M16 13h.01\" /><path d=\"M8 17h.01\" /><path d=\"M12 17h.01\" /><path d=\"M16 17h.01\" />",today:"<path d=\"M13 5h8\" /><path d=\"M13 12h8\" /><path d=\"M13 19h8\" /><path d=\"m3 17 2 2 4-4\" /><rect x=\"3\" y=\"4\" width=\"6\" height=\"6\" rx=\"1\" />",library:"<rect width=\"18\" height=\"18\" x=\"3\" y=\"3\" rx=\"2\" /><path d=\"M3 9h18\" /><path d=\"M9 21V9\" />",search:"<path d=\"m21 21-4.34-4.34\" /><circle cx=\"11\" cy=\"11\" r=\"8\" />",settings:"<path d=\"M14 17H5\" /><path d=\"M19 7h-9\" /><circle cx=\"17\" cy=\"17\" r=\"3\" /><circle cx=\"7\" cy=\"7\" r=\"3\" />",mic:"<path d=\"M12 19v3\" /><path d=\"M19 10v2a7 7 0 0 1-14 0v-2\" /><rect x=\"9\" y=\"2\" width=\"6\" height=\"13\" rx=\"3\" />"};function uiIcon(name){return `<svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${lucideMarkup[name]||'<path d="'+(uiPaths[name]||uiPaths.today)+'"/>'}</svg>`;}
 const btn=(label,action,extra='',cls='action ghost small')=>`<button class="${cls}" data-action="${action}" ${extra}>${label}</button>`;
@@ -1331,7 +1406,17 @@ function notes(){return atlasNotesLayout(notesBody())}
 function notesBody(){const items=[...data.notes].sort((a,b)=>Number(b.pinned)-Number(a.pinned)||(b.updatedAt||0)-(a.updatedAt||0));return `<div class="eyebrow">YOUR SECOND BRAIN</div><div class="page-head"><div><h1>Notes</h1><p class="sub">Ideas, reference, plans and things worth keeping.</p></div>${btn('＋ Note','new-note','','action small')}</div><div class="card" style="padding:13px 15px"><div class="fine">Tip: link a note to a project so its research and tasks stay together. Notes support simple Markdown.</div></div>${items.length?items.map(noteCard).join(''):`<div class="card">${blank('▤','Start with one note. You can pin it or attach it to a project.','new-note','Write a note')}</div>`}`}
 function money(){const sorted=[...data.money].sort((a,b)=>Number(a.paid)-Number(b.paid)||(a.due||'9999').localeCompare(b.due||'9999'));return `<div class="eyebrow">MANUAL FINANCES</div><div class="page-head"><div><h1>Money</h1><p class="sub">Know what you have and what is already spoken for.</p></div>${btn('Edit balance','edit-balance')}</div><div class="card card-accent"><div class="card-head">ENTERED BALANCE</div><div class="metric">${data.balance===null?'Not set':fmt(data.balance)}</div><div class="line"></div><div class="number-grid"><div><small>Unpaid bills & debts</small><strong>${fmt(totalUnpaid())}</strong></div><div><small>After obligations</small><strong class="${data.balance!==null&&data.balance-totalUnpaid()<0?'danger':''}">${data.balance===null?'—':fmt(data.balance-totalUnpaid())}</strong></div></div><p class="fine" style="margin-top:13px">Calculated from only the records you enter. This is not your bank balance or an automatic forecast.</p></div>${btn('▥ View financial graphs','goto-insights','','action ghost small')}${heading(`Bills & debts · ${data.money.length}`,'new-money','＋ Add')}<div class="card">${sorted.length?sorted.map(x=>`<div class="task ${x.paid?'completed':''}"><input class="check" type="checkbox" data-action="toggle-money" data-id="${esc(x.id)}" ${x.paid?'checked':''} aria-label="Mark ${esc(x.title)} paid"><button class="taskbody" data-action="edit" data-type="money" data-id="${esc(x.id)}"><div class="tasktitle">${esc(x.title)}</div><div class="taskmeta"><span>${esc(x.kind==='debt'?'Debt':'Bill')}</span><span class="${!x.paid&&dayDiff(x.due)!==null&&dayDiff(x.due)<0?'danger':''}">${x.paid?'Paid':esc(humanDate(x.due))}</span></div></button><b class="small">${fmt(x.amount)}</b></div>`).join(''):blank('▣','No obligations recorded. Add bills, repayments or anything you need to reserve money for.','new-money','Add a bill')}</div>${heading(`Goals · ${data.goals.length}`,'new-goal','＋ Add')}<div class="card">${data.goals.length?data.goals.map(goalCard).join(''):blank('⚑','Track savings, driving or any measurable target.','new-goal','Add a goal')}</div>`}
 function goals(){return `<div class="eyebrow">LONG-TERM PROGRESS</div><div class="page-head"><div><h1>Goals</h1><p class="sub">Know what you’re moving towards.</p></div>${btn('＋ New','new-goal','','action small')}</div><div class="card">${data.goals.length?data.goals.map(goalCard).join(''):blank('⚑','A goal is a destination. Give it a target you can measure.','new-goal','Create a goal')}</div>`}
-function settings(){return `<div class="eyebrow">SYSTEM SETTINGS</div><h1>Settings</h1><p class="sub">Make ATLAS yours, and keep control of your data.</p>${heading('Appearance')}<div class="card"><div class="fine" style="margin-bottom:12px">Blood Red & Black is the default.</div><div class="swatches">${Object.keys(palettes).map(k=>`<button class="swatch ${data.theme===k?'selected':''}" data-action="theme" data-theme="${k}" style="background:${palettes[k][1]};color:${palettes[k][4]}"><span class="dot" style="background:${palettes[k][6]}"></span>${k==='midnight'?'Blood Red':k[0].toUpperCase()+k.slice(1)}</button>`).join('')}</div></div>${heading('Personal details')}<div class="card"><div class="between"><div><div class="fine">What should ATLAS call you?</div><b>${esc(data.displayName||'Sir')}</b></div>${btn('Change','edit-name')}</div></div>${heading('Connection')}<div class="card"><b>↔ ATLAS Link</b><p class="fine" style="margin:9px 0">Optional authenticated bridge to this ChatGPT conversation. Tasks and goals can be shared manually. Projects and notes are private to your device.</p>${btn(bridgeProfile?'Open connected link':'Set up connection','goto-link','','action small')}</div>${heading('Data & privacy')}<div class="card"><b>Local-first storage</b><p class="fine" style="margin:10px 0">Tasks, projects, notes, calendar, finances, tracked habits and Insights live in this browser. Export a backup before changing devices, deleting Safari data or resetting ATLAS. The optional Link stores only what you explicitly share.</p><div class="btn-row">${btn('↥ Export backup','export','','action small')}${btn('＋ Merge information pack','merge','','action small')}${btn('↧ Replace from backup','import','','action ghost small')}</div><p class="fine" style="margin-top:10px">Merge adds new tasks, projects, notes and goals without replacing existing items. Download your private pack from ChatGPT first, then select it here. Replace from backup overwrites local data.</p><input id="import-file" type="file" accept=".json,application/json" hidden><input id="merge-file" type="file" accept=".json,application/json" hidden><div class="line"></div>${btn('Restore last local checkpoint','restore-checkpoint','','action ghost small')}${btn('Export recovery checkpoint','export-checkpoint','','action ghost small')}<p class="fine" style="margin:10px 0">A checkpoint contains private unencrypted data on this device. It is overwritten by the next import or restore. Backup files are also unencrypted; keep them private.</p>${storageLoadError?btn('Export preserved storage','export-preserved','','action ghost small'):''}${btn('Erase all local data','reset','','dangerbtn')}</div><p class="fine">ATLAS v1.8.1 · Local stabilisation candidate · Portrait & landscape calendar</p>`}
+function settings(){return `<div class="eyebrow">SYSTEM SETTINGS</div><h1>Settings</h1><p class="sub">Make ATLAS yours, and keep control of your data.</p>${heading('Appearance')}<div class="card"><div class="fine" style="margin-bottom:12px">Blood Red & Black is the default.</div><div class="swatches">${Object.keys(palettes).map(k=>`<button class="swatch ${data.theme===k?'selected':''}" data-action="theme" data-theme="${k}" style="background:${palettes[k][1]};color:${palettes[k][4]}"><span class="dot" style="background:${palettes[k][6]}"></span>${k==='midnight'?'Blood Red':k[0].toUpperCase()+k.slice(1)}</button>`).join('')}</div><div class="atlas-appearance-studio">
+ <div class="atlas-appearance-intro"><strong>Appearance Studio</strong><span>Build your own look. Changes stay on this device and are included in backups.</span></div>
+ <div class="atlas-appearance-row"><label for="atlas-accent-input">Accent colour <small>Automatically adjusted for readable contrast</small></label>
+ <input id="atlas-accent-input" type="color" value="${data.appearance.accent||palettes[data.theme][6]}" aria-label="Custom accent colour" title="Choose custom accent"></div>
+ <div class="atlas-appearance-grid">
+  <label for="atlas-density-select">Spacing<select id="atlas-density-select" class="select"><option value="comfortable" ${data.appearance.density==='comfortable'?'selected':''}>Comfortable</option><option value="compact" ${data.appearance.density==='compact'?'selected':''}>Compact</option></select></label>
+  <label for="atlas-corners-select">Corners<select id="atlas-corners-select" class="select"><option value="rounded" ${data.appearance.corners==='rounded'?'selected':''}>Rounded</option><option value="subtle" ${data.appearance.corners==='subtle'?'selected':''}>Subtle</option></select></label>
+  <label for="atlas-texture-select">Texture<select id="atlas-texture-select" class="select"><option value="subtle" ${data.appearance.texture==='subtle'?'selected':''}>Subtle grain</option><option value="off" ${data.appearance.texture==='off'?'selected':''}>Smooth</option></select></label>
+ </div>
+ <button class="action ghost small" type="button" data-action="appearance-reset">Reset custom appearance</button>
+ </div></div>${heading('Personal details')}<div class="card"><div class="between"><div><div class="fine">What should ATLAS call you?</div><b>${esc(data.displayName||'Sir')}</b></div>${btn('Change','edit-name')}</div></div>${heading('Connection')}<div class="card"><b>↔ ATLAS Link</b><p class="fine" style="margin:9px 0">Optional authenticated bridge to this ChatGPT conversation. Tasks and goals can be shared manually. Projects and notes are private to your device.</p>${btn(bridgeProfile?'Open connected link':'Set up connection','goto-link','','action small')}</div>${heading('Data & privacy')}<div class="card"><b>Local-first storage</b><p class="fine" style="margin:10px 0">Tasks, projects, notes, calendar, finances, tracked habits and Insights live in this browser. Export a backup before changing devices, deleting Safari data or resetting ATLAS. The optional Link stores only what you explicitly share.</p><div class="btn-row">${btn('↥ Export backup','export','','action small')}${btn('＋ Merge information pack','merge','','action small')}${btn('↧ Replace from backup','import','','action ghost small')}</div><p class="fine" style="margin-top:10px">Merge adds new tasks, projects, notes and goals without replacing existing items. Download your private pack from ChatGPT first, then select it here. Replace from backup overwrites local data.</p><input id="import-file" type="file" accept=".json,application/json" hidden><input id="merge-file" type="file" accept=".json,application/json" hidden><div class="line"></div>${btn('Restore last local checkpoint','restore-checkpoint','','action ghost small')}${btn('Export recovery checkpoint','export-checkpoint','','action ghost small')}<p class="fine" style="margin:10px 0">A checkpoint contains private unencrypted data on this device. It is overwritten by the next import or restore. Backup files are also unencrypted; keep them private.</p>${storageLoadError?btn('Export preserved storage','export-preserved','','action ghost small'):''}${btn('Erase all local data','reset','','dangerbtn')}</div><p class="fine">ATLAS v1.8.1 · Local stabilisation candidate · Portrait & landscape calendar</p>`}
 function searchScreen(){
  const q=searchText.trim().toLocaleLowerCase(),results=[];
  const matches=(values)=>values.some(x=>String(x??'').toLocaleLowerCase().includes(q));
@@ -1519,6 +1604,12 @@ function validateImport(source,{mode='backup'}={}){
   for(const m of d.money){text(m.title,200,'money',true);number(m.amount,0,Number.MAX_SAFE_INTEGER,'money');boolean(m.paid,'money');if(typeof m.paid!=='boolean')fail('money','missing paid state');date(m.due,'money');}
   for(const g of d.goals){text(g.title,200,'goal',true);number(g.target,Number.MIN_VALUE,Number.MAX_SAFE_INTEGER,'goal');if(g.current!==undefined)number(g.current,0,Number.MAX_SAFE_INTEGER,'goal');text(g.unit,24,'goal');}
   for(const [kind,validate] of [['transactions',insNormalizeTransaction],['timeEntries',insNormalizeTime],['habits',insNormalizeHabit],['habitLogs',insNormalizeCheck],['goalHistory',insNormalizeGoalLog],['balanceHistory',insNormalizeBalance]])for(const x of d[kind])if(!validate(x))fail(kind,'invalid record');
+  if(d.appearance!==undefined){
+   if(!object(d.appearance)||Object.keys(d.appearance).some(k=>!['accent','density','corners','texture'].includes(k)))fail('appearance','invalid settings');
+   if(d.appearance.accent!==undefined&&d.appearance.accent!==''&&!atlasHex(d.appearance.accent))fail('appearance','invalid accent');
+   for(const [key,choices] of [['density',['comfortable','compact']],['corners',['rounded','subtle']],['texture',['subtle','off']]])
+    if(d.appearance[key]!==undefined&&!choices.includes(d.appearance[key]))fail('appearance','invalid '+key);
+  }
   if(d.balance!==undefined&&d.balance!==null)number(d.balance,0,Number.MAX_SAFE_INTEGER,'balance');
   if(mode==='backup')validateRelationships(d);
   const normalized=normalizeData(d);
@@ -1589,7 +1680,7 @@ if(a==='result'){
  if(type==='habit'){page='insights';insTab='habits';return render()}
  return openModal(type,ref)
 }
-if(a==='set-view'){view=element.dataset.view;return render()};if(a==='theme'){data.theme=element.dataset.theme;return commit('Theme changed')}
+if(a==='set-view'){view=element.dataset.view;return render()};if(a==='theme'){data.theme=element.dataset.theme;return commit('Theme changed')};if(a==='appearance-reset'){data.appearance=atlasAppearanceDefaults();return commit('Appearance reset')}
 if(a==='toggle-task')return toggleTask(ref,!!element.checked);
 if(a==='toggle-money'){const m=byId(data.money,ref);if(m){m.paid=!!element.checked;commit(m.paid?'Marked paid':'Marked unpaid')}return}
 if(a==='focus'){const t=byId(data.tasks,ref);if(!t)return;if(!t.focus&&openTasks().filter(x=>x.focus).length>=3){showToast('Choose a maximum of three focus tasks.');return}t.focus=!t.focus;t.stage='planned';return commit(t.focus?'Added to focus':'Removed from focus')}
@@ -1601,7 +1692,19 @@ if(a==='export-preserved'){try{downloadPreservedStorage()}catch(err){alert(err.m
 if(a==='reset'){if(!confirm('Erase all local ATLAS data, including Insights, on this device? This does NOT delete the separately stored ATLAS Link snapshot.'))return;if(!confirm('Final confirmation: permanently erase the local workspace AND its recovery checkpoint? Export a backup first. ATLAS Link sign-in is separate.'))return;try{persistWorkspace(defaults());localStorage.removeItem(RECOVERY_KEY);page='home';render();showToast('Local workspace and recovery checkpoint erased.')}catch(err){alert('Erase failed: '+err.message)}return}
 }
 document.addEventListener('click',e=>{const target=e.target.closest('[data-action]');if(!target)return;if(Date.now()<calSuppressClickUntil&&target.dataset.action==='cal-open'){e.preventDefault();return}if(target.dataset.action==='modal-bg'&&e.target!==target)return;if(target.dataset.action.startsWith('bridge-'))return;handleAction(target)});
-document.addEventListener('change',async e=>{if(e.target.id==='merge-file'){const input=e.target,file=input.files?.[0];if(!file)return;try{
+document.addEventListener('input',e=>{
+ if(e.target.id==='atlas-accent-input'&&atlasHex(e.target.value)){data.appearance.accent=e.target.value;setTheme()}
+});
+document.addEventListener('change',async e=>{
+ if(e.target.id==='atlas-accent-input'){
+  if(!atlasHex(e.target.value))return showToast('Choose a valid colour.');
+  data.appearance.accent=e.target.value;return commit('Accent colour saved');
+ }
+ const setting=({ 'atlas-density-select':['density',['comfortable','compact']],
+  'atlas-corners-select':['corners',['rounded','subtle']],
+  'atlas-texture-select':['texture',['subtle','off']] })[e.target.id];
+ if(setting){if(!setting[1].includes(e.target.value))return showToast('Invalid appearance setting.');data.appearance[setting[0]]=e.target.value;return commit('Appearance saved');}
+if(e.target.id==='merge-file'){const input=e.target,file=input.files?.[0];if(!file)return;try{
   if(file.size>5_000_000)throw Error('File too large (5 MB limit).');
   const incoming=validateImport(JSON.parse(await file.text()),{mode:'merge'}),result=mergeImport(incoming);
   const total=Object.values(result.counts).reduce((a,b)=>a+b,0);
