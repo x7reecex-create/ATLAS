@@ -51,7 +51,7 @@ try {
     await page.locator('.calendar-tools > summary').click();
     await page.locator('#cal-quick-form input[name="quick"]').fill('ATLAS smoke next Monday at 3pm');
     await page.locator('#cal-quick-form button[type="submit"]').click();
-    const quickEvent = await page.evaluate(() => data.calendarEvents.find(e => e.title === 'ATLAS smoke'));
+    const quickEvent = await page.evaluate(() => JSON.parse(localStorage.getItem('atlas-preview:v1')).calendarEvents.find(e => e.title === 'ATLAS smoke'));
     assert.ok(quickEvent, size.name+' quick-add event saved');
     assert.equal(quickEvent.startDate,'2026-11-02',size.name+' next Monday is in the next calendar week');
     assert.equal(quickEvent.startTime,'15:00',size.name+' quick-add time preserved');
