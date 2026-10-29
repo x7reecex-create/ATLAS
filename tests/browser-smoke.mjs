@@ -48,17 +48,14 @@ try {
       assert.notEqual(await nav.evaluate(el=>getComputedStyle(el).display),'none',size.name+' nav restores after text entry');
       assert.notEqual(await fab.evaluate(el=>getComputedStyle(el).display),'none',size.name+' floating capture restores after text entry');
     }
-    // Navigation geometry regression across six real browser viewports.
-    // Apply larger text when a persisted workspace is already available.
-    await page.evaluate(() => {
-      const key='atlas-preview:v1';
-      const saved=JSON.parse(localStorage.getItem(key));
-      if (!saved) return;
-      saved.appearance={...saved.appearance,textSize:'large'};
-      localStorage.setItem(key,JSON.stringify(saved));
-    });
+    // Exercise the actual Settings control, then verify the persisted preference.
+    await page.locator('#nav button[data-page="settings"]').click();
+    await page.locator('#atlas-text-size-select').selectOption('large');
+    await page.waitForFunction(() => JSON.parse(localStorage.getItem('atlas-preview:v1')||'null')?.appearance?.textSize === 'large');
     await page.reload();
     await page.locator('#nav button[data-page="home"]').waitFor();
+    assert.equal(await page.evaluate(() => document.documentElement.dataset.atlasTextSize),'large',size.name+' larger text persists after reload');
+    await page.locator('#nav button[data-page="home"]').click();
     const largeTextGeometry=await page.evaluate(() => {
       const nav=document.querySelector('#nav');
       const buttons=[...nav.querySelectorAll('button')].filter(el=>getComputedStyle(el).display!=='none');
