@@ -1561,6 +1561,33 @@ let atlasJournalDate=calLondonToday();
 const ATLAS_MOODS=[['great','Great',5],['good','Good',4],['okay','Okay',3],['low','Low',2],['rough','Rough',1]];
 const atlasJournalMood=x=>ATLAS_MOODS.find(m=>m[0]===x)||ATLAS_MOODS[2];
 const atlasJournalEntries=()=>data.notes.filter(n=>n.journal===true&&n.journalDate&&validDate(n.journalDate)).sort((a,b)=>b.journalDate.localeCompare(a.journalDate)||(b.updatedAt||0)-(a.updatedAt||0));
+/* Private, human-readable export. Saved journal notes only; no other workspace records. */
+function atlasJournalTextExport(entries){
+ const ordered=[...entries].sort((a,b)=>a.journalDate.localeCompare(b.journalDate));
+ const lines=['ATLAS PRIVATE JOURNAL','Saved entries: '+ordered.length,''];
+ for(const entry of ordered){
+  lines.push('Date: '+entry.journalDate,'Mood: '+atlasJournalMood(entry.mood)[1],
+   'Energy: '+(Number.isInteger(entry.energy)&&entry.energy>=1&&entry.energy<=5?entry.energy:3)+'/5',
+   'Tags: '+(Array.isArray(entry.tags)?entry.tags.join(', '):''),'',
+   String(entry.body||'').replace(/\r\n?/g,'\n'),'','────────────────────────','');
+ }
+ return lines.join('\n');
+}
+function atlasDownloadJournal(){
+ const entries=atlasJournalEntries();
+ if(!entries.length)return showToast('Save a journal entry before exporting.');
+ const filename='atlas-journal-'+dateKey()+'.txt';
+ const content=atlasJournalTextExport(entries);
+ const file=new File([content],filename,{type:'text/plain;charset=utf-8'});
+ if(navigator.canShare?.({files:[file]})){
+  navigator.share({title:'ATLAS private journal',files:[file]}).catch(error=>{
+   if(error.name!=='AbortError')showToast('Could not share journal. Try again.');
+  });
+  return;
+ }
+ calDownload(filename,content,'text/plain;charset=utf-8');
+ showToast('Journal exported. Keep this file private.');
+}
 function journal(){
  const entries=atlasJournalEntries(),selected=entries.find(n=>n.journalDate===atlasJournalDate);
  const moodOptions=ATLAS_MOODS.map(([key,label])=>'<option value="'+key+'" '+((selected?.mood||'okay')===key?'selected':'')+'>'+label+'</option>').join('');
@@ -1585,7 +1612,7 @@ function journal(){
   +'</form><p class="fine atlas-journal-privacy">Saved only in this browser. Included in your private ATLAS backup. Nothing is sent to an AI service.</p></div>'
   +'<aside class="atlas-journal-side"><div class="card"><h2>Your mood over 14 days</h2><p class="fine">'+recent.length+' recorded '+(recent.length===1?'day':'days')+' · Based only on your saved entries</p>'
   +(recent.length?'<div class="atlas-journal-chart" role="img" aria-label="'+esc(trendLabel)+'">'+plotted+'</div>':'<p class="fine atlas-journal-empty">Write an entry to start seeing your mood trend. No estimated or invented data.</p>')+'</div>'
-  +'<div class="card"><div class="between"><h2>Past entries</h2><span class="fine">'+entries.length+' total</span></div><label for="atlas-journal-search" class="fine">Search saved entries</label><input id="atlas-journal-search" class="input" type="search" autocomplete="off" placeholder="Search words or tags…" aria-label="Search journal">'
+  +'<div class="card"><div class="between wrap"><h2>Past entries</h2><button type="button" class="action ghost small" data-action="journal-export" '+(entries.length?'':'disabled')+'>Export entries</button></div><p class="fine" style="margin:8px 0 12px">'+entries.length+' saved · Plain text (.txt) · Keep your file private</p><label for="atlas-journal-search" class="fine">Search saved entries</label><input id="atlas-journal-search" class="input" type="search" autocomplete="off" placeholder="Search words or tags…" aria-label="Search journal">'
   +'<div class="atlas-journal-history">'+(history||'<p class="fine">Your past journal entries will appear here.</p>')+'</div></div></aside></div></section>';
 }
 
@@ -1854,6 +1881,7 @@ if(a==='cal-import')return $('cal-ics-file')?.click();if(a==='cal-export'){const
 }
 function handleAction(element){const a=element.dataset.action,ref=element.dataset.id,type=element.dataset.type;if(!a)return;
 if(a==='toggle-task'||a==='toggle-money')return; // checkboxes are handled by change events only
+if(a==='journal-export')return atlasDownloadJournal();
 if(a==='journal-today'){atlasJournalDate=calLondonToday();return render()}
 if(a==='journal-open'){
  const entry=byId(data.notes,ref);if(!entry||entry.journal!==true||!validDate(entry.journalDate))return;
