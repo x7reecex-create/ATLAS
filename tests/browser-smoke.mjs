@@ -427,6 +427,24 @@ try {
     assert.ok(libraryType>=13,size.name+' library labels enlarged');
     await page.locator('#content button.signature-library-row[data-page="settings"]').click();
     assert.equal(await page.locator('#atlas-text-size-select').inputValue(),'large',size.name+' control reflects saved text size');
+
+    // Graphite is a real locally saved theme, with an announced selected state.
+    await page.locator('button.swatch[data-theme="graphite"]').click();
+    assert.equal(await page.locator('button.swatch[data-theme="graphite"]').getAttribute('aria-pressed'),'true',size.name+' graphite selection announced');
+    assert.equal(await page.locator('button.swatch[data-theme="midnight"]').getAttribute('aria-pressed'),'false',size.name+' previous theme not selected');
+    const graphite=await page.evaluate(()=>({
+      theme:document.documentElement.dataset.atlasTheme,
+      surface:getComputedStyle(document.documentElement).getPropertyValue('--surface').trim(),
+      saved:JSON.parse(localStorage.getItem('atlas-preview:v1')).theme,
+      overflow:document.documentElement.scrollWidth-document.documentElement.clientWidth
+    }));
+    assert.deepEqual([graphite.theme,graphite.surface,graphite.saved],['graphite','#171a1f','graphite'],size.name+' graphite palette applied and saved');
+    assert.ok(graphite.overflow<=2,size.name+' graphite theme has no horizontal overflow');
+    await page.reload();
+    assert.equal(await page.evaluate(()=>document.documentElement.dataset.atlasTheme),'graphite',size.name+' graphite survives reload');
+    await page.locator('#nav button[data-page="library"]').click();
+    await page.locator('#content button.signature-library-row[data-page="settings"]').click();
+    assert.equal(await page.locator('button.swatch[data-theme="graphite"]').getAttribute('aria-pressed'),'true',size.name+' restored theme selected');
     if (size.name !== 'iphone' && size.name !== 'desktop') {
       await page.locator('[data-action="appearance-reset"]').click();
       assert.equal(await page.evaluate(()=>document.documentElement.dataset.atlasTextSize),'standard',size.name+' reset restores normal text');
