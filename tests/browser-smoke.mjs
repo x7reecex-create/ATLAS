@@ -42,6 +42,13 @@ try {
       scroll:document.documentElement.scrollWidth,
       viewport:document.documentElement.clientWidth
     }));
+    if (dimensions.scroll > dimensions.viewport + 2) {
+      const offenders = await page.evaluate(() => [...document.querySelectorAll('body *')].map(el => {
+        const r = el.getBoundingClientRect();
+        return { tag:el.tagName, className:typeof el.className === 'string' ? el.className.slice(0,100) : '', id:el.id, left:Math.round(r.left), right:Math.round(r.right), width:Math.round(r.width) };
+      }).filter(r => r.right > innerWidth + 2 || r.left < -2).sort((a,b) => b.right - a.right).slice(0,12));
+      console.error('OVERFLOW OFFENDERS '+size.name+': '+JSON.stringify(offenders));
+    }
     assert.ok(dimensions.scroll<=dimensions.viewport+2,size.name+' horizontal page overflow: '+JSON.stringify(dimensions));
     assert.deepEqual(errors,[],size.name+' browser JavaScript errors');
     console.log('PASS '+size.name+' '+size.width+'x'+size.height+' home/calendar/reduced-motion/no-overflow/no-JS-errors');
