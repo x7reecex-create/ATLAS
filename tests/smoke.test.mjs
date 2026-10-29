@@ -14,7 +14,7 @@ test('ATLAS client shell and application syntax', () => {
 test('service worker syntax and offline shell', () => {
   const sw = read('sw.js');
   assert.doesNotThrow(() => new Function(sw));
-  assert.match(sw, /atlas-private-ios-v21-public-shell/);
+  assert.match(sw, /const CACHE = 'atlas-private-ios-v\d+-public-shell';/, 'versioned public shell cache');
 });
 test('manifest and third-party licences', () => {
   const manifest = JSON.parse(read('manifest.webmanifest'));

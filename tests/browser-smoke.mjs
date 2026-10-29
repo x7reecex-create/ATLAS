@@ -26,6 +26,7 @@ try {
       hasTouch: mobile,
     });
     const page = await context.newPage();
+    await page.clock.setFixedTime(new Date('2026-10-29T12:00:00Z'));
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
     await page.goto('http://127.0.0.1:8765/index.html', {waitUntil:'load'});
@@ -46,6 +47,14 @@ try {
     }
     await page.locator('#nav button[data-page="calendar"]').click();
     assert.equal(await page.locator('#content').getAttribute('data-view'),'calendar',size.name+' calendar route');
+    // Exercise the actual quick-add form with a fixed London date in every viewport.
+    await page.locator('.calendar-tools > summary').click();
+    await page.locator('#cal-quick-form input[name="quick"]').fill('ATLAS smoke next Monday at 3pm');
+    await page.locator('#cal-quick-form button[type="submit"]').click();
+    const quickEvent = await page.evaluate(() => JSON.parse(localStorage.getItem('atlas-preview:v1')).calendarEvents.find(e => e.title === 'ATLAS smoke'));
+    assert.ok(quickEvent, size.name+' quick-add event saved');
+    assert.equal(quickEvent.startDate,'2026-11-02',size.name+' next Monday is in the next calendar week');
+    assert.equal(quickEvent.startTime,'15:00',size.name+' quick-add time preserved');
     const dimensions=await page.evaluate(()=>({
       scroll:document.documentElement.scrollWidth,
       viewport:document.documentElement.clientWidth
