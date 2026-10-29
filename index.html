@@ -1588,6 +1588,27 @@ function atlasDownloadJournal(){
  calDownload(filename,content,'text/plain;charset=utf-8');
  showToast('Journal exported. Keep this file private.');
 }
+/* Warn only when the visible Journal form differs from the saved entry.
+   Nothing is autosent, and a cancelled navigation leaves every field intact. */
+function atlasJournalHasUnsavedChanges(){
+ if(page!=='journal')return false;
+ const form=$('atlas-journal-form');
+ if(!form)return false;
+ const selected=atlasJournalEntries().find(n=>n.journalDate===atlasJournalDate);
+ const field=name=>String(form.elements.namedItem(name)?.value??'');
+ return field('body')!==(selected?.body||'')
+  || field('mood')!==(selected?.mood||'okay')
+  || field('energy')!==String(selected?.energy||3)
+  || field('tags')!==(selected?.tags||[]).join(', ');
+}
+function atlasJournalConfirmDiscard(){
+ return !atlasJournalHasUnsavedChanges()||confirm('You have unsaved journal changes. Discard them and leave?');
+}
+window.addEventListener('beforeunload',event=>{
+ if(!atlasJournalHasUnsavedChanges())return;
+ event.preventDefault();
+ event.returnValue='';
+});
 function journal(){
  const entries=atlasJournalEntries(),selected=entries.find(n=>n.journalDate===atlasJournalDate);
  const moodOptions=ATLAS_MOODS.map(([key,label])=>'<option value="'+key+'" '+((selected?.mood||'okay')===key?'selected':'')+'>'+label+'</option>').join('');
@@ -1604,7 +1625,7 @@ function journal(){
  const trendLabel='Recorded mood in the last 14 days: '+recent.map(n=>calFormatDate(n.journalDate)+' '+atlasJournalMood(n.mood)[1]).join('; ');
  return '<section class="atlas-journal"><div class="eyebrow">PRIVATE DAILY JOURNAL</div><div class="page-head"><div><h1>Journal</h1><p class="sub">A place to remember how your days actually felt.</p></div><button class="action ghost small" data-action="journal-today">Today</button></div>'
   +'<div class="atlas-journal-layout"><div class="atlas-journal-editor card"><div class="atlas-journal-top"><span class="signature-overline">YOUR ENTRY</span><label for="atlas-journal-day">Date<input id="atlas-journal-day" class="input" type="date" value="'+esc(atlasJournalDate)+'" aria-label="Journal entry date"></label></div>'
-  +'<p class="fine">Changing the date loads that day’s saved entry. Save your writing first.</p>'
+  +'<p class="fine">Changing the date loads that day’s saved entry. ATLAS warns before discarding unsaved writing.</p>'
   +'<form id="atlas-journal-form"><input type="hidden" name="date" value="'+esc(atlasJournalDate)+'"><div class="atlas-journal-fields"><label for="atlas-journal-mood">Mood<select id="atlas-journal-mood" class="select" name="mood">'+moodOptions+'</select></label><label for="atlas-journal-energy">Energy<select id="atlas-journal-energy" class="select" name="energy">'+energyOptions+'</select></label></div>'
   +'<label for="atlas-journal-tags">Tags <span class="fine">Optional, separated by commas</span></label><input id="atlas-journal-tags" class="input" maxlength="180" name="tags" autocomplete="off" placeholder="Family, work, progress…" value="'+esc((selected?.tags||[]).join(', '))+'">'
   +'<label for="atlas-journal-body">What happened today?</label><textarea id="atlas-journal-body" class="textarea" name="body" required maxlength="100000" rows="10" placeholder="The things you did, learned, felt, or want to remember…">'+esc(selected?.body||'')+'</textarea>'
@@ -1867,7 +1888,7 @@ function showImportReport(result){
   const report=importReport(result);
   $('modal-root').innerHTML=`<div class="modalback" data-action="modal-bg"><section class="sheet" role="dialog" aria-modal="true" aria-label="Import result"><div class="titlebar"><h2>Import result</h2><button class="iconbtn" data-action="modal-close" aria-label="Close import result">×</button></div><p class="fine" style="white-space:pre-line">${esc(report)}</p><p class="fine" style="margin-top:14px">Nothing was uploaded. A local recovery checkpoint is available in Settings after a successful import.</p></section></div>`;
 }
-function navigate(destination){if(page==='decisionTool'&&destination!=='decisionTool'){atlasDecisionOptions=['',''];atlasDecisionResult=null;atlasDecisionPointerTarget=null;}page=destination;projectOpen=null;window.scrollTo(0,0);render()}
+function navigate(destination,beforeChange){if(page==='journal'&&destination!=='journal'&&!atlasJournalConfirmDiscard())return false;if(page==='decisionTool'&&destination!=='decisionTool'){atlasDecisionOptions=['',''];atlasDecisionResult=null;atlasDecisionPointerTarget=null;}if(beforeChange)beforeChange();page=destination;projectOpen=null;window.scrollTo(0,0);render();return true}
 function handleCalAction(element){const a=element.dataset.action,ref=element.dataset.id,origin=element.dataset.origin||'',kind=element.dataset.kind||'event';
 if(a==='cal-prev')return calStep(-1);if(a==='cal-next')return calStep(1);if(a==='cal-today'){calAnchor=calLondonToday();return render();}
 if(a==='cal-view'){calView=element.dataset.view;return render()};if(a==='cal-week-date'){calAnchor=element.dataset.date;return render()};if(a==='cal-day'){calAnchor=element.dataset.date;calView='day';return render()}
@@ -1882,12 +1903,12 @@ if(a==='cal-import')return $('cal-ics-file')?.click();if(a==='cal-export'){const
 function handleAction(element){const a=element.dataset.action,ref=element.dataset.id,type=element.dataset.type;if(!a)return;
 if(a==='toggle-task'||a==='toggle-money')return; // checkboxes are handled by change events only
 if(a==='journal-export')return atlasDownloadJournal();
-if(a==='journal-today'){atlasJournalDate=calLondonToday();return render()}
+if(a==='journal-today'){const today=calLondonToday();if(atlasJournalDate===today)return;if(!atlasJournalConfirmDiscard())return;atlasJournalDate=today;return render()}
 if(a==='journal-open'){
  const entry=byId(data.notes,ref);if(!entry||entry.journal!==true||!validDate(entry.journalDate))return;
- atlasJournalDate=entry.journalDate;return navigate('journal');
+ if(entry.journalDate===atlasJournalDate)return;if(!atlasJournalConfirmDiscard())return;atlasJournalDate=entry.journalDate;return navigate('journal');
 }
-if(a==='journal-calendar'){calAnchor=atlasJournalDate;calView='day';return navigate('calendar')}
+if(a==='journal-calendar')return navigate('calendar',()=>{calAnchor=atlasJournalDate;calView='day'});
 if(a==='journal-delete'){
  const entry=byId(data.notes,ref);if(!entry||entry.journal!==true)return;
  if(!confirm('Delete this private journal entry? Export a backup first if you want a copy.'))return;
@@ -1935,7 +1956,7 @@ document.addEventListener('input',e=>{
 });
 document.addEventListener('change',async e=>{
  if(e.target.id==='atlas-journal-day'){
-  if(e.target.value&&validDate(e.target.value)){atlasJournalDate=e.target.value;return render()}
+  if(e.target.value&&validDate(e.target.value)){const next=e.target.value;if(next===atlasJournalDate)return;if(!atlasJournalConfirmDiscard()){e.target.value=atlasJournalDate;return;}atlasJournalDate=next;return render()}
   e.target.value=atlasJournalDate;return showToast('Choose a valid journal date.');
  }
  if(e.target.id==='atlas-accent-input'){
