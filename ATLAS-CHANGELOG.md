@@ -18,3 +18,10 @@ Tests: JavaScript syntax; six simulated callback/error/normal URL cases, all pas
 GitHub: connected repositories are x7reecex-create/rm-small-jobs and x7reecex-create/nexus; neither corresponds to ATLAS's Vercel-only deployed source. Do not write ATLAS to those repositories.
 Risk / unverified: live Supabase redirect allowlist and shared Site URL unavailable from Vercel; email delivery and physical iOS Safari not tested; Supabase password reset remains unverified end-to-end.
 Next priority: create an isolated ATLAS GitHub repository and establish source-controlled releases, then validate actual auth redirect allowlist with appropriate Supabase access.
+
+---
+ATLAS — quick-add weekday interpretation (2026-10-29 Europe/London)
+Root cause: the natural-language calendar parser added seven extra days to every “next weekday”, so “next Monday” on Thursday 29 October incorrectly became 9 November rather than Monday 2 November.
+Fix: interpret “next weekday” as that weekday in the following Monday–Sunday calendar week. Bare weekdays still mean the next upcoming occurrence, excluding today. No stored calendar data, auth, Supabase or RM Small Jobs changes.
+Regression: execute the real inline parser against 12 synthetic date/weekday cases, including Sunday and Monday boundaries, plus the existing source tests. Offline cache bumped v21 → v22 so installed PWAs fetch the updated shell on the next service-worker update.
+Release: PR and isolated preview required; do not promote to production without review and browser verification.
