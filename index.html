@@ -964,6 +964,11 @@ body{background:radial-gradient(ellipse 80% 26% at 50% -9%,var(--mat-veil),trans
   border-color:var(--cal-hue);box-shadow:inset 0 1px var(--mat-glint),0 7px 17px #0003
  }
 }
+/* ATLAS MOBILE WEEK GESTURE 09: vertical scroll stays native, horizontal touch switches week. */
+@media (orientation:portrait) and (pointer:coarse){
+ .content[data-view="calendar"] .cal-portrait-date-strip{touch-action:pan-y;overscroll-behavior-x:contain}
+}
+
 </style>
 </head>
 <body>
@@ -1059,7 +1064,7 @@ function calPortraitWeek(){
  const allDay=entries.filter(o=>o.allDay),timed=entries.filter(o=>!o.allDay).sort((a,b)=>calMins(a.startTime)-calMins(b.startTime));
  const readable=timed.map(o=>{const cat=CAL_CATEGORIES[o.category]||CAL_CATEGORIES.other;return `<button class="cal-portrait-appointment ${conflicts.has(o.uid)?'cal-conflict':''}" data-action="cal-open" data-kind="${esc(o.kind)}" data-id="${esc(o.id)}" data-origin="${esc(o.origin||'')}" style="--cal-hue:${cat[1]}"><span class="cal-portrait-appointment-time">${esc(o.startTime)}<small>${o.durationMins} min</small></span><span class="cal-portrait-appointment-label"><strong>${esc(o.title)}</strong><small>${esc(cat[0])}${conflicts.has(o.uid)?' · Time overlap':''}</small></span><span aria-hidden="true">›</span></button>`}).join('');
  const dayName=calFormatDate(selected,{weekday:'long',day:'numeric',month:'long'});
- return `<section class="cal-portrait-week" aria-label="Selected week's daily agenda"><div class="cal-portrait-date-strip" role="group" aria-label="Choose day in week">${strip}</div><div class="cal-portrait-day-head"><div><span class="cal-portrait-overline">YOUR SCHEDULE</span><h2>${esc(dayName)}</h2><p>${entries.length?`${entries.length} ${entries.length===1?'entry':'entries'} · London time`:'Nothing scheduled · London time'}</p></div><button type="button" data-action="cal-add" data-date="${selected}" aria-label="New event on ${esc(dayName)}">＋ <span>New</span></button></div>${allDay.length?`<div class="cal-portrait-all-day"><b>ALL DAY / DUE</b>${allDay.map(o=>calEventChip(o,conflicts,'agenda')).join('')}</div>`:''}<div class="cal-portrait-events">${readable||`<div class="cal-portrait-empty"><span>◇</span><strong>Room to breathe.</strong><p>No appointments or scheduled tasks today. Tap New to add something.</p></div>`}</div><details class="cal-portrait-time-details"><summary><span>Hourly timetable</span><span>Tap a time to add an event</span></summary>${calTimeSlots(selected,entries,conflicts)}</details></section>`;
+ return `<section class="cal-portrait-week" aria-label="Selected week's daily agenda"><div class="cal-portrait-date-strip" role="group" aria-label="Choose a day. Swipe left or right to change week">${strip}</div><div class="cal-portrait-day-head"><div><span class="cal-portrait-overline">YOUR SCHEDULE</span><h2>${esc(dayName)}</h2><p>${entries.length?`${entries.length} ${entries.length===1?'entry':'entries'} · London time`:'Nothing scheduled · London time'}</p></div><button type="button" data-action="cal-add" data-date="${selected}" aria-label="New event on ${esc(dayName)}">＋ <span>New</span></button></div>${allDay.length?`<div class="cal-portrait-all-day"><b>ALL DAY / DUE</b>${allDay.map(o=>calEventChip(o,conflicts,'agenda')).join('')}</div>`:''}<div class="cal-portrait-events">${readable||`<div class="cal-portrait-empty"><span>◇</span><strong>Room to breathe.</strong><p>No appointments or scheduled tasks today. Tap New to add something.</p></div>`}</div><details class="cal-portrait-time-details"><summary><span>Hourly timetable</span><span>Tap a time to add an event</span></summary>${calTimeSlots(selected,entries,conflicts)}</details></section>`;
 }
 function calWeek(){
  const start=calStartWeek(calAnchor),dates=Array.from({length:7},(_,i)=>dateAdd(start,i));
@@ -1756,6 +1761,29 @@ document.addEventListener('pointerdown',e=>{if(e.pointerType!=='touch'||page!=='
 document.addEventListener('pointermove',e=>{if(e.pointerType!=='touch')return;if(calTouchDrag){calTouchDrag.x=e.clientX;calTouchDrag.y=e.clientY}else if(calTouchTimer&&calTouchPending&&Math.hypot(e.clientX-calTouchPending.x,e.clientY-calTouchPending.y)>12){clearTimeout(calTouchTimer);calTouchTimer=null;calTouchPending=null}},{passive:true});
 document.addEventListener('pointerup',e=>{clearTimeout(calTouchTimer);calTouchTimer=null;calTouchPending=null;if(!calTouchDrag)return;calSuppressClickUntil=Date.now()+600;const d=calTouchDrag;calTouchDrag=null;const zone=document.elementFromPoint(e.clientX,e.clientY)?.closest('[data-drop-date]');if(!zone)return;const item=d.kind==='event'?byId(data.calendarEvents,d.ref):byId(data.tasks,d.ref);if(item&&confirm('Move '+item.title+' to '+calFormatDate(zone.dataset.dropDate)+'?'))calMoveOccurrence(d.kind,d.ref,d.origin,zone.dataset.dropDate,zone.dataset.dropTime||'')},{passive:true});
 document.addEventListener('pointercancel',()=>{clearTimeout(calTouchTimer);calTouchTimer=null;calTouchDrag=null;calTouchPending=null},{passive:true});
+/* Calendar: a one-finger horizontal date-rail swipe changes weeks without blocking vertical scroll.
+   No dependency, stored state or native browser edge navigation is modified. */
+let atlasWeekSwipe=null;
+document.addEventListener('touchstart',e=>{
+ if(page!=='calendar'||calView!=='week'||!matchMedia('(orientation:portrait)').matches||e.touches.length!==1){atlasWeekSwipe=null;return}
+ const rail=e.target.closest('.cal-portrait-date-strip');if(!rail)return;
+ const t=e.touches[0];
+ // Leave the outer screen edge available for iOS/Android browser back gestures.
+ if(t.clientX<24||t.clientX>innerWidth-24)return;
+ atlasWeekSwipe={id:t.identifier,x:t.clientX,y:t.clientY};
+},{passive:true});
+document.addEventListener('touchmove',e=>{if(atlasWeekSwipe&&e.touches.length!==1)atlasWeekSwipe=null},{passive:true});
+document.addEventListener('touchend',e=>{
+ const swipe=atlasWeekSwipe;atlasWeekSwipe=null;
+ if(!swipe||e.touches.length!==0||page!=='calendar'||calView!=='week')return;
+ const finger=Array.from(e.changedTouches).find(t=>t.identifier===swipe.id);if(!finger)return;
+ const dx=finger.clientX-swipe.x,dy=finger.clientY-swipe.y;
+ if(Math.abs(dx)<65||Math.abs(dx)<Math.abs(dy)*1.5||Math.abs(dy)>45)return;
+ if(e.cancelable)e.preventDefault(); // Prevent a swipe ending on a date button from also triggering its click.
+ calAnchor=dateAdd(calAnchor,dx<0?7:-7);
+ render();
+},{passive:false});
+document.addEventListener('touchcancel',()=>{atlasWeekSwipe=null},{passive:true});
 if('serviceWorker' in navigator&&window.isSecureContext&&location.protocol==='https:')navigator.serviceWorker.register('./sw.js').catch(()=>{});
 })();
 
