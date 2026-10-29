@@ -48,6 +48,11 @@ try {
         return { tag:el.tagName, className:typeof el.className === 'string' ? el.className.slice(0,100) : '', id:el.id, left:Math.round(r.left), right:Math.round(r.right), width:Math.round(r.width) };
       }).filter(r => r.right > innerWidth + 2 || r.left < -2).sort((a,b) => b.right - a.right).slice(0,12));
       console.error('OVERFLOW OFFENDERS '+size.name+': '+JSON.stringify(offenders));
+      const internals = await page.evaluate(() => [...document.querySelectorAll('html,body,body *')].map(el => ({el, delta:el.scrollWidth-el.clientWidth})).filter(item=>item.delta>3).sort((a,b)=>b.delta-a.delta).slice(0,14).map(({el,delta})=>({tag:el.tagName,id:el.id,className:typeof el.className==='string'?el.className.slice(0,100):'',clientWidth:el.clientWidth,scrollWidth:el.scrollWidth,delta})));
+      console.error('INTERNAL OVERFLOWS '+size.name+': '+JSON.stringify(internals));
+      await page.addStyleTag({content:'*::before,*::after{content:none!important;display:none!important}'});
+      console.error('WIDTH WITHOUT PSEUDOS '+size.name+': '+await page.evaluate(()=>document.documentElement.scrollWidth));
+
     }
     assert.ok(dimensions.scroll<=dimensions.viewport+2,size.name+' horizontal page overflow: '+JSON.stringify(dimensions));
     assert.deepEqual(errors,[],size.name+' browser JavaScript errors');
