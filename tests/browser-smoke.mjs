@@ -99,8 +99,8 @@ try {
     await page.locator('#atlas-quick-select').selectOption('words');
     await page.locator('#atlas-quick-text').fill('Hello world');
     assert.equal(await page.locator('#atlas-quick-result').textContent(),'2 words · 11 characters',size.name+' text counter');
-    await page.keyboard.press('Escape');
-    await page.locator('#nav button[data-page="home"]').click();
+    await page.evaluate(() => document.activeElement?.blur());
+    await page.evaluate(() => document.querySelector('#nav button[data-page="home"]').click());
     const graphics = await page.evaluate(() => {
       const hero = document.querySelector('.signature-hero h1 span');
       const tiles = [...document.querySelectorAll('.signature-links button')];
