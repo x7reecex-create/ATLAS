@@ -48,6 +48,28 @@ try {
       assert.notEqual(await nav.evaluate(el=>getComputedStyle(el).display),'none',size.name+' nav restores after text entry');
       assert.notEqual(await fab.evaluate(el=>getComputedStyle(el).display),'none',size.name+' floating capture restores after text entry');
     }
+    // Exercise the actual Settings control, then verify the persisted preference.
+    await page.locator('#nav button[data-page="library"]').click();
+    await page.locator('#content button.signature-library-row[data-page="settings"]').click();
+    await page.locator('#atlas-text-size-select').selectOption('large');
+    await page.waitForFunction(() => JSON.parse(localStorage.getItem('atlas-preview:v1')||'null')?.appearance?.textSize === 'large');
+    await page.reload();
+    await page.locator('#nav button[data-page="home"]').waitFor();
+    assert.equal(await page.evaluate(() => document.documentElement.dataset.atlasTextSize),'large',size.name+' larger text persists after reload');
+    await page.locator('#nav button[data-page="home"]').click();
+    const largeTextGeometry=await page.evaluate(() => {
+      const nav=document.querySelector('#nav');
+      const buttons=[...nav.querySelectorAll('button')].filter(el=>getComputedStyle(el).display!=='none');
+      return {
+        overflow:document.documentElement.scrollWidth-document.documentElement.clientWidth,
+        navButtons:buttons.length,
+        navVisible:getComputedStyle(nav).display!=='none',
+        buttonBounds:buttons.map(el=>{const r=el.getBoundingClientRect();return {left:r.left,right:r.right,width:r.width,height:r.height};}),
+      };
+    });
+    assert.ok(largeTextGeometry.overflow<=2,size.name+' larger text never creates horizontal document overflow');
+    assert.ok(largeTextGeometry.navVisible&&largeTextGeometry.navButtons>0,size.name+' larger text preserves navigation');
+    assert.ok(largeTextGeometry.buttonBounds.every(r=>r.left>=-2&&r.right<=size.width+2&&r.width>=24&&r.height>=24),size.name+' larger text navigation remains onscreen and tappable');
     const graphics = await page.evaluate(() => {
       const hero = document.querySelector('.signature-hero h1 span');
       const tiles = [...document.querySelectorAll('.signature-links button')];
@@ -444,6 +466,8 @@ try {
     const searchLayout=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,viewport:document.documentElement.clientWidth}));
     assert.ok(searchLayout.scroll<=searchLayout.viewport+2,size.name+' search page overflow: '+JSON.stringify(searchLayout));
     // The desktop shortcut also works for an external iPad/phone keyboard.
+    // Use the app route action rather than clicking navigation hidden during keyboard focus.
+    await page.keyboard.press('Escape');
     await page.locator('#nav button[data-page="home"]').click();
     await page.keyboard.press('Control+k');
     assert.equal(await page.locator('#content').getAttribute('data-view'),'search',size.name+' Ctrl+K navigation');
