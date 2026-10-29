@@ -1487,7 +1487,7 @@ function atlasDecisionAction(el){
  const a=el.dataset.action;
  if(a==='decision-clear'){atlasDecisionOptions=['',''];atlasDecisionResult=null;return render()}
  if(a==='decision-add'){if(atlasDecisionOptions.length<6)atlasDecisionOptions.push('');atlasDecisionResult=null;return render()}
- if(a==='decision-pick'){const options=atlasDecisionOptions.map(x=>x.trim()).filter(Boolean);if(options.length<2){showToast('Enter at least two options');return}atlasDecisionResult=options[atlasDecisionPick(options)];return render()}
+ if(a==='decision-pick'){document.querySelectorAll('[data-decision-option]').forEach(input=>{const i=Number(input.dataset.decisionOption);if(Number.isInteger(i)&&i>=0&&i<atlasDecisionOptions.length)atlasDecisionOptions[i]=input.value});const options=atlasDecisionOptions.map(x=>x.trim()).filter(Boolean);if(options.length<2){showToast('Enter at least two options');return}atlasDecisionResult=options[atlasDecisionPick(options)];return render()}
 }
 
 function library(){
