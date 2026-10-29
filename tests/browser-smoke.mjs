@@ -36,6 +36,14 @@ try {
       animation: getComputedStyle(el).animationDuration
     }));
     assert.ok(motion.transition.split(',').every(x=>parseFloat(x)<0.01),size.name+' reduced-motion transition '+motion.transition);
+    if (size.name === 'desktop') {
+      const surface = page.locator('.signature-links button').first();
+      await surface.waitFor();
+      const before = await surface.evaluate(el => getComputedStyle(el).borderTopColor);
+      await surface.hover();
+      const after = await surface.evaluate(el => getComputedStyle(el).borderTopColor);
+      assert.notEqual(after, before, 'desktop cards must clearly indicate hover');
+    }
     await page.locator('#nav button[data-page="calendar"]').click();
     assert.equal(await page.locator('#content').getAttribute('data-view'),'calendar',size.name+' calendar route');
     const dimensions=await page.evaluate(()=>({
