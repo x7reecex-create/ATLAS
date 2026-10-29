@@ -280,7 +280,7 @@ try {
       assert.equal(editing.fab,'none',size.name+' no floating capture overlapping event editor');
       await page.locator('.modalback [data-action="modal-close"]').click();
       await page.waitForFunction(()=>!document.body.classList.contains('atlas-mobile-editing'));
-      assert.notEqual(await nav.evaluate(el=>getComputedStyle(el).display),'none',size.name+' navigation back after editor closes');
+      assert.notEqual(await page.locator('#nav').evaluate(el=>getComputedStyle(el).display),'none',size.name+' navigation back after editor closes');
     }
     const dimensions=await page.evaluate(()=>({
       scroll:document.documentElement.scrollWidth,
