@@ -1,0 +1,110 @@
+// Browser-only smoke suite. Runs in GitHub Actions, not in the app bundle.
+// Playwright is installed in CI and is never a production dependency.
+import assert from 'node:assert/strict';
+import { chromium } from 'playwright';
+
+const browser = await chromium.launch({
+  channel: 'chrome',
+  headless: true,
+  args: ['--no-sandbox', '--disable-dev-shm-usage'],
+});
+const sizes = [
+  {name:'small-android',width:320,height:568},
+  {name:'iphone',width:393,height:852},
+  {name:'samsung',width:412,height:915},
+  {name:'iphone-landscape',width:852,height:393},
+  {name:'tablet',width:820,height:1180},
+  {name:'desktop',width:1366,height:768},
+];
+try {
+  for (const size of sizes) {
+    const mobile = size.width < 900;
+    const context = await browser.newContext({
+      viewport: { width:size.width, height:size.height },
+      reducedMotion: 'reduce',
+      isMobile: mobile,
+      hasTouch: mobile,
+    });
+    const page = await context.newPage();
+    await page.clock.setFixedTime(new Date('2026-10-29T12:00:00Z'));
+    const errors = [];
+    page.on('pageerror', error => errors.push(error.message));
+    await page.goto('http://127.0.0.1:8765/index.html', {waitUntil:'load'});
+    await page.locator('#nav button[data-page="home"]').waitFor({timeout:12000});
+    assert.equal(await page.locator('#content').getAttribute('data-view'),'home',size.name+' home route');
+    const motion = await page.locator('#toast').evaluate(el=>({
+      transition: getComputedStyle(el).transitionDuration,
+      animation: getComputedStyle(el).animationDuration
+    }));
+    assert.ok(motion.transition.split(',').every(x=>parseFloat(x)<0.01),size.name+' reduced-motion transition '+motion.transition);
+    if (size.name === 'desktop') {
+      const surface = page.locator('.signature-links button').first();
+      await surface.waitFor();
+      const before = await surface.evaluate(el => getComputedStyle(el).borderTopColor);
+      await surface.hover();
+      const after = await surface.evaluate(el => getComputedStyle(el).borderTopColor);
+      assert.notEqual(after, before, 'desktop cards must clearly indicate hover');
+    }
+    await page.locator('#nav button[data-page="calendar"]').click();
+    assert.equal(await page.locator('#content').getAttribute('data-view'),'calendar',size.name+' calendar route');
+    // Exercise the actual quick-add form with a fixed London date in every viewport.
+    await page.locator('.calendar-tools > summary').click();
+    await page.locator('#cal-quick-form input[name="quick"]').fill('ATLAS smoke next Monday at 3pm');
+    await page.locator('#cal-quick-form button[type="submit"]').click();
+    const quickEvent = await page.evaluate(() => data.calendarEvents.find(e => e.title === 'ATLAS smoke'));
+    assert.ok(quickEvent, size.name+' quick-add event saved');
+    assert.equal(quickEvent.startDate,'2026-11-02',size.name+' next Monday is in the next calendar week');
+    assert.equal(quickEvent.startTime,'15:00',size.name+' quick-add time preserved');
+    const dimensions=await page.evaluate(()=>({
+      scroll:document.documentElement.scrollWidth,
+      viewport:document.documentElement.clientWidth
+    }));
+    if (dimensions.scroll > dimensions.viewport + 2) {
+      const offenders = await page.evaluate(() => [...document.querySelectorAll('body *')].map(el => {
+        const r = el.getBoundingClientRect();
+        return { tag:el.tagName, className:typeof el.className === 'string' ? el.className.slice(0,100) : '', id:el.id, left:Math.round(r.left), right:Math.round(r.right), width:Math.round(r.width) };
+      }).filter(r => r.right > innerWidth + 2 || r.left < -2).sort((a,b) => b.right - a.right).slice(0,12));
+      console.error('OVERFLOW OFFENDERS '+size.name+': '+JSON.stringify(offenders));
+      const internals = await page.evaluate(() => [...document.querySelectorAll('html,body,body *')].map(el => ({el, delta:el.scrollWidth-el.clientWidth})).filter(item=>item.delta>3).sort((a,b)=>b.delta-a.delta).slice(0,14).map(({el,delta})=>({tag:el.tagName,id:el.id,className:typeof el.className==='string'?el.className.slice(0,100):'',clientWidth:el.clientWidth,scrollWidth:el.scrollWidth,delta})));
+      console.error('INTERNAL OVERFLOWS '+size.name+': '+JSON.stringify(internals));
+      await page.addStyleTag({content:'*::before,*::after{content:none!important;display:none!important}'});
+      console.error('WIDTH WITHOUT PSEUDOS '+size.name+': '+await page.evaluate(()=>document.documentElement.scrollWidth));
+
+    }
+    assert.ok(dimensions.scroll<=dimensions.viewport+2,size.name+' horizontal page overflow: '+JSON.stringify(dimensions));
+    // Navigate every major workspace screen, not just the home and calendar.
+    // This detects real-world narrow-screen overflow and broken navigation.
+    await page.locator('#nav button[data-page="today"]').click();
+    assert.equal(await page.locator('#content').getAttribute('data-view'),'today',size.name+' tasks route');
+    for (const destination of ['library','projects','notes','money','goals','insights','link','settings']) {
+      await page.locator('#nav button[data-page="library"]').click();
+      if (destination !== 'library') {
+        await page.locator('#content button.signature-library-row[data-page="'+destination+'"]').click();
+      }
+      assert.equal(await page.locator('#content').getAttribute('data-view'),destination,size.name+' '+destination+' route');
+      const layout = await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,viewport:document.documentElement.clientWidth}));
+      if(layout.scroll > layout.viewport + 2){
+        const oversize = await page.evaluate(()=>[...document.querySelectorAll('html,body,body *')].filter(el=>el.scrollWidth>el.clientWidth+3).sort((a,b)=>(b.scrollWidth-b.clientWidth)-(a.scrollWidth-a.clientWidth)).slice(0,8).map(el=>({tag:el.tagName,cls:String(el.className).slice(0,80),clientWidth:el.clientWidth,scrollWidth:el.scrollWidth})));
+        console.error('OVERFLOW '+size.name+' '+destination+': '+JSON.stringify(oversize));
+      }
+      assert.ok(layout.scroll <= layout.viewport + 2,size.name+' '+destination+' page horizontal overflow: '+JSON.stringify(layout));
+    }
+    await page.locator('.top-actions button[data-action="search"]').click();
+    assert.equal(await page.locator('#content').getAttribute('data-view'),'search',size.name+' search route');
+    const searchLayout=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,viewport:document.documentElement.clientWidth}));
+    assert.ok(searchLayout.scroll<=searchLayout.viewport+2,size.name+' search page overflow: '+JSON.stringify(searchLayout));
+    // The desktop shortcut also works for an external iPad/phone keyboard.
+    await page.locator('#nav button[data-page="home"]').click();
+    await page.keyboard.press('Control+k');
+    assert.equal(await page.locator('#content').getAttribute('data-view'),'search',size.name+' Ctrl+K navigation');
+    assert.equal(await page.locator('#search-input').evaluate(el=>document.activeElement===el),true,size.name+' search receives focus');
+    await page.keyboard.press('Escape');
+    assert.equal(await page.locator('#content').getAttribute('data-view'),'home',size.name+' Esc closes search');
+    await page.keyboard.press('Meta+k');
+    assert.equal(await page.locator('#content').getAttribute('data-view'),'search',size.name+' Cmd+K navigation');
+    await page.keyboard.press('Escape');
+    assert.deepEqual(errors,[],size.name+' browser JavaScript errors');
+    console.log('PASS '+size.name+' '+size.width+'x'+size.height+' 12 screens/reduced-motion/no-overflow/no-JS-errors');
+    await context.close();
+  }
+} finally { await browser.close(); }
