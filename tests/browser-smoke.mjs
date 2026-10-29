@@ -364,6 +364,43 @@ try {
       const reset=await page.evaluate(()=>JSON.parse(localStorage.getItem('atlas-preview:v1')).appearance);
       assert.deepEqual(reset,{accent:'',density:'comfortable',corners:'rounded',texture:'subtle'},size.name+' reset restores safe appearance defaults');
     }
+    if (size.name === 'iphone' || size.name === 'desktop') {
+      // Use the actual Journal form, local storage and graph, not sample records.
+      await page.locator('#nav button[data-page="library"]').click();
+      await page.locator('.signature-library-row[data-page="journal"]').click();
+      assert.equal(await page.locator('#content').getAttribute('data-view'),'journal',size.name+' journal route');
+      assert.equal(await page.locator('.atlas-journal-bar').count(),0,size.name+' no fabricated mood trend');
+      await page.locator('#atlas-journal-body').fill('A good day with family and some progress.');
+      await page.locator('#atlas-journal-mood').selectOption('good');
+      await page.locator('#atlas-journal-energy').selectOption('4');
+      await page.locator('#atlas-journal-tags').fill('family, progress');
+      await page.locator('#atlas-journal-form button[type="submit"]').click();
+      const stored=await page.evaluate(()=>JSON.parse(localStorage.getItem('atlas-preview:v1')).notes.filter(n=>n.journal===true));
+      assert.equal(stored.length,1,size.name+' first journal entry saved');
+      assert.equal(stored[0].journalDate,'2026-10-29',size.name+' dated London today');
+      assert.deepEqual([stored[0].mood,stored[0].energy,stored[0].tags],['good',4,['family','progress']],size.name+' journal metadata saved');
+      assert.equal(await page.locator('.atlas-journal-bar').count(),1,size.name+' trend uses one real entry');
+      await page.reload();
+      await page.locator('#nav button[data-page="library"]').click();
+      await page.locator('.signature-library-row[data-page="journal"]').click();
+      assert.equal(await page.locator('#atlas-journal-body').inputValue(),'A good day with family and some progress.',size.name+' journal survives reload');
+      await page.locator('#atlas-journal-day').fill('2026-10-28');
+      assert.equal(await page.locator('#atlas-journal-body').inputValue(),'',size.name+' blank date starts a separate entry');
+      await page.locator('#atlas-journal-body').fill('A hard day. Rest and reset.');
+      await page.locator('#atlas-journal-mood').selectOption('rough');
+      await page.locator('#atlas-journal-energy').selectOption('1');
+      await page.locator('#atlas-journal-form button[type="submit"]').click();
+      assert.equal(await page.locator('.atlas-journal-bar').count(),2,size.name+' chart contains both recorded days');
+      const heights=await page.locator('.atlas-journal-bar span').evaluateAll(items=>items.map(el=>el.style.height));
+      assert.deepEqual(heights,['20%','80%'],size.name+' mood graph faithfully renders rough and good scores');
+      await page.locator('#atlas-journal-search').fill('family');
+      assert.equal(await page.locator('.atlas-journal-history-row:visible').count(),1,size.name+' journal tag search filters history');
+      await page.locator('.atlas-journal-history-row:visible').click();
+      assert.equal(await page.locator('#atlas-journal-day').inputValue(),'2026-10-29',size.name+' history selects day');
+      await page.locator('[data-action="journal-calendar"]').click();
+      assert.equal(await page.locator('#content').getAttribute('data-view'),'calendar',size.name+' journal links to Calendar');
+      assert.equal(await page.locator('#cal-jump-date').inputValue(),'2026-10-29',size.name+' calendar opens journal day');
+    }
     await page.locator('.top-actions button[data-action="search"]').click();
     assert.equal(await page.locator('#content').getAttribute('data-view'),'search',size.name+' search route');
     const searchLayout=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,viewport:document.documentElement.clientWidth}));
