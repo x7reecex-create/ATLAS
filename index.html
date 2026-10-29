@@ -646,6 +646,20 @@ body{background:radial-gradient(ellipse 80% 26% at 50% -9%,var(--mat-veil),trans
  .content[data-view="calendar"] .calendar-actions{flex:0 0 auto;max-width:100%;gap:7px}
 }
 
+/* ATLAS INTERACTION FINISH 05 — visible affordances without dependency or clutter. */
+:root{--atlas-interactive-edge:color-mix(in srgb,var(--accent-text) 42%,var(--border));--atlas-focus-glow:color-mix(in srgb,var(--accent-text) 16%,transparent)}
+@media (hover:hover) and (pointer:fine){
+ :is(.signature-links button,.signature-library-row,.project,.note,.tile,.iconbtn,.cal-period button,.cal-views button,.cal-portrait-date,.micro,.action.ghost):hover{border-color:var(--atlas-interactive-edge);box-shadow:inset 0 1px var(--mat-glint),0 7px 19px #0002}
+ :is(.signature-links button,.signature-library-row,.iconbtn):hover .ui-icon{color:var(--accent-text)}
+}
+:is(.signature-links button,.signature-library-row,.signature-next,.project,.note,.tile,.iconbtn,.cal-period button,.cal-views button,.cal-portrait-date,.micro,.action,.bottomnav button,.fab):focus-visible{outline:2px solid var(--accent-text);outline-offset:3px;box-shadow:0 0 0 5px var(--atlas-focus-glow)}
+@media (pointer:coarse){
+ :is(.signature-links button,.signature-library-row,.signature-next,.bottomnav button,.fab,.action,.iconbtn,.cal-portrait-date){touch-action:manipulation}
+}
+@media (pointer:coarse) and (prefers-reduced-motion:no-preference){
+ :is(.signature-links button,.signature-library-row,.signature-next,.bottomnav button,.cal-portrait-date):active{transform:scale(.985)}
+}
+
 </style>
 </head>
 <body>
