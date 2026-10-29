@@ -55,8 +55,29 @@ try {
 
     }
     assert.ok(dimensions.scroll<=dimensions.viewport+2,size.name+' horizontal page overflow: '+JSON.stringify(dimensions));
+    // Navigate every major workspace screen, not just the home and calendar.
+    // This detects real-world narrow-screen overflow and broken navigation.
+    await page.locator('#nav button[data-page="today"]').click();
+    assert.equal(await page.locator('#content').getAttribute('data-view'),'today',size.name+' tasks route');
+    for (const destination of ['library','projects','notes','money','goals','insights','link','settings']) {
+      await page.locator('#nav button[data-page="library"]').click();
+      if (destination !== 'library') {
+        await page.locator('#content button.signature-library-row[data-page="'+destination+'"]').click();
+      }
+      assert.equal(await page.locator('#content').getAttribute('data-view'),destination,size.name+' '+destination+' route');
+      const layout = await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,viewport:document.documentElement.clientWidth}));
+      if(layout.scroll > layout.viewport + 2){
+        const oversize = await page.evaluate(()=>[...document.querySelectorAll('html,body,body *')].filter(el=>el.scrollWidth>el.clientWidth+3).sort((a,b)=>(b.scrollWidth-b.clientWidth)-(a.scrollWidth-a.clientWidth)).slice(0,8).map(el=>({tag:el.tagName,cls:String(el.className).slice(0,80),clientWidth:el.clientWidth,scrollWidth:el.scrollWidth})));
+        console.error('OVERFLOW '+size.name+' '+destination+': '+JSON.stringify(oversize));
+      }
+      assert.ok(layout.scroll <= layout.viewport + 2,size.name+' '+destination+' page horizontal overflow: '+JSON.stringify(layout));
+    }
+    await page.locator('.top-actions button[data-action="search"]').click();
+    assert.equal(await page.locator('#content').getAttribute('data-view'),'search',size.name+' search route');
+    const searchLayout=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,viewport:document.documentElement.clientWidth}));
+    assert.ok(searchLayout.scroll<=searchLayout.viewport+2,size.name+' search page overflow: '+JSON.stringify(searchLayout));
     assert.deepEqual(errors,[],size.name+' browser JavaScript errors');
-    console.log('PASS '+size.name+' '+size.width+'x'+size.height+' home/calendar/reduced-motion/no-overflow/no-JS-errors');
+    console.log('PASS '+size.name+' '+size.width+'x'+size.height+' 12 screens/reduced-motion/no-overflow/no-JS-errors');
     await context.close();
   }
 } finally { await browser.close(); }
