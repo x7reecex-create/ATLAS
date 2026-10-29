@@ -527,6 +527,16 @@ try {
         assert.notEqual(await page.locator('#nav').evaluate(el=>getComputedStyle(el).display),'none',size.name+' navigation restores after writing');
       }
       assert.equal(await page.locator('.atlas-journal-bar').count(),0,size.name+' no fabricated mood trend');
+      // Switching dates must not silently destroy unsaved writing.
+      await page.locator('#atlas-journal-body').fill('Draft that must not disappear.');
+      page.once('dialog',dialog=>dialog.dismiss());
+      await page.locator('#atlas-journal-day').fill('2026-10-28');
+      assert.equal(await page.locator('#atlas-journal-day').inputValue(),'2026-10-29',size.name+' cancelled date change restores original date');
+      assert.equal(await page.locator('#atlas-journal-body').inputValue(),'Draft that must not disappear.',size.name+' cancelled date change preserves writing');
+      page.once('dialog',dialog=>dialog.accept());
+      await page.locator('#atlas-journal-day').fill('2026-10-28');
+      assert.equal(await page.locator('#atlas-journal-body').inputValue(),'',size.name+' confirmed date change loads blank day');
+      await page.locator('#atlas-journal-day').fill('2026-10-29');
       assert.equal(await page.locator('[data-action="journal-export"]').isDisabled(),true,size.name+' empty journal cannot export');
       await page.locator('#atlas-journal-body').fill('A good day with family and some progress.');
       await page.locator('#atlas-journal-mood').selectOption('good');
@@ -538,6 +548,20 @@ try {
       assert.equal(stored[0].journalDate,'2026-10-29',size.name+' dated London today');
       assert.deepEqual([stored[0].mood,stored[0].energy,stored[0].tags],['good',4,['family','progress']],size.name+' journal metadata saved');
       assert.equal(await page.locator('.atlas-journal-bar').count(),1,size.name+' trend uses one real entry');
+      // Leaving the Journal also requires a deliberate decision when the form is dirty.
+      await page.locator('#atlas-journal-body').fill('Unsaved replacement');
+      await page.locator('#atlas-journal-body').evaluate(el=>el.blur());
+      if (mobile && size.width < size.height) await page.waitForFunction(()=>!document.body.classList.contains('atlas-mobile-editing'));
+      page.once('dialog',dialog=>dialog.dismiss());
+      await page.locator('#nav button[data-page="home"]').click();
+      assert.equal(await page.locator('#content').getAttribute('data-view'),'journal',size.name+' cancelled navigation stays in Journal');
+      assert.equal(await page.locator('#atlas-journal-body').inputValue(),'Unsaved replacement',size.name+' cancelled navigation keeps edits');
+      page.once('dialog',dialog=>dialog.accept());
+      await page.locator('#nav button[data-page="home"]').click();
+      assert.equal(await page.locator('#content').getAttribute('data-view'),'home',size.name+' confirmed navigation leaves Journal');
+      assert.equal((await page.evaluate(()=>JSON.parse(localStorage.getItem('atlas-preview:v1')).notes.find(n=>n.journal===true).body)),'A good day with family and some progress.',size.name+' discarded edits never overwrite saved writing');
+      await page.locator('#nav button[data-page="library"]').click();
+      await page.locator('.signature-library-row[data-page="journal"]').click();
       await page.reload();
       await page.locator('#nav button[data-page="library"]').click();
       await page.locator('.signature-library-row[data-page="journal"]').click();
