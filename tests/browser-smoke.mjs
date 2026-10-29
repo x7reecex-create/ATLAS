@@ -85,6 +85,22 @@ try {
     await page.locator('[data-action="focus-reset"]').click();
     assert.equal(await page.locator('#atlas-focus-clock').textContent(),'25:00',size.name+' focus timer resets');
     await page.locator('#nav button[data-page="home"]').click();
+    // Ten-tool page: verify calculator arithmetic and switch to text counting.
+    await page.locator('#nav button[data-page="library"]').click();
+    await page.locator('#content button.signature-library-row[data-page="quickTools"]').click();
+    assert.equal(await page.locator('#atlas-quick-select option').count(),10,size.name+' exposes ten tools');
+    await page.locator('#atlas-quick-a').fill('100');
+    await page.locator('#atlas-quick-b').fill('20');
+    assert.equal(await page.locator('#atlas-quick-result').textContent(),'£80.00 after discount',size.name+' discount calculation');
+    await page.locator('#atlas-quick-select').selectOption('split');
+    await page.locator('#atlas-quick-a').fill('30');
+    await page.locator('#atlas-quick-b').fill('3');
+    assert.equal(await page.locator('#atlas-quick-result').textContent(),'£10.00 each',size.name+' bill split');
+    await page.locator('#atlas-quick-select').selectOption('words');
+    await page.locator('#atlas-quick-text').fill('Hello world');
+    assert.equal(await page.locator('#atlas-quick-result').textContent(),'2 words · 11 characters',size.name+' text counter');
+    await page.evaluate(() => document.activeElement?.blur());
+    await page.evaluate(() => document.querySelector('#nav button[data-page="home"]').click());
     const graphics = await page.evaluate(() => {
       const hero = document.querySelector('.signature-hero h1 span');
       const tiles = [...document.querySelectorAll('.signature-links button')];
