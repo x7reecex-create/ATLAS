@@ -2132,7 +2132,8 @@ document.addEventListener('touchcancel',()=>{atlasWeekSwipe=null},{passive:true}
 /* Editing focus/visual viewport management is deliberately local to presentation.
    Do not infer that a keyboard opened purely because a text input has focus. */
 const atlasIsTextEdit=el=>el instanceof Element && (
- el.matches('textarea,[contenteditable="true"],select') ||
+ // Native select pickers do not open the text keyboard; keep page navigation available.
+ el.matches('textarea,[contenteditable="true"]') ||
  (el.matches('input')&&!['checkbox','radio','range','color','button','submit','reset','file','hidden'].includes(el.type))
 );
 function atlasRefreshMobileEditor(){
