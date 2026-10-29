@@ -316,6 +316,33 @@ try {
       }
       assert.ok(layout.scroll <= layout.viewport + 2,size.name+' '+destination+' page horizontal overflow: '+JSON.stringify(layout));
     }
+    // Opt-in larger text must be readable, persistent and safe at every size.
+    await page.locator('#atlas-text-size-select').selectOption('large');
+    assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('atlas-preview:v1')).appearance.textSize),'large',size.name+' text size stored locally');
+    await page.locator('#nav button[data-page="home"]').click();
+    const largeHome=await page.evaluate(()=>({
+      size:parseFloat(getComputedStyle(document.querySelector('.signature-hero p')).fontSize),
+      width:document.documentElement.scrollWidth,
+      viewport:document.documentElement.clientWidth
+    }));
+    assert.ok(largeHome.size>=16,size.name+' home copy enlarged');
+    assert.ok(largeHome.width<=largeHome.viewport+2,size.name+' large text home fits');
+    await page.locator('#nav button[data-page="calendar"]').click();
+    const largeCalendar=await page.evaluate(()=>({
+      width:document.documentElement.scrollWidth,viewport:document.documentElement.clientWidth
+    }));
+    assert.ok(largeCalendar.width<=largeCalendar.viewport+2,size.name+' large text calendar fits');
+    await page.reload();
+    assert.equal(await page.evaluate(()=>document.documentElement.dataset.atlasTextSize),'large',size.name+' text size survived reload');
+    await page.locator('#nav button[data-page="library"]').click();
+    const libraryType=await page.locator('.library-copy small').first().evaluate(el=>parseFloat(getComputedStyle(el).fontSize));
+    assert.ok(libraryType>=13,size.name+' library labels enlarged');
+    await page.locator('#content button.signature-library-row[data-page="settings"]').click();
+    assert.equal(await page.locator('#atlas-text-size-select').inputValue(),'large',size.name+' control reflects saved text size');
+    if (size.name !== 'iphone' && size.name !== 'desktop') {
+      await page.locator('[data-action="appearance-reset"]').click();
+      assert.equal(await page.evaluate(()=>document.documentElement.dataset.atlasTextSize),'standard',size.name+' reset restores normal text');
+    }
     if (size.name === 'iphone' || size.name === 'desktop') {
       // Real Appearance Studio controls must change the app, survive reload,
       // pass contrast checks, export through workspace storage and reset safely.
@@ -328,6 +355,7 @@ try {
       await page.locator('#atlas-density-select').selectOption('compact');
       await page.locator('#atlas-corners-select').selectOption('subtle');
       await page.locator('#atlas-texture-select').selectOption('off');
+      await page.locator('#atlas-text-size-select').selectOption('large');
       const appearance=await page.evaluate(()=>{
         const root=document.documentElement,style=getComputedStyle(root),stored=JSON.parse(localStorage.getItem('atlas-preview:v1'));
         const lumen=h=>('#'+h.replace('#','').toLowerCase()).match(/\w\w/g).map(x=>parseInt(x,16)/255).map(x=>x<=.04045?x/12.92:((x+.055)/1.055)**2.4).reduce((a,v,i)=>a+v*[.2126,.7152,.0722][i],0);
@@ -339,6 +367,7 @@ try {
           density:stored.appearance?.density,
           corners:stored.appearance?.corners,
           texture:stored.appearance?.texture,
+          textSize:stored.appearance?.textSize,
           custom:root.dataset.atlasCustomAccent,
           accentRatio:ratio(customAccent,style.getPropertyValue('--surface').trim()),
           buttonRatio:ratio(buttonAccent,style.getPropertyValue('--accent-on').trim()),
@@ -348,7 +377,7 @@ try {
           scroll:document.documentElement.scrollWidth
         };
       });
-      assert.deepEqual([appearance.accent,appearance.density,appearance.corners,appearance.texture],['#222222','compact','subtle','off'],size.name+' appearance settings safely persisted');
+      assert.deepEqual([appearance.accent,appearance.density,appearance.corners,appearance.texture,appearance.textSize],['#222222','compact','subtle','off','large'],size.name+' appearance settings safely persisted');
       assert.equal(appearance.custom,'true',size.name+' custom accent active');
       assert.ok(appearance.accentRatio>=4.5,size.name+' contrast-safe accent text');
       assert.ok(appearance.buttonRatio>=4.5,size.name+' contrast-safe button');
@@ -362,7 +391,7 @@ try {
       assert.equal(await page.locator('#atlas-accent-input').inputValue(),'#222222',size.name+' custom accent preserved across palettes');
       await page.locator('[data-action="appearance-reset"]').click();
       const reset=await page.evaluate(()=>JSON.parse(localStorage.getItem('atlas-preview:v1')).appearance);
-      assert.deepEqual(reset,{accent:'',density:'comfortable',corners:'rounded',texture:'subtle'},size.name+' reset restores safe appearance defaults');
+      assert.deepEqual(reset,{accent:'',density:'comfortable',corners:'rounded',texture:'subtle',textSize:'standard'},size.name+' reset restores safe appearance defaults');
     }
     if (size.name === 'iphone' || size.name === 'desktop') {
       // Use the actual Journal form, local storage and graph, not sample records.

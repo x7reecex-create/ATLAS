@@ -1,5 +1,5 @@
 /* ATLAS public offline shell. Private requests never enter Cache Storage. */
-const CACHE = 'atlas-private-ios-v22-public-shell';
+const CACHE = 'atlas-private-ios-v23-public-shell';
 const SCOPE = new URL(self.registration.scope);
 const SHELL = new URL('index.html', SCOPE).href;
 const ASSETS = new Map([
