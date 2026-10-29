@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 
 const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
 const begin=html.indexOf('/* Private, human-readable export.');
-const end=html.indexOf('function journal(){',begin);
+const end=html.indexOf('function atlasJournalHasUnsavedChanges(){',begin);
 assert.ok(begin>=0&&end>begin,'journal text exporter is present');
 const moods=[['great','Great',5],['good','Good',4],['okay','Okay',3],['low','Low',2],['rough','Rough',1]];
 const api=vm.runInNewContext(html.slice(begin,end)+';atlasJournalTextExport', {
