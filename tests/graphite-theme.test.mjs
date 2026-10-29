@@ -37,7 +37,7 @@ test('theme selection announces its state and uses existing local persistence',(
 });
 
 test('offline app shell refreshes without changing private storage',()=>{
-  const version=sw.match(/const CACHE = 'atlas-private-ios-v(\\d+)-public-shell';/);
+  const version=sw.match(/const CACHE = 'atlas-private-ios-v(\d+)-public-shell';/);
   assert.ok(version,'versioned public offline cache exists');
   assert.ok(Number(version[1])>=26,'updated shell invalidates earlier cached HTML');
   assert.match(html,/const KEY='atlas-preview:v1'/);
