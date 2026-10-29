@@ -53,6 +53,7 @@ try {
     await page.evaluate(() => {
       const key='atlas-preview:v1';
       const saved=JSON.parse(localStorage.getItem(key));
+      if (!saved) return;
       saved.appearance={...saved.appearance,textSize:'large'};
       localStorage.setItem(key,JSON.stringify(saved));
     });
