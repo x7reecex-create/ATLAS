@@ -1690,9 +1690,9 @@ function atlasUndoGesture(){
  atlasClearUndo();
  if(record.kind==='complete'){
   const t=byId(data.tasks,record.ref);
-  if(!t||!t.done||t.completedAt!==record.stamp)return showToast('Task changed. Cannot undo.');
+  if(!t||!t.done||t.completedAt!==record.stamp||JSON.stringify(t)!==record.after||record.created.some(item=>JSON.stringify(byId(data.tasks,item.id))!==item.snapshot))return showToast('Task changed. Cannot undo safely.');
   Object.assign(t,record.before);
-  const created=new Set(record.created);data.tasks=data.tasks.filter(x=>!created.has(x.id));
+  const created=new Set(record.created.map(item=>item.id));data.tasks=data.tasks.filter(x=>!created.has(x.id));
   return commit('Completion undone');
  }
  if(record.kind==='plan'){
@@ -1707,7 +1707,7 @@ function atlasUndoGesture(){
  }
  if(record.kind==='timetable'){
   const t=byId(data.calendarEvents,record.ref);
-  if(!t||t.startDate!==record.after)return showToast('Block changed. Cannot undo.');
+  if(!t||t.startDate!==record.after||JSON.stringify(t)!==record.afterSnapshot)return showToast('Block changed. Cannot undo safely.');
   t.startDate=record.before;t.exceptions=record.exceptions;return commit('Timetable restored');
  }
 }
@@ -1717,7 +1717,7 @@ function atlasQuickTask(ref,action){
   const before=clone(task),ids=new Set(data.tasks.map(t=>t.id));
   toggleTask(ref,true);
   if(storageLoadError||storageWarning)return;
-  return atlasOfferUndo('Task completed',{kind:'complete',ref,before,stamp:byId(data.tasks,ref)?.completedAt,created:data.tasks.filter(t=>!ids.has(t.id)).map(t=>t.id)});
+  return atlasOfferUndo('Task completed',{kind:'complete',ref,before,stamp:byId(data.tasks,ref)?.completedAt,after:JSON.stringify(byId(data.tasks,ref)),created:data.tasks.filter(t=>!ids.has(t.id)).map(t=>({id:t.id,snapshot:JSON.stringify(t)}))});
  }
  if(action==='tomorrow'){
   const tomorrow=dateAdd(calLondonToday(),1),before={planned:task.planned,stage:task.stage};
@@ -2701,7 +2701,7 @@ function atlasMoveTimetable(ref,day){
  const exceptions=clone(event.exceptions||{});
  event.startDate=after;event.exceptions={};atlasTimetableDay=day;
  commit('Weekly block moved');
- if(!storageLoadError&&!storageWarning)atlasOfferUndo('Moved to '+ATLAS_WEEKDAYS[day],{kind:'timetable',ref,before,after,exceptions});
+ if(!storageLoadError&&!storageWarning)atlasOfferUndo('Moved to '+ATLAS_WEEKDAYS[day],{kind:'timetable',ref,before,after,exceptions,afterSnapshot:JSON.stringify(event)});
 }
 function atlasClearTimetableHighlight(){
  document.querySelectorAll('.atlas-timetable-day.atlas-drop-hover').forEach(d=>d.classList.remove('atlas-drop-hover'));
