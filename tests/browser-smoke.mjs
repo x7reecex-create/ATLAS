@@ -490,6 +490,26 @@ try {
 
 
 
+
+    // Focus task ordering is usable through buttons as well as desktop dragging.
+    await page.locator('.tabs button[data-view="today"]').click();
+    await page.locator('.task[data-task="flow-planned"] .atlas-task-more').click();
+    await page.locator('.atlas-task-menu-sheet [data-kind="focus"]').click();
+    assert.equal(await page.locator('.task[data-focus-draggable="true"]').count(),2,size.name+' focus count');
+    await page.locator('.task[data-task="flow-planned"] .atlas-task-more').click();
+    await page.locator('.atlas-task-menu-sheet [data-action="focus-move"][data-direction="-1"]').click();
+    const focusOrder=await page.locator('.task[data-focus-draggable="true"]').evaluateAll(nodes=>nodes.map(n=>n.dataset.task));
+    assert.deepEqual(focusOrder,['flow-planned','flow-focus-due'],size.name+' menu moves focus task up');
+    if(size.name==='desktop'){
+      await page.locator('.task[data-task="flow-planned"]').dragTo(page.locator('.task[data-task="flow-focus-due"]'));
+      const order=await page.locator('.task[data-focus-draggable="true"]').evaluateAll(nodes=>nodes.map(n=>n.dataset.task));
+      assert.deepEqual(order,['flow-focus-due','flow-planned'],'desktop focus drag works');
+    }
+    await page.reload();
+    await page.locator('#nav button[data-page="today"]').click();
+    assert.equal(await page.locator('.task[data-focus-draggable="true"]').count(),2,size.name+' focus order persists');
+
+
     // Timetable is a true weekly Calendar series: edit, persist, and remove on every viewport.
     await page.locator('#nav button[data-page="library"]').click();
     await page.locator('#content button.signature-library-row[data-page="timetable"]').click();
