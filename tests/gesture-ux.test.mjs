@@ -21,7 +21,7 @@ test('Task actions have Undo and do not erase existing recurring tasks on comple
  assert.match(html,/function atlasQuickTask\(ref,action\)/);
  assert.match(html,/toggleTask\(ref,true\)/);
  assert.match(html,/record\.created/);
- assert.match(html,/if\(!t\|\|!t\.done\|\|t\.completedAt!==record\.stamp\)/);
+ assert.match(html,/if\(!t\|\|!t\.done\|\|t\.completedAt!==record\.stamp/);
  assert.match(html,/function atlasTaskMenu\(ref\)/);
  assert.match(html,/role="dialog" aria-modal="true" aria-label="Task actions"/);
 });
