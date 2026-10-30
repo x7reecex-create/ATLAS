@@ -1234,6 +1234,12 @@ h1,h2,h3{font-family:var(--atlas-display-font);font-optical-sizing:auto;letter-s
 @media(min-width:901px){.atlas-task-undo{bottom:26px}}
 @media(max-width:360px){.atlas-task-card .taskactions{gap:1px}.atlas-task-card .taskactions .micro{min-width:40px;width:40px}.atlas-task-card .task{gap:5px}}
 @media(prefers-reduced-motion:reduce){.task .taskbody{transition:none!important}}
+
+/* Dragging a weekly block is an enhancement, never the only way to move it. */
+.atlas-timetable-block[draggable="true"]{cursor:grab}
+.atlas-timetable-block.atlas-being-dragged{opacity:.55;cursor:grabbing}
+.atlas-timetable-day.atlas-timetable-drop-target{outline:2px dashed var(--accent-text);outline-offset:-5px;background:var(--surface2)}
+.cal-portrait-date-strip,.cal-portrait-events,.cal-portrait-day-head{touch-action:pan-y}
 </style>
 </head>
 <body>
@@ -1351,7 +1357,7 @@ function calPortraitWeek(){
  const allDay=entries.filter(o=>o.allDay),timed=entries.filter(o=>!o.allDay).sort((a,b)=>calMins(a.startTime)-calMins(b.startTime));
  const readable=timed.map(o=>{const cat=CAL_CATEGORIES[o.category]||CAL_CATEGORIES.other;return `<button class="cal-portrait-appointment ${conflicts.has(o.uid)?'cal-conflict':''}" data-action="cal-open" data-kind="${esc(o.kind)}" data-id="${esc(o.id)}" data-origin="${esc(o.origin||'')}" style="--cal-hue:${cat[1]}"><span class="cal-portrait-appointment-time">${esc(o.startTime)}<small>${o.durationMins} min</small></span><span class="cal-portrait-appointment-label"><strong>${esc(o.title)}</strong><small>${esc(cat[0])}${conflicts.has(o.uid)?' · Time overlap':''}</small></span><span aria-hidden="true">›</span></button>`}).join('');
  const dayName=calFormatDate(selected,{weekday:'long',day:'numeric',month:'long'});
- return `<section class="cal-portrait-week" aria-label="Selected week's daily agenda"><div class="cal-portrait-date-strip" role="group" aria-label="Choose a day. Swipe left or right to change week">${strip}</div><div class="cal-portrait-day-head"><div><span class="cal-portrait-overline">YOUR SCHEDULE</span><h2>${esc(dayName)}</h2><p>${entries.length?`${entries.length} ${entries.length===1?'entry':'entries'} · London time`:'Nothing scheduled · London time'}</p></div><button type="button" data-action="cal-add" data-date="${selected}" aria-label="New event on ${esc(dayName)}">＋ <span>New</span></button></div>${allDay.length?`<div class="cal-portrait-all-day"><b>ALL DAY / DUE</b>${allDay.map(o=>calEventChip(o,conflicts,'agenda')).join('')}</div>`:''}<div class="cal-portrait-events">${readable||`<div class="cal-portrait-empty"><span>◇</span><strong>Room to breathe.</strong><p>No appointments or scheduled tasks today. Tap New to add something.</p></div>`}</div><details class="cal-portrait-time-details"><summary><span>Hourly timetable</span><span>Tap a time to add an event</span></summary>${calTimeSlots(selected,entries,conflicts)}</details></section>`;
+ return `<section class="cal-portrait-week" aria-label="Selected week's daily agenda"><div class="cal-portrait-date-strip" role="group" aria-label="Choose a day. Swipe this row to change weeks, or swipe the agenda to change days">${strip}</div><div class="cal-portrait-day-head"><div><span class="cal-portrait-overline">YOUR SCHEDULE</span><h2>${esc(dayName)}</h2><p>${entries.length?`${entries.length} ${entries.length===1?'entry':'entries'} · London time`:'Nothing scheduled · London time'}</p></div><button type="button" data-action="cal-add" data-date="${selected}" aria-label="New event on ${esc(dayName)}">＋ <span>New</span></button></div>${allDay.length?`<div class="cal-portrait-all-day"><b>ALL DAY / DUE</b>${allDay.map(o=>calEventChip(o,conflicts,'agenda')).join('')}</div>`:''}<div class="cal-portrait-events">${readable||`<div class="cal-portrait-empty"><span>◇</span><strong>Room to breathe.</strong><p>No appointments or scheduled tasks today. Tap New to add something.</p></div>`}</div><details class="cal-portrait-time-details"><summary><span>Hourly timetable</span><span>Tap a time to add an event</span></summary>${calTimeSlots(selected,entries,conflicts)}</details></section>`;
 }
 function calWeek(){
  const start=calStartWeek(calAnchor),dates=Array.from({length:7},(_,i)=>dateAdd(start,i));
@@ -1400,12 +1406,12 @@ function atlasTimetableConflicts(blocks){
 function atlasTimetableDayCard(day,blocks,conflicts){
  const current=day===(calDate(calLondonToday()).getDay()+6)%7;
  const list=blocks.filter(e=>atlasDayIndex(e.startDate)===day);
- return `<section class="atlas-timetable-day" aria-label="${ATLAS_WEEKDAYS[day]} timetable">
+ return `<section class="atlas-timetable-day" data-timetable-drop-day="${day}" aria-label="${ATLAS_WEEKDAYS[day]} timetable">
  <header><div><span class="atlas-timetable-day-name">${ATLAS_WEEKDAYS[day]}</span>${current?'<small class="atlas-timetable-current">Today</small>':''}</div>
  <button class="atlas-timetable-plus" type="button" data-action="timetable-add" data-day="${day}" aria-label="Add a block for ${ATLAS_WEEKDAYS[day]}">＋</button></header>
  ${list.length?list.map(e=>{
   const hue=(CAL_CATEGORIES[e.category]||CAL_CATEGORIES.other)[1];
-  return `<button type="button" class="atlas-timetable-block" data-action="timetable-edit" data-id="${esc(e.id)}" style="--slot-hue:${hue}" aria-label="Edit ${esc(e.title)} on ${ATLAS_WEEKDAYS[day]} at ${esc(e.startTime)}">
+  return `<button type="button" class="atlas-timetable-block" data-action="timetable-edit" data-id="${esc(e.id)}" draggable="true" style="--slot-hue:${hue}" aria-label="Edit ${esc(e.title)} on ${ATLAS_WEEKDAYS[day]} at ${esc(e.startTime)}">
   <span class="atlas-timetable-clock">${esc(e.startTime)} – ${esc(calClock(calMins(e.startTime)+e.durationMins))}</span>
   <strong>${esc(e.title)}</strong><small>${esc((CAL_CATEGORIES[e.category]||CAL_CATEGORIES.other)[0])}${conflicts.has(e.id)?' · Overlaps':''}</small></button>`;
  }).join(''):'<p class="atlas-timetable-empty">Nothing planned yet.</p>'}
@@ -1425,7 +1431,7 @@ function timetable(){
  </div>
  ${atlasTimetableMode==='day'?`<div class="atlas-timetable-days" role="group" aria-label="Choose timetable day">${ATLAS_WEEKDAYS.map((label,index)=>`<button data-action="timetable-day" data-day="${index}" aria-pressed="${atlasTimetableDay===index}" class="${atlasTimetableDay===index?'active':''}">${label.slice(0,3)}</button>`).join('')}</div>`:''}
  <div class="atlas-timetable-grid ${atlasTimetableMode==='day'?'single':''}">${(atlasTimetableMode==='day'?[atlasTimetableDay]:[0,1,2,3,4,5,6]).map(day=>atlasTimetableDayCard(day,blocks,conflicts)).join('')}</div>
- <p class="fine atlas-timetable-footnote">Blocks repeat each week in Calendar. Tap a block to edit it. Everything is saved with your usual ATLAS backup.</p>
+ <p class="fine atlas-timetable-footnote">Blocks repeat in Calendar. Tap to edit or change the day; drag to another day with a mouse. You can undo a move.</p>
  </section>`;
 }
 function atlasTimetableEditor(ref='',day=atlasTimetableDay){
@@ -1471,6 +1477,67 @@ function atlasTimetableSave(form){
  atlasTimetableDay=day;
  closeModal();commit(old?'Timetable updated':'Weekly block added');
 }
+
+/* Timetable blocks can be moved between days with a mouse/trackpad.
+   Touch and keyboard users use the existing Day select in the block editor. */
+let atlasTimetableUndo=null,atlasTimetableDrag=null;
+function atlasMoveTimetableBlock(ref,targetDay){
+ const old=byId(data.calendarEvents,ref),day=Number(targetDay);
+ if(!old||old.timetable!==true||!Number.isInteger(day)||day<0||day>6)return false;
+ if(atlasDayIndex(old.startDate)===day)return false;
+ const saved=clone(old),exceptions=Object.keys(old.exceptions||{});
+ if(exceptions.length&&!confirm('This block has edited Calendar occurrences. Move its regular day and clear those exceptions?'))return false;
+ const clashes=atlasTimetableBlocks().some(b=>b.id!==ref&&atlasDayIndex(b.startDate)===day&&calMins(b.startTime)<calMins(old.startTime)+old.durationMins&&calMins(old.startTime)<calMins(b.startTime)+b.durationMins);
+ if(clashes&&!confirm('This overlaps another block on '+ATLAS_WEEKDAYS[day]+'. Move it anyway?'))return false;
+ try{
+  const updated=calValidateEvent({...old,startDate:dateAdd(calStartWeek(calLondonToday()),day),exceptions:{}});
+  Object.assign(old,updated);
+  if(!save()){Object.assign(old,saved);return false}
+  atlasTaskUndo=null;
+  atlasTimetableUndo={type:'timetable',id:ref,previous:saved,after:clone(old),message:'Moved to '+ATLAS_WEEKDAYS[day],until:Date.now()+8500};
+  atlasTimetableDay=day;render();atlasPaintTaskUndo();
+  const token=atlasTimetableUndo;
+  setTimeout(()=>{if(atlasTimetableUndo===token){atlasTimetableUndo=null;atlasPaintTaskUndo()}},8500);
+  return true;
+ }catch(err){Object.assign(old,saved);showToast('Could not move block: '+err.message);return false}
+}
+function atlasUndoTimetableMove(){
+ const undo=atlasTimetableUndo;
+ if(!undo||Date.now()>undo.until)return;
+ const old=byId(data.calendarEvents,undo.id);
+ if(!old||JSON.stringify(old)!==JSON.stringify(undo.after)){atlasTimetableUndo=null;atlasPaintTaskUndo();showToast('Block has changed; undo is unavailable.');return}
+ const previous=clone(old);Object.assign(old,clone(undo.previous));
+ if(!save()){Object.assign(old,previous);return}
+ atlasTimetableUndo=null;render();showToast('Timetable move undone');
+}
+document.addEventListener('dragstart',e=>{
+ if(page!=='timetable')return;
+ const block=e.target.closest('.atlas-timetable-block');
+ if(!block||!e.dataTransfer)return;
+ atlasTimetableDrag=block.dataset.id;
+ e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain','ATLAS timetable block');
+ block.classList.add('atlas-being-dragged');
+});
+document.addEventListener('dragover',e=>{
+ if(page!=='timetable'||!atlasTimetableDrag)return;
+ const zone=e.target.closest('[data-timetable-drop-day]');
+ if(!zone)return;
+ e.preventDefault();if(e.dataTransfer)e.dataTransfer.dropEffect='move';
+ document.querySelectorAll('.atlas-timetable-drop-target').forEach(x=>{if(x!==zone)x.classList.remove('atlas-timetable-drop-target')});
+ zone.classList.add('atlas-timetable-drop-target');
+});
+document.addEventListener('drop',e=>{
+ if(page!=='timetable'||!atlasTimetableDrag)return;
+ const zone=e.target.closest('[data-timetable-drop-day]'),ref=atlasTimetableDrag;
+ atlasTimetableDrag=null;
+ document.querySelectorAll('.atlas-timetable-drop-target,.atlas-being-dragged').forEach(x=>x.classList.remove('atlas-timetable-drop-target','atlas-being-dragged'));
+ if(!zone)return;e.preventDefault();atlasMoveTimetableBlock(ref,zone.dataset.timetableDropDay);
+});
+document.addEventListener('dragend',()=>{
+ atlasTimetableDrag=null;
+ document.querySelectorAll('.atlas-timetable-drop-target,.atlas-being-dragged').forEach(x=>x.classList.remove('atlas-timetable-drop-target','atlas-being-dragged'));
+});
+
 function atlasTimetableDelete(ref){
  const old=byId(data.calendarEvents,ref);
  if(!old||old.timetable!==true)return;
@@ -1714,9 +1781,11 @@ function atlasTaskSwipeIntent(dx,dy){
 }
 function atlasPaintTaskUndo(){
  const el=$('atlas-task-undo');if(!el)return;
- if(!atlasTaskUndo||Date.now()>atlasTaskUndo.until){el.hidden=true;el.innerHTML='';return}
+ const pending=atlasTimetableUndo?.until>Date.now()?atlasTimetableUndo:atlasTaskUndo?.until>Date.now()?atlasTaskUndo:null;
+ if(!pending){el.hidden=true;el.innerHTML='';return}
  el.hidden=false;
- el.innerHTML='<span>'+esc(atlasTaskUndo.message)+'</span><button type="button" class="atlas-task-undo-button" data-action="task-undo" aria-label="Undo last task action">Undo</button>';
+ const action=pending.type==='timetable'?'timetable-undo':'task-undo';
+ el.innerHTML='<span>'+esc(pending.message)+'</span><button type="button" class="atlas-task-undo-button" data-action="'+action+'" aria-label="Undo last action">Undo</button>';
 }
 function atlasOpenTaskMenu(ref){
  const t=byId(data.tasks,ref);if(!t||t.done)return;
@@ -1745,6 +1814,7 @@ function atlasQuickTaskAction(ref,kind){
  const current=byId(data.tasks,ref);
  if(!current)return;
  const added=data.tasks.filter(t=>!known.has(t.id)).map(clone);
+ atlasTimetableUndo=null;
  atlasTaskUndo={id:ref,previous,after:clone(current),added,message:kind==='complete'?'Task completed':kind==='tomorrow'?'Planned for tomorrow':'Focus updated',until:Date.now()+8500};
  atlasPaintTaskUndo();
  const token=atlasTaskUndo;
@@ -2342,6 +2412,7 @@ if(a==='toggle-task'||a==='toggle-money')return; // checkboxes are handled by ch
 if(a==='task-quick-menu')return atlasOpenTaskMenu(ref);
 if(a==='task-quick-choice')return atlasQuickTaskAction(ref,element.dataset.kind);
 if(a==='task-undo')return atlasUndoLastTask();
+if(a==='timetable-undo')return atlasUndoTimetableMove();
 if(a==='journal-export')return atlasDownloadJournal();
 if(a==='journal-today'){const today=calLondonToday();if(atlasJournalDate===today)return;if(!atlasJournalConfirmDiscard())return;atlasJournalDate=today;return render()}
 if(a==='journal-open'){
@@ -2623,11 +2694,13 @@ document.addEventListener('pointercancel',()=>{clearTimeout(calTouchTimer);calTo
 let atlasWeekSwipe=null;
 document.addEventListener('touchstart',e=>{
  if(page!=='calendar'||calView!=='week'||!matchMedia('(orientation:portrait)').matches||e.touches.length!==1){atlasWeekSwipe=null;return}
- const rail=e.target.closest('.cal-portrait-date-strip');if(!rail)return;
+ const rail=e.target.closest('.cal-portrait-date-strip'),agenda=e.target.closest('.cal-portrait-day-head,.cal-portrait-events,.cal-portrait-all-day,.cal-portrait-empty');
+ if(!rail&&!agenda)return;
+ if(!rail&&e.target.closest('button,a,input,textarea,select,[contenteditable="true"]'))return;
  const t=e.touches[0];
  // Leave the outer screen edge available for iOS/Android browser back gestures.
  if(t.clientX<24||t.clientX>innerWidth-24)return;
- atlasWeekSwipe={id:t.identifier,x:t.clientX,y:t.clientY};
+ atlasWeekSwipe={id:t.identifier,x:t.clientX,y:t.clientY,unit:rail?'week':'day'};
 },{passive:true});
 document.addEventListener('touchmove',e=>{if(atlasWeekSwipe&&e.touches.length!==1)atlasWeekSwipe=null},{passive:true});
 document.addEventListener('touchend',e=>{
@@ -2637,7 +2710,7 @@ document.addEventListener('touchend',e=>{
  const dx=finger.clientX-swipe.x,dy=finger.clientY-swipe.y;
  if(Math.abs(dx)<65||Math.abs(dx)<Math.abs(dy)*1.5||Math.abs(dy)>45)return;
  if(e.cancelable)e.preventDefault(); // Prevent a swipe ending on a date button from also triggering its click.
- calAnchor=dateAdd(calAnchor,dx<0?7:-7);
+ calAnchor=dateAdd(calAnchor,(dx<0?1:-1)*(swipe.unit==='week'?7:1));
  render();
 },{passive:false});
 document.addEventListener('touchcancel',()=>{atlasWeekSwipe=null},{passive:true});
