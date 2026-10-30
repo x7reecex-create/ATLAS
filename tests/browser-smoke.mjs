@@ -30,6 +30,7 @@ try {
     await page.clock.setFixedTime(new Date('2026-10-29T12:00:00Z'));
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
+    page.on('console',message=>{if(message.text().includes('ATLAS data recovery diagnosis'))console.log(size.name+' recovery:',message.text())});
     await page.goto('http://127.0.0.1:8765/index.html', {waitUntil:'load'});
     await page.locator('#nav button[data-page="home"]').waitFor({timeout:12000});
     assert.equal(await page.locator('#content').getAttribute('data-view'),'home',size.name+' home route');
