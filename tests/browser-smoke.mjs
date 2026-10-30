@@ -452,6 +452,40 @@ try {
     const taskWidth=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
     assert.ok(taskWidth<=2,size.name+' Today task controls fit the screen');
 
+    // Actual dispatched touch pointer gestures: action, saved state, and reversible Undo.
+    const swipeTask=direction=>page.evaluate(direction=>{
+      const body=document.querySelector('.task[data-task="flow-planned"] .taskbody');
+      if(!body)throw Error('Missing swipe target');
+      const rect=body.getBoundingClientRect();
+      const x=Math.max(34,Math.min(innerWidth-35,rect.left+rect.width/2)),y=rect.top+rect.height/2;
+      const event=(type,px,py)=>body.dispatchEvent(new PointerEvent(type,{bubbles:true,cancelable:true,pointerType:'touch',pointerId:31,isPrimary:true,button:0,clientX:px,clientY:py}));
+      event('pointerdown',x,y);event('pointermove',x+(direction==='right'?108:-108),y+2);event('pointerup',x+(direction==='right'?108:-108),y+2);
+    },direction);
+    await swipeTask('left');
+    assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('atlas-preview:v1')).tasks.find(t=>t.id==='flow-planned').planned),'2026-10-30',size.name+' swipe left plans tomorrow');
+    await page.locator('#atlas-undo button[data-action="atlas-undo"]').click();
+    assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('atlas-preview:v1')).tasks.find(t=>t.id==='flow-planned').planned),'2026-10-29',size.name+' undo restores prior plan');
+    await swipeTask('right');
+    assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('atlas-preview:v1')).tasks.find(t=>t.id==='flow-planned').done),true,size.name+' swipe right completes');
+    await page.locator('#atlas-undo button[data-action="atlas-undo"]').click();
+    assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('atlas-preview:v1')).tasks.find(t=>t.id==='flow-planned').done),false,size.name+' completion undo restores task');
+    await page.locator('.task[data-task="flow-planned"] [data-action="task-menu"]').click();
+    await page.locator('.atlas-menu-row[data-action="task-quick-priority"]').click();
+    assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('atlas-preview:v1')).tasks.find(t=>t.id==='flow-planned').priority),'high',size.name+' accessible quick priority');
+    await page.locator('#atlas-undo button').click();
+    assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('atlas-preview:v1')).tasks.find(t=>t.id==='flow-planned').priority),'normal',size.name+' priority undo');
+    if (size.name==='iphone') {
+      await page.evaluate(async()=>{
+        const body=document.querySelector('.task[data-task="flow-planned"] .taskbody'),r=body.getBoundingClientRect();
+        const x=Math.min(innerWidth-35,Math.max(35,r.left+r.width/2)),y=r.top+r.height/2;
+        body.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,pointerType:'touch',pointerId:32,isPrimary:true,button:0,clientX:x,clientY:y}));
+        await new Promise(done=>setTimeout(done,610));
+      });
+      assert.equal(await page.locator('.atlas-task-sheet[role="dialog"]').count(),1,size.name+' hold opens quick actions');
+      await page.locator('.atlas-task-sheet [data-action="modal-close"]').click();
+    }
+
+
 
     // Timetable is a true weekly Calendar series: edit, persist, and remove on every viewport.
     await page.locator('#nav button[data-page="library"]').click();
@@ -469,6 +503,20 @@ try {
     const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('atlas-preview:v1')).calendarEvents.filter(e=>e.timetable===true));
     assert.equal(saved.length,1,size.name+' one timetable record');
     assert.equal(saved[0].repeat,'weekly',size.name+' timetable syncs with Calendar');
+
+    // Drag timetable between days, then undo; check same saved calendar record.
+    await page.evaluate(()=>{
+      const block=document.querySelector('.atlas-timetable-block[data-id]'),target=document.querySelector('.atlas-timetable-day[data-atlas-day="3"]');
+      if(!block||!target)throw Error('Drag targets missing');
+      const transfer=new DataTransfer();
+      block.dispatchEvent(new DragEvent('dragstart',{bubbles:true,cancelable:true,dataTransfer:transfer}));
+      target.dispatchEvent(new DragEvent('dragover',{bubbles:true,cancelable:true,dataTransfer:transfer}));
+      target.dispatchEvent(new DragEvent('drop',{bubbles:true,cancelable:true,dataTransfer:transfer}));
+    });
+    assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('atlas-preview:v1')).calendarEvents.find(e=>e.timetable).startDate),'2026-10-29',size.name+' drag moved weekly block to Thursday');
+    await page.locator('#atlas-undo button').click();
+    assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('atlas-preview:v1')).calendarEvents.find(e=>e.timetable).startDate),'2026-10-28',size.name+' drag move undo restores Wednesday');
+
     await page.locator('button[data-action="timetable-mode"][data-mode="day"]').click();
     await page.locator('button[data-action="timetable-day"][data-day="2"]').click();
     assert.equal(await page.locator('.atlas-timetable-day').count(),1,size.name+' day switch works');
@@ -483,6 +531,24 @@ try {
     assert.equal(await page.locator('.atlas-timetable-block', {hasText:'Updated class'}).count(),1,size.name+' timetable survives reload');
     await page.locator('button[data-action="goto-calendar"]').click();
     assert.equal(await page.locator('#content').getAttribute('data-view'),'calendar',size.name+' timetable opens Calendar');
+
+    await page.locator('.cal-views button[data-view="day"]').click();
+    const beforeSwipeDay=await page.locator('#cal-jump-date').inputValue();
+    await page.evaluate(()=>{
+      const board=document.getElementById('cal-board');
+      const point=(x,y)=>({identifier:8,clientX:x,clientY:y,target:board});
+      const emit=(type,touches,changed)=>{
+        const e=new Event(type,{bubbles:true,cancelable:true});
+        Object.defineProperty(e,'touches',{value:touches});
+        Object.defineProperty(e,'changedTouches',{value:changed});
+        board.dispatchEvent(e);
+      };
+      emit('touchstart',[point(200,200)],[point(200,200)]);
+      emit('touchend',[],[point(100,205)]);
+    });
+    const expectedSwipeDay=new Date(Date.parse(beforeSwipeDay+'T12:00:00Z')+86400000).toISOString().slice(0,10);
+    assert.equal(await page.locator('#cal-jump-date').inputValue(),expectedSwipeDay,size.name+' calendar day swipe advances one day');
+
     // Calendar date and weekly occurrence are verified via persisted records (the week view changes orientation).
     const occurs=await page.evaluate(()=>{
       const state=JSON.parse(localStorage.getItem('atlas-preview:v1'));
