@@ -1602,8 +1602,8 @@ try{
 }catch(e){storageLoadError='Saved data could not be read. Writes are blocked to preserve the saved copy. Export preserved storage and reload after resolving the problem.';}
 let data=defaults();
 try{
-  if(!storageLoadError){data=normalizeData(raw||defaults());for(const k of ['tasks','projects','notes','calendarEvents','money','goals','transactions','timeEntries','habits','habitLogs','goalHistory','balanceHistory'])if(raw?.[k]!==undefined&&(!Array.isArray(raw[k])||data[k].length!==raw[k].length))throw Error('Saved records need recovery in '+k+'.');}
-}catch(e){storageLoadError='Some saved records could not be read safely. Writes are blocked. Export preserved storage before recovery.';console.warn('ATLAS data recovery diagnosis:',e.message);data=defaults();}
+  if(!storageLoadError){data=normalizeData(raw||defaults());for(const k of ['tasks','projects','notes','calendarEvents','money','goals','transactions','timeEntries','habits','habitLogs','goalHistory','balanceHistory'])if(raw?.[k]!==undefined&&(!Array.isArray(raw[k])||data[k].length!==raw[k].length))throw Error('Saved records need recovery.');}
+}catch(e){storageLoadError='Some saved records could not be read safely. Writes are blocked. Export preserved storage before recovery.';data=defaults();}
 let page='home',view='today',projectOpen=null,modalState=null,searchText='',toastTimer=null,loading=false;
 let bridgeSession=null,bridgeProfile=null,bridgeMessages=[],bridgeNotice='',bridgeError=false,bridgeBusy=false;
 try{bridgeSession=JSON.parse(localStorage.getItem(AUTH_KEY)||'null')}catch(e){}
@@ -2143,9 +2143,9 @@ function validateImport(source,{mode='backup'}={}){
   for(const g of d.goals){text(g.title,200,'goal',true);number(g.target,Number.MIN_VALUE,Number.MAX_SAFE_INTEGER,'goal');if(g.current!==undefined)number(g.current,0,Number.MAX_SAFE_INTEGER,'goal');text(g.unit,24,'goal');}
   for(const [kind,validate] of [['transactions',insNormalizeTransaction],['timeEntries',insNormalizeTime],['habits',insNormalizeHabit],['habitLogs',insNormalizeCheck],['goalHistory',insNormalizeGoalLog],['balanceHistory',insNormalizeBalance]])for(const x of d[kind])if(!validate(x))fail(kind,'invalid record');
   if(d.appearance!==undefined){
-   if(!object(d.appearance)||Object.keys(d.appearance).some(k=>!['accent','density','corners','texture','textSize','motion'].includes(k)))fail('appearance','invalid settings');
+   if(!object(d.appearance)||Object.keys(d.appearance).some(k=>!['accent','density','corners','texture','textSize','fontStyle','motion'].includes(k)))fail('appearance','invalid settings');
    if(d.appearance.accent!==undefined&&d.appearance.accent!==''&&!atlasHex(d.appearance.accent))fail('appearance','invalid accent');
-   for(const [key,choices] of [['density',['comfortable','compact']],['corners',['rounded','subtle']],['texture',['subtle','off']],['textSize',['standard','large']],['motion',['system','reduce']]])
+   for(const [key,choices] of [['density',['comfortable','compact']],['corners',['rounded','subtle']],['texture',['subtle','off']],['textSize',['standard','large','extra']],['fontStyle',['native','rounded','crisp']],['motion',['system','reduce']]])
     if(d.appearance[key]!==undefined&&!choices.includes(d.appearance[key]))fail('appearance','invalid '+key);
   }
   if(d.balance!==undefined&&d.balance!==null)number(d.balance,0,Number.MAX_SAFE_INTEGER,'balance');
