@@ -1208,6 +1208,15 @@ h1,h2,h3{font-family:var(--atlas-display-font);font-optical-sizing:auto;letter-s
 :root[data-atlas-text-size="extra"] .atlas-timetable-block strong{font-size:17px}
 :root[data-atlas-text-size="extra"] .atlas-timetable-day-name{font-size:17px}
 @media(max-width:390px){.atlas-timetable-grid{grid-template-columns:1fr}.atlas-timetable-day{min-height:113px}.atlas-timetable-toolbar button{padding:8px 9px}}
+
+/* Give Calendar controls their own row on narrow portrait screens; never overlap the toolbar or top bar. */
+@media(max-width:620px) and (orientation:portrait){
+ .content[data-view="calendar"]>.page-head{display:flex;flex-wrap:wrap;align-items:flex-start;gap:10px}
+ .content[data-view="calendar"]>.page-head>div:first-child{flex:1 1 100%;min-width:0}
+ .content[data-view="calendar"] .calendar-actions{flex:1 1 100%;width:100%;display:flex;flex-wrap:wrap;justify-content:flex-start;align-items:center;gap:8px;position:relative}
+ .content[data-view="calendar"] .calendar-actions .calendar-tools{min-width:54px}
+ .content[data-view="calendar"] .calendar-actions .calendar-tools>summary{min-height:44px;padding:0 8px}
+}
 </style>
 </head>
 <body>
