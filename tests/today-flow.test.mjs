@@ -30,7 +30,7 @@ test('Home shows urgent work even when focus tasks exist',()=>{
  assert.deepEqual(chosen.map(x=>x.id),['focus-due','due','focus']);
 });
 test('planning is reversible and task controls have names',()=>{
- assert.match(html,/wasToday\?'':'calLondonToday\(\)/);
+ assert.match(html,/wasToday\?'':calLondonToday\(\)/);
  assert.match(html,/Remove from today/);
  assert.match(html,/aria-pressed="\$\{t\.planned===calLondonToday\(\)\}"/);
  assert.match(html,/aria-label="Your task overview"/);
