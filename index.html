@@ -1116,6 +1116,23 @@ body{background:radial-gradient(ellipse 80% 26% at 50% -9%,var(--mat-veil),trans
 .signature-links button:active,.signature-next:active{transform:scale(.99)}
 .signature-links button:focus-visible,.signature-next:focus-visible,.signature-idle button:focus-visible{outline:2px solid var(--accent-text);outline-offset:3px}
 @media(prefers-reduced-motion:reduce){.signature-links button,.signature-next{transition:none}.signature-links button:active,.signature-next:active{transform:none}}
+
+/* Today is one concise actionable list: unique task placement, accessible controls. */
+.atlas-today-summary{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin:6px 0 20px}
+.atlas-today-summary span{display:inline-flex;align-items:center;min-height:31px;padding:6px 11px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;font-size:11px;color:var(--muted);font-weight:700}
+.atlas-today-summary .attention{color:var(--accent-text);border-color:color-mix(in srgb,var(--accent-text) 36%,var(--border))}
+.atlas-today-summary .completed{color:var(--positive)}
+.atlas-focus-empty{justify-content:space-between;flex-wrap:wrap}
+.atlas-focus-empty .action{min-height:44px}
+.atlas-week-empty{padding:9px 12px;margin:0 0 8px;border-left:2px solid var(--border);color:var(--muted);font-size:12px}
+.atlas-task-card{padding:13px 16px}
+.atlas-task-card .task{align-items:center;min-height:62px}
+.atlas-task-card .taskbody{min-height:44px;display:flex;flex-direction:column;justify-content:center}
+.atlas-task-card .taskactions .micro{min-width:44px;min-height:44px}
+.atlas-task-card .check{min-width:32px;width:32px;height:32px}
+.atlas-task-hint{margin-top:18px;max-width:66ch}
+.tabs button:focus-visible,.atlas-focus-empty button:focus-visible,.atlas-task-card .micro:focus-visible{outline:2px solid var(--accent-text);outline-offset:2px}
+@media(max-width:360px){.atlas-task-card{padding:9px 10px}.atlas-task-card .task{gap:7px}.atlas-task-card .taskactions{gap:2px}.atlas-task-card .taskactions .micro{min-width:42px}.atlas-task-card .check{width:30px;min-width:30px;height:30px}}
 </style>
 </head>
 <body>
@@ -1491,7 +1508,7 @@ const btn=(label,action,extra='',cls='action ghost small')=>`<button class="${cl
 const blank=(icon,text,action,label)=>`<div class="empty"><div class="emptyicon">${icon}</div>${text}${action?`<div style="margin-top:12px">${btn(label,action,'','action small')}</div>`:''}</div>`;
 const heading=(title,action,label)=>`<div class="section-head"><h2>${title}</h2>${action?btn(label||'View all',action):''}</div>`;
 const meta=(text)=>`<span>${esc(text)}</span>`;
-function taskRow(t,{compact=false}={}){const subs=t.subtasks||[],completed=subs.filter(s=>s.done).length;const date=humanDate(t.due),overdue=!t.done&&dayDiff(t.due)!==null&&dayDiff(t.due)<0;const project=projectName(t.projectId);return `<div class="task ${t.done?'completed':''}" data-task="${esc(t.id)}"><input type="checkbox" class="check" data-action="toggle-task" data-id="${esc(t.id)}" ${t.done?'checked':''} aria-label="${t.done?'Reopen':'Complete'} ${esc(t.title)}"><button class="taskbody" data-action="edit" data-type="task" data-id="${esc(t.id)}"><div class="tasktitle">${esc(t.title)}</div><div class="taskmeta">${t.due?`<span class="${overdue?'danger':''}">◷ ${esc(date)}</span>`:''}${t.priority==='high'?'<span class="danger">◆ High</span>':''}${project?`<span>◈ ${esc(project)}</span>`:''}${subs.length?`<span>${completed}/${subs.length} steps</span>`:''}${t.repeat!=='none'?'<span>↻ Repeats</span>':''}${t.stage==='inbox'?'<span>Inbox</span>':''}</div></button>${!compact&&!t.done?`<div class="taskactions"><button class="micro ${t.focus?'fav':''}" data-action="focus" data-id="${esc(t.id)}" aria-label="${t.focus?'Remove from focus':'Make a focus'}" title="${t.focus?'Remove from focus':'Make a focus'}">${t.focus?'★':'☆'}</button><button class="micro" data-action="plan" data-id="${esc(t.id)}" title="Plan for today" aria-label="Plan for today">↳</button></div>`:''}</div>`}
+function taskRow(t,{compact=false}={}){const subs=t.subtasks||[],completed=subs.filter(s=>s.done).length;const date=humanDate(t.due),overdue=!t.done&&dayDiff(t.due)!==null&&dayDiff(t.due)<0;const project=projectName(t.projectId);return `<div class="task ${t.done?'completed':''}" data-task="${esc(t.id)}"><input type="checkbox" class="check" data-action="toggle-task" data-id="${esc(t.id)}" ${t.done?'checked':''} aria-label="${t.done?'Reopen':'Complete'} ${esc(t.title)}"><button class="taskbody" data-action="edit" data-type="task" data-id="${esc(t.id)}"><div class="tasktitle">${esc(t.title)}</div><div class="taskmeta">${t.due?`<span class="${overdue?'danger':''}">◷ ${esc(date)}</span>`:''}${t.priority==='high'?'<span class="danger">◆ High</span>':''}${project?`<span>◈ ${esc(project)}</span>`:''}${subs.length?`<span>${completed}/${subs.length} steps</span>`:''}${t.repeat!=='none'?'<span>↻ Repeats</span>':''}${t.stage==='inbox'?'<span>Inbox</span>':''}</div></button>${!compact&&!t.done?`<div class="taskactions"><button class="micro ${t.focus?'fav':''}" data-action="focus" data-id="${esc(t.id)}" aria-label="${t.focus?'Remove from focus':'Make a focus'}" title="${t.focus?'Remove from focus':'Make a focus'}">${t.focus?'★':'☆'}</button><button class="micro" data-action="plan" data-id="${esc(t.id)}" title="${t.planned===calLondonToday()?'Remove from today':'Plan for today'}" aria-label="${t.planned===calLondonToday()?'Remove from today':'Plan for today'}" aria-pressed="${t.planned===calLondonToday()}">${t.planned===calLondonToday()?'↶':'↳'}</button></div>`:''}</div>`}
 function taskList(tasks,compact=false){return tasks.length?`<div class="list">${tasks.map(t=>taskRow(t,{compact})).join('')}</div>`:blank('✓','Nothing here yet.')}
 function projectStats(p){const ts=data.tasks.filter(t=>t.projectId===p.id);return {all:ts.length,done:ts.filter(t=>t.done).length,open:ts.filter(t=>!t.done).length,noteCount:data.notes.filter(n=>n.projectId===p.id).length}}
 function projectCard(p){const st=projectStats(p),pct=st.all?Math.round(st.done/st.all*100):0;return `<button class="project" data-action="open-project" data-id="${esc(p.id)}"><div class="between"><div class="project-title"><span class="project-icon">◈</span><span>${esc(p.title)}</span></div><span class="pill">${esc(p.status==='paused'?'On hold':p.status)}</span></div>${p.description?`<p class="fine">${esc(p.description.slice(0,115))}</p>`:''}<div class="progress"><span style="width:${pct}%"></span></div><div class="between fine"><span>${st.open} open · ${st.done} done</span><span>${st.noteCount} notes</span></div></button>`}
@@ -1507,10 +1524,29 @@ function atlasHomeStatus(due,focus,planned,open){
  if(open>0)return {kind:'open',message:'Nothing due today. You still have '+count(open)+' on your list.'};
  return {kind:'clear',message:'Nothing pressing right now. Your space is ready when you need it.'};
 }
+
+/* Keep each task in one Today section; never hide urgent work behind starred tasks. */
+function atlasTodayBuckets(tasks,day){
+ const available=tasks.filter(t=>!t.done);
+ const seen=new Set();
+ const pick=predicate=>available.filter(t=>!seen.has(t.id)&&predicate(t)).sort(byPriority).filter(t=>{seen.add(t.id);return true});
+ return {
+  focus:pick(t=>!!t.focus),
+  due:pick(t=>!!t.due&&t.due<=day),
+  planned:pick(t=>t.planned===day),
+  inbox:pick(t=>t.stage==='inbox')
+ };
+}
+function atlasHomePicks(tasks,day){
+ const open=tasks.filter(t=>!t.done),seen=new Set();
+ const pick=predicate=>open.filter(t=>!seen.has(t.id)&&predicate(t)).sort(byPriority).filter(t=>{seen.add(t.id);return true});
+ return [...pick(t=>!!t.due&&t.due<=day),...pick(t=>!!t.focus),...pick(t=>t.planned===day)].slice(0,3);
+}
+
 function home(){
  const now=new Date(),ukHour=Number(new Intl.DateTimeFormat('en-GB',{hour:'numeric',hour12:false,timeZone:'Europe/London'}).format(now)),g=ukHour<12?'Good morning':ukHour<18?'Good afternoon':'Good evening';
  const open=openTasks(),focus=open.filter(t=>t.focus).sort(byPriority),due=open.filter(t=>dayDiff(t.due)!==null&&dayDiff(t.due)<=0).sort(byPriority),planned=open.filter(t=>t.planned===dateKey()).sort(byPriority);
- const selected=(focus.length?focus:due.length?due:planned).slice(0,3);
+ const selected=atlasHomePicks(open,calLondonToday());
  const homeStatus=atlasHomeStatus(due.length,focus.length,planned.length,open.length);
  const upcoming=calOccurrences(calLondonToday(),dateAdd(calLondonToday(),7)).filter(x=>x.kind==='event'&&(x.date>calLondonToday()||x.allDay||!x.startTime||calMins(x.startTime)>=calMins(calWallParts(new Date()).time))).sort((a,b)=>a.date.localeCompare(b.date)||(a.startTime||'').localeCompare(b.startTime||''));
  const next=upcoming[0];
@@ -1601,7 +1637,40 @@ function library(){
  ];
  return `<section class="signature-library"><div class="signature-kicker"><i aria-hidden="true"></i>YOUR WORKSPACE</div><h1>A place for<br>everything.</h1><p class="sub">Pick up where you left off, or find something you saved.</p><div class="signature-library-sections">${sections.map(([label,items])=>`<section class="signature-library-group" aria-label="${label}"><h2 class="signature-group-title">${label}</h2><div class="signature-library-list">${items.map(([pg,name,desc,count])=>`<button class="signature-library-row" data-action="goto" data-page="${pg}"><span class="library-icon">${uiIcon(pg)}</span><span class="library-copy"><strong>${name}</strong><small>${desc}</small></span>${count!==''?`<small class="library-count">${count}</small>`:''}<span class="library-arrow" aria-hidden="true">›</span></button>`).join('')}</div></section>`).join('')}</div></section>`;
 }
-function today(){const d=dateKey(),open=openTasks(),due=open.filter(t=>dayDiff(t.due)!==null&&dayDiff(t.due)<=0).sort(byPriority),planned=open.filter(t=>t.planned===d&&!due.some(x=>x.id===t.id)).sort(byPriority),focus=open.filter(t=>t.focus).sort(byPriority),inbox=open.filter(t=>t.stage==='inbox').sort(byPriority),upcoming=open.filter(t=>dayDiff(t.due)!==null&&dayDiff(t.due)>0&&dayDiff(t.due)<=14).sort((a,b)=>a.due.localeCompare(b.due)),all=[...open].sort(byPriority);const seg=[['today','Today'],['week','Week'],['upcoming','Upcoming'],['all','All'],['inbox','Inbox']];let body='';if(view==='today')body=`${heading(`Focus · ${focus.length}/3`)}${focus.length?`<div class="card">${taskList(focus)}</div>`:`<div class="atlas-quiet-empty">☆ Pick up to three things that matter today.</div>`}${due.length?`${heading(`Due & overdue · ${due.length}`)}<div class="card">${taskList(due)}</div>`:''}${planned.length?`${heading(`Planned for today · ${planned.length}`)}<div class="card">${taskList(planned)}</div>`:''}${!due.length&&!planned.length?`<p class="atlas-quiet-note">Nothing due or planned for today.</p>`:''}${inbox.length?`${heading(`Inbox · ${inbox.length}`)}<div class="card">${taskList(inbox)}</div>`:''}`;else if(view==='week'){const entries=new Set();body=Array.from({length:7},(_,offset)=>{const date=dateAdd(d,offset);const matches=open.filter(t=>{if(entries.has(t.id)||t.stage==='inbox')return false;const place=t.planned||t.due;if(place===date){entries.add(t.id);return true}return false}).sort(byPriority);return `<div class="week-day between"><span>${esc(new Date(date+'T12:00:00').toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'short'}))}</span>${btn('＋','new-task',`data-planned="${date}"`,'action ghost small')}</div><div class="card">${matches.length?taskList(matches):'<div class="fine">Nothing planned.</div>'}</div>`}).join('')+`<p class="fine">Planning places a task on a day without changing its deadline. Due dates remain visible in task details.</p>`}else if(view==='upcoming'){const groups={};for(const t of upcoming){const k=t.due;if(!groups[k])groups[k]=[];groups[k].push(t)}body=upcoming.length?Object.keys(groups).sort().map(k=>`<div class="week-day">${esc(new Date(k+'T12:00:00').toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'}))}</div><div class="card">${taskList(groups[k])}</div>`).join(''):`<div class="card">${blank('◷','Nothing due in the next two weeks.')}</div>`;}else if(view==='inbox')body=`<div class="card"><div class="card-head">CAPTURE NOW · ORGANISE LATER</div>${quickCapture()}${taskList(inbox)}</div>`;else body=`${heading(`${open.length} open`)}<div class="card">${taskList(all)}</div>${data.tasks.some(t=>t.done)?`${heading('Completed')}<div class="card">${taskList(data.tasks.filter(t=>t.done).sort((a,b)=>(b.completedAt||0)-(a.completedAt||0)).slice(0,50),true)}</div>`:''}`;return `<div class="eyebrow">YOUR DAY</div><div class="page-head"><div><h1>Today</h1><p class="sub">${due.length?`${due.length} due or overdue · ${open.length} open`:`No deadlines today · ${open.length} open`}</p></div>${btn('＋ Task','new-task','','action small')}</div><div class="tabs">${seg.map(([v,l])=>`<button data-action="set-view" data-view="${v}" class="${view===v?'active':''}">${l}${v==='inbox'?` (${inbox.length})`:''}</button>`).join('')}</div>${body}<p class="fine" style="margin-top:15px">Tap ☆ to choose your focus. Tap ↳ to plan a task for today. Recurring tasks create their next occurrence when completed.</p>`}
+function today(){
+ const d=calLondonToday(),open=openTasks(),buckets=atlasTodayBuckets(open,d);
+ const {focus,due,planned,inbox}=buckets;
+ const dueCount=open.filter(t=>t.due&&t.due<=d).length;
+ const plannedCount=open.filter(t=>t.planned===d).length;
+ const completedToday=data.tasks.filter(t=>t.done&&Number(t.completedAt)>0&&Number.isFinite(Number(t.completedAt))&&calWallParts(new Date(Number(t.completedAt))).date===d).length;
+ const upcoming=open.filter(t=>t.due&&t.due>d&&t.due<=dateAdd(d,14)).sort((a,b)=>a.due.localeCompare(b.due));
+ const all=[...open].sort(byPriority),seg=[['today','Today'],['week','Week'],['upcoming','Upcoming'],['all','All'],['inbox','Inbox']];
+ const summary=`<div class="atlas-today-summary" aria-label="Your task overview"><span class="${dueCount?'attention':''}">${dueCount?dueCount+' due or overdue':'No deadlines today'}</span><span>${plannedCount} planned today</span>${completedToday?`<span class="completed">${completedToday} finished today</span>`:''}</div>`;
+ let body='';
+ if(view==='today'){
+  body=`${summary}${heading(`Your focus · ${focus.length}/3`)}
+  ${focus.length?`<div class="card atlas-task-card">${taskList(focus)}</div>`:`<div class="atlas-quiet-empty atlas-focus-empty"><span>☆ Pick up to three tasks that matter most.</span><button class="action ghost small" data-action="set-view" data-view="all">Choose tasks</button></div>`}
+  ${due.length?`${heading(`Due & overdue · ${due.length}`)}<div class="card atlas-task-card">${taskList(due)}</div>`:''}
+  ${planned.length?`${heading(`Planned today · ${planned.length}`)}<div class="card atlas-task-card">${taskList(planned)}</div>`:''}
+  ${!focus.length&&!due.length&&!planned.length?`<p class="atlas-quiet-note">Nothing else demanding your attention today.</p>`:''}
+  ${inbox.length?`${heading(`Inbox · ${inbox.length}`)}<div class="card atlas-task-card">${taskList(inbox)}</div>`:''}`;
+ }else if(view==='week'){
+  const entries=new Set();
+  body=Array.from({length:7},(_,offset)=>{
+   const date=dateAdd(d,offset);
+   const matches=open.filter(t=>{if(entries.has(t.id)||t.stage==='inbox')return false;const place=t.planned||t.due;if(place===date){entries.add(t.id);return true}return false}).sort(byPriority);
+   return `<div class="week-day between"><span>${esc(new Date(date+'T12:00:00').toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'short'}))}</span>${btn('＋','new-task',`data-planned="${date}"`,'action ghost small')}</div>${matches.length?`<div class="card atlas-task-card">${taskList(matches)}</div>`:'<p class="atlas-week-empty">Nothing planned</p>'}`;
+  }).join('')+`<p class="fine">Planning a task doesn’t change its deadline.</p>`;
+ }else if(view==='upcoming'){
+  const groups={};for(const t of upcoming){const k=t.due;if(!groups[k])groups[k]=[];groups[k].push(t);}
+  body=upcoming.length?Object.keys(groups).sort().map(k=>`<div class="week-day">${esc(new Date(k+'T12:00:00').toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'}))}</div><div class="card atlas-task-card">${taskList(groups[k])}</div>`).join(''):`<div class="card">${blank('◷','Nothing due in the next two weeks.')}</div>`;
+ }else if(view==='inbox'){
+  body=`<div class="card"><div class="card-head">ADD NOW · ORGANISE LATER</div>${quickCapture()}${taskList(open.filter(t=>t.stage==='inbox'))}</div>`;
+ }else{
+  body=`${heading(`${open.length} open`)}<div class="card atlas-task-card">${taskList(all)}</div>${data.tasks.some(t=>t.done)?`${heading('Completed')}<div class="card atlas-task-card">${taskList(data.tasks.filter(t=>t.done).sort((a,b)=>(b.completedAt||0)-(a.completedAt||0)).slice(0,50),true)}</div>`:''}`;
+ }
+ return `<div class="eyebrow">YOUR DAY</div><div class="page-head"><div><h1>Today</h1><p class="sub">${dueCount?`${dueCount} due or overdue · ${open.length} open`:`No deadlines today · ${open.length} open`}</p></div>${btn('＋ Task','new-task','','action small')}</div><div class="tabs" role="group" aria-label="Task views">${seg.map(([v,l])=>`<button data-action="set-view" data-view="${v}" class="${view===v?'active':''}" aria-pressed="${view===v}">${l}${v==='inbox'?` (${open.filter(t=>t.stage==='inbox').length})`:''}</button>`).join('')}</div>${body}<p class="fine atlas-task-hint">Use ☆ to highlight a task. Use ↳ to plan or remove it from today. Completing a recurring task creates the next one.</p>`;
+}
 let atlasSelectedNoteId='';
 function atlasProjectsLayout(body){const entries=[...data.projects].sort((a,b)=>a.title.localeCompare(b.title));return `<div class="landscape-workspace"><aside class="landscape-sidebar" aria-label="Project navigation"><b>YOUR PROJECTS</b><button class="landscape-side-link ${!projectOpen?'active':''}" data-action="close-project">All projects</button>${entries.map(p=>`<button class="landscape-side-link ${p.id===projectOpen?'active':''}" data-action="open-project" data-id="${esc(p.id)}">${esc(p.title)}</button>`).join('')}</aside><section class="landscape-main">${body}</section></div>`}
 function atlasNotesLayout(body){const entries=data.notes.filter(n=>!n.journal).sort((a,b)=>Number(b.pinned)-Number(a.pinned)||(b.updatedAt||0)-(a.updatedAt||0));if(entries.length&&!entries.some(n=>n.id===atlasSelectedNoteId))atlasSelectedNoteId=entries[0].id;const chosen=entries.find(n=>n.id===atlasSelectedNoteId);const preview=chosen?`<div class="eyebrow">YOUR NOTE</div><div class="between"><h1>${esc(chosen.title)}</h1>${btn('Edit note','edit',`data-type="note" data-id="${esc(chosen.id)}"`,'action small')}</div><p class="fine">${esc(projectName(chosen.projectId)||'General')} · Private to this device</p><article class="note-preview landscape-note-body">${markdownSafe(chosen.body||'')}</article>`:`<h2>Your notes</h2><p class="fine">Choose a note or create your first one.</p>`;return `<div class="landscape-workspace landscape-notes"><aside class="landscape-sidebar" aria-label="Your notes"><div class="between"><b>NOTES</b>${btn('＋','new-note','','action ghost small')}</div>${entries.map(n=>`<button class="landscape-side-link ${n.id===atlasSelectedNoteId?'active':''}" data-action="landscape-note" data-id="${esc(n.id)}">${n.pinned?'◆ ':''}${esc(n.title)}</button>`).join('')}</aside><section class="landscape-main"><div class="landscape-notes-preview">${preview}</div><div class="landscape-original">${body}</div></section></div>`}
@@ -1988,7 +2057,7 @@ if(a==='set-view'){view=element.dataset.view;return render()};if(a==='theme'){da
 if(a==='toggle-task')return toggleTask(ref,!!element.checked);
 if(a==='toggle-money'){const m=byId(data.money,ref);if(m){m.paid=!!element.checked;commit(m.paid?'Marked paid':'Marked unpaid')}return}
 if(a==='focus'){const t=byId(data.tasks,ref);if(!t)return;if(!t.focus&&openTasks().filter(x=>x.focus).length>=3){showToast('Choose a maximum of three focus tasks.');return}t.focus=!t.focus;t.stage='planned';return commit(t.focus?'Added to focus':'Removed from focus')}
-if(a==='plan'){const t=byId(data.tasks,ref);if(!t)return;t.planned=dateKey();t.stage='planned';return commit('Planned for today')}
+if(a==='plan'){const t=byId(data.tasks,ref);if(!t||t.done)return;const wasToday=t.planned===calLondonToday();t.planned=wasToday?'':calLondonToday();if(!wasToday)t.stage='planned';return commit(wasToday?'Removed from today':'Planned for today')}
 if(a==='modal-close'||a==='modal-bg')return closeModal();if(a==='delete')return deleteRecord(type,ref);if(a==='export')return downloadBackup();if(a==='import')return $('import-file')?.click();if(a==='merge')return $('merge-file')?.click();
 if(a==='restore-checkpoint'){try{if(confirm('Restore the last local recovery checkpoint? This replaces the workspace. The current workspace will become the new checkpoint.'))restoreRecovery()}catch(err){alert('Recovery failed: '+err.message)}return}
 if(a==='export-checkpoint'){try{downloadRecovery()}catch(err){alert(err.message)}return}

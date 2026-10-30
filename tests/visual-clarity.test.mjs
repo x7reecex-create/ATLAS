@@ -8,10 +8,10 @@ test('visual UX changes remain syntactically valid',()=>{
  assert.doesNotThrow(()=>new Function(script[1]));
 });
 test('task focus count is interpolated and empty states stay compact',()=>{
- assert.match(html,/heading\(\x60Focus · \$\{focus\.length\}\/3\x60\)/);
+ assert.match(html,/heading\(\x60(?:Your focus|Focus) · \$\{focus\.length\}\/3\x60\)/);
  assert.doesNotMatch(html,/heading\('Focus · \$\{focus\.length\}\/3'\)/);
  assert.match(html,/atlas-quiet-empty/);
- assert.match(html,/!due\.length&&!planned\.length/);
+ assert.match(html,/!focus\.length&&!due\.length&&!planned\.length/);
 });
 test('all 11 library routes remain grouped, accessible and styled',()=>{
  for(const route of ['projects','notes','money','goals','journal','insights','focusTool','quickTools','decisionTool','link','settings'])
