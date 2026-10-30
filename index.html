@@ -2026,7 +2026,7 @@ function atlasTodayBuckets(tasks,day){
 function atlasHomePicks(tasks,day){
  const open=tasks.filter(t=>!t.done),seen=new Set();
  const pick=predicate=>open.filter(t=>!seen.has(t.id)&&predicate(t)).sort(byPriority).filter(t=>{seen.add(t.id);return true});
- return [...pick(t=>!!t.due&&t.due<=day),...pick(t=>!!t.focus),...pick(t=>t.planned===day),...pick(t=>!t.due&&!t.planned)].slice(0,3);
+ return [...pick(t=>!!t.due&&t.due<=day),...pick(t=>!!t.focus&&(!t.planned||t.planned<=day)&&(!t.due||t.due<=day)),...pick(t=>t.planned===day),...pick(t=>!t.due&&!t.planned)].slice(0,3);
 }
 
 function atlasCaptureTask(title){
@@ -2039,7 +2039,7 @@ function atlasCaptureTask(title){
 
 function home(){
  const now=new Date(),day=calLondonToday(),ukHour=Number(new Intl.DateTimeFormat('en-GB',{hour:'numeric',hour12:false,timeZone:'Europe/London'}).format(now)),g=ukHour<12?'Good morning':ukHour<18?'Good afternoon':'Good evening';
- const open=openTasks(),focus=open.filter(t=>t.focus),due=open.filter(t=>t.due&&t.due<=day),planned=open.filter(t=>t.planned===day);
+ const open=openTasks(),focus=open.filter(t=>t.focus&&(!t.planned||t.planned<=day)&&(!t.due||t.due<=day)),due=open.filter(t=>t.due&&t.due<=day),planned=open.filter(t=>t.planned===day);
  const selected=atlasHomePicks(open,day),homeStatus=atlasHomeStatus(due.length,focus.length,planned.length,open.length);
  const finished=data.tasks.filter(t=>t.done&&Number(t.completedAt)>0&&Number.isFinite(Number(t.completedAt))&&calWallParts(new Date(Number(t.completedAt))).date===day).length;
  const events=calOccurrences(day,dateAdd(day,7)).filter(x=>x.kind==='event');
@@ -2371,7 +2371,7 @@ if(type==='note')form=field('title','Note title',old?.title||'','text','required
 if(type==='money')form=field('title','Name',old?.title||'','text','required maxlength="200" placeholder="Electricity, rent, repayment…"')+`<div class="form-cols">${field('amount','Amount (£)',old?.amount||'','number','min="0.01" step="0.01" required')}${field('due','Due date',old?.due||'','date')}</div>`+dropdown('kind','Type',[['bill','Bill'],['debt','Debt']],old?.kind||'bill');
 if(type==='goal')form=field('title','Goal',old?.title||'','text','required maxlength="200" placeholder="Save for my next computer"')+`<div class="form-cols">${field('target','Target',old?.target||'','number','min="0.01" step="any" required')}${field('current','Progress',old?.current??0,'number','min="0" step="any" required')}</div>`+field('unit','Unit',old?.unit||'','text','maxlength="24" placeholder="£, lessons, pages…"');
 if(type==='balance')form=field('balance','Manual balance (£)',data.balance===null?'':data.balance,'number','min="0" step="0.01" placeholder="Leave blank if unknown"');
-if(type==='name')form=field('name','Display name',data.displayName||'Sir','text','maxlength="50"');
+if(type==='name')form=field('name','Display name',data.displayName||'','text','maxlength="50"');
 if(type==='quick')form=field('title','Capture a thought', '', 'text','required maxlength="240" placeholder="What is on your mind?"')+`<p class="fine" style="margin-top:8px">Captures straight to your inbox. You can organise it later.</p>`;
 $('modal-root').innerHTML=`<div class="modalback" data-action="modal-bg"><div class="sheet" role="dialog" aria-modal="true" aria-label="${esc(type)} editor"><div class="titlebar"><h2>${type==='quick'?'Quick capture':type==='name'?'Your name':type==='balance'?'Balance':`${old?'Edit':'New'} ${type}`}</h2><button class="iconbtn" data-action="modal-close" aria-label="Close">×</button></div><form id="edit-form">${form}<div class="status error" id="form-error" style="display:none" role="alert"></div><button class="action full" style="margin-top:17px" type="submit">${old?'Save changes':'Save to ATLAS'}</button></form>${old?`<button class="dangerbtn" data-action="delete" data-type="${type}" data-id="${esc(ref)}">Delete ${type}</button>`:''}${type==='note'&&old?.body?`<div class="line"></div><h3>Preview</h3><div class="note-preview">${markdownSafe(old.body)}</div>`:''}</div></div>`;
 const focus=$('f-title')||$('f-name')||$('f-balance');if(focus)setTimeout(()=>focus.focus(),70);
@@ -2415,9 +2415,9 @@ document.addEventListener('keydown',e=>{
 function markdownSafe(source){const bold=s=>esc(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/`([^`]+)`/g,'<code>$1</code>');return String(source).split(/\r?\n/).slice(0,1000).map(s=>{if(/^#{1,3} /.test(s))return `<h3>${bold(s.replace(/^#{1,3} /,''))}</h3>`;if(/^\s*[-*] /.test(s))return `<p>• ${bold(s.replace(/^\s*[-*] /,''))}</p>`;return `<p>${bold(s)||'&nbsp;'}</p>`}).join('')}
 function createTask(title,extra={}){const t=normalizeTask({id:id(),title:String(title).trim(),done:false,createdAt:Date.now(),priority:'normal',stage:'inbox',...extra});data.tasks.unshift(t);return t}
 function saveEditor(values){if(!modalState)return;const {type,ref,projectId}=modalState;const list=({task:'tasks',project:'projects',note:'notes',money:'money',goal:'goals'})[type],old=list?byId(data[list],ref):null;let title=String(values.title||'').trim();if(['task','project','note','goal','money','quick'].includes(type)&&!title)throw Error('Please enter a name.');
-if(type==='name'){data.displayName=String(values.name||'Sir').trim().slice(0,50)||'Sir';closeModal();commit('Name updated');return}
+if(type==='name'){data.displayName=String(values.name||'').trim().slice(0,50);closeModal();commit('Name updated');return}
 if(type==='balance'){const s=String(values.balance||'').trim();if(s!==''&&(!Number.isFinite(Number(s))||Number(s)<0))throw Error('Enter a valid non-negative amount.');const newBalance=s===''?null:Math.round(Number(s)*100)/100;if(newBalance!==data.balance&&newBalance!==null)data.balanceHistory.push({id:id(),date:calLondonToday(),value:newBalance,createdAt:Date.now()});data.balance=newBalance;closeModal();commit('Balance updated');return}
-if(type==='quick'){createTask(title);closeModal();commit('Captured to Inbox');return}
+if(type==='quick'){if(!atlasCaptureTask(title))throw Error(storageWarning||'Task not saved. Your text is kept here; please try again.');closeModal();return}
 let item={...old,id:ref||id(),title};
 if(type==='task'){if(!validDate(values.due)||!validDate(values.planned))throw Error('Enter valid dates.');if(values.scheduledTime&&!calValidTime(values.scheduledTime))throw Error('Invalid calendar start time.');if(+values.durationMins<5||+values.durationMins>720)throw Error('Duration must be between 5 and 720 minutes.');const titles=String(values.subtasks||'').split('\n').map(x=>x.trim()).filter(Boolean).slice(0,50);const prev=old?.subtasks||[];const used=new Set();const subtasks=titles.map(s=>{const match=prev.find(x=>x.title===s&&!used.has(x.id));if(match){used.add(match.id);return match}return {id:id(),title:s,done:false}});item=normalizeTask({...item,details:String(values.details||'').slice(0,20000),due:values.due||'',planned:values.planned||'',priority:values.priority,repeat:values.repeat,projectId:values.projectId||'',stage:values.stage,scheduledTime:values.scheduledTime||'',durationMins:+values.durationMins||30,subtasks,done:old?.done||false,focus:old?.focus||false,createdAt:old?.createdAt||Date.now()});}
 if(type==='project')item={...item,description:String(values.description||'').slice(0,3000),status:['active','paused','done'].includes(values.status)?values.status:'active',createdAt:old?.createdAt||Date.now()};

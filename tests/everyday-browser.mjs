@@ -51,8 +51,23 @@ try{
   await page.locator('#capture-text').press('Enter');
   await page.locator('#capture-text').evaluate(el=>el.blur());
   assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('atlas-preview:v1')).tasks.filter(t=>t.title==='Book a haircut').length),1);
-  await page.locator('.signature-tasks input.check').first().check();
+  await page.getByRole('checkbox',{name:'Complete Book a haircut',exact:true}).click();
   assert.equal(await page.locator('[data-action="home-done"] strong').textContent(),'1');
+  await page.locator('#fab').click();
+  await page.locator('[data-action="capture-thought"]').click();
+  await page.locator('#f-title').fill('Remember a birthday');
+  await page.evaluate(()=>{
+   const original=Storage.prototype.setItem;
+   window.restoreStorage=()=>{Storage.prototype.setItem=original};
+   Storage.prototype.setItem=function(key,value){if(key==='atlas-preview:v1')throw new DOMException('Full','QuotaExceededError');return original.call(this,key,value)};
+  });
+  await page.locator('#edit-form button[type="submit"]').click();
+  assert.equal(await page.locator('#f-title').inputValue(),'Remember a birthday');
+  assert.match(await page.locator('#form-error').innerText(),/not saved/);
+  await page.evaluate(()=>window.restoreStorage());
+  await page.locator('#edit-form button[type="submit"]').click();
+  assert.equal(await page.locator('#edit-form').count(),0);
+  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('atlas-preview:v1')).tasks.filter(t=>t.title==='Remember a birthday').length),1);
   await page.locator('[data-action="home-calendar-today"]').click();
   assert.equal(await page.locator('#content').getAttribute('data-view'),'calendar');
   assert.equal(await page.locator('#cal-jump-date').inputValue(),'2026-10-30');
@@ -82,7 +97,7 @@ try{
    const key='atlas-preview:v1',data=JSON.parse(localStorage.getItem(key));
    data.displayName='Alex';
    data.tasks.push({id:'review-task',title:'Review this week’s spending',due:'2026-10-30',done:false,createdAt:1793361600000,priority:'high'},
-    {id:'later-task',title:'Plan the summer trip',planned:'2027-01-01',done:false,createdAt:1793361600000});
+    {id:'later-task',title:'Plan the summer trip',planned:'2027-01-01',focus:true,done:false,createdAt:1793361600000});
    data.calendarEvents.push({id:'coffee',title:'Coffee with a friend',startDate:'2026-10-30',startTime:'15:30',durationMins:60,allDay:false,repeat:'none',category:'personal',details:'',createdAt:1793361600000});
    localStorage.setItem(key,JSON.stringify(data));
   });

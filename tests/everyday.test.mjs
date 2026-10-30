@@ -12,6 +12,22 @@ test('Home keeps urgency and chosen focus ahead of unscheduled tasks',()=>{
  const tasks=[{id:'inbox'},{id:'focus',focus:true},{id:'planned',planned:'2026-10-30'},{id:'due',due:'2026-10-29'}];
  assert.deepEqual(picks(tasks,'2026-10-30').map(t=>t.id),['due','focus','planned']);
 });
+test('a future focus item stays out of today unless explicitly planned today or already overdue',()=>{
+ const tasks=[{id:'later',focus:true,planned:'2027-01-01'},{id:'future-deadline',focus:true,due:'2027-01-01'},{id:'today',planned:'2026-10-30',due:'2027-01-01'},{id:'overdue',planned:'2027-01-01',due:'2026-10-29'}];
+ assert.deepEqual(picks(tasks,'2026-10-30').map(t=>t.id),['overdue','today']);
+});
+const editorSource=html.slice(html.indexOf('function saveEditor('),html.indexOf('function nextRecurring('));
+test('modal capture keeps its editor open when saving fails',()=>{
+ let closed=0;const data={tasks:[]};
+ const edit=new Function('modalState','data','createTask','closeModal','commit','atlasCaptureTask','storageWarning',editorSource+';return saveEditor')({type:'quick'},data,title=>data.tasks.push({title}),()=>closed++,()=>false,()=>false,'Storage is full');
+ assert.throws(()=>edit({title:'Remember this'}),/Storage is full/);
+ assert.equal(closed,0);assert.equal(data.tasks.length,0);
+});
+test('clearing a name gives a neutral greeting instead of assigning a title',()=>{
+ const data={displayName:'Alex'};
+ const edit=new Function('modalState','data','closeModal','commit',editorSource+';return saveEditor')({type:'name'},data,()=>{},()=>{});
+ edit({name:'  '});assert.equal(data.displayName,'');
+});
 test('capture rolls back on storage failure and retries exactly once',()=>{
  let succeeds=false,renders=0,messages=[];const data={tasks:[]};
  const capture=new Function('data','createTask','save','render','showToast',source('atlasCaptureTask')+';return atlasCaptureTask')(data,title=>{const t={id:'new',title};data.tasks.unshift(t);return t},()=>succeeds,()=>renders++,m=>messages.push(m));
