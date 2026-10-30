@@ -1217,6 +1217,18 @@ h1,h2,h3{font-family:var(--atlas-display-font);font-optical-sizing:auto;letter-s
  .content[data-view="calendar"] .calendar-actions .calendar-tools{min-width:54px}
  .content[data-view="calendar"] .calendar-actions .calendar-tools>summary{min-height:44px;padding:0 8px}
 }
+
+.taskbody{touch-action:pan-y}
+.atlas-more-task{font-size:19px;font-weight:750;min-width:44px;min-height:44px}
+.atlas-task-sheet{max-width:450px}
+.atlas-menu-list{display:grid;gap:6px;padding:8px 0}
+.atlas-menu-row{width:100%;min-height:48px;text-align:left;padding:12px 14px;color:var(--text);background:var(--surface2);border:1px solid var(--border);border-radius:12px;font-size:14px;font-weight:670}
+.atlas-gesture-help{padding:9px 0 0}
+.atlas-undo{position:fixed;left:50%;bottom:calc(86px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:48;display:flex;align-items:center;justify-content:space-between;gap:18px;background:var(--surface2);color:var(--text);border:1px solid var(--border);box-shadow:0 9px 28px #0008;border-radius:14px;padding:9px 10px 9px 15px;max-width:calc(100% - 28px);font-size:13px;font-weight:670}
+.atlas-undo[hidden]{display:none}
+.atlas-undo .action{min-height:42px;color:var(--accent-text)}
+@media(orientation:landscape) and (min-width:620px){.atlas-undo{bottom:16px;left:50%}}
+@media(max-width:360px){.atlas-more-task{min-width:42px}.atlas-task-card .taskactions{gap:0}}
 </style>
 </head>
 <body>
@@ -1231,7 +1243,7 @@ h1,h2,h3{font-family:var(--atlas-display-font);font-optical-sizing:auto;letter-s
   <nav id="nav" class="bottomnav" aria-label="Main navigation"></nav>
 </main>
 <div id="modal-root"></div>
-<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div><div id="atlas-undo" class="atlas-undo" role="status" aria-live="polite" hidden></div>
 <script>
 (()=>{'use strict';
 // ATLAS v1.1. Local-first app; retain the original v0.x localStorage key for seamless migration.
@@ -1648,6 +1660,88 @@ function downloadPreservedStorage(){
   if(storageBaseline===null)throw Error('No readable storage copy is available.');
   const blob=new Blob([storageBaseline],{type:'text/plain'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='atlas-preserved-storage-'+dateKey()+'.txt';a.click();setTimeout(()=>URL.revokeObjectURL(url),15000);
 }
+
+/* Accessible alternatives to each gesture; undo is local and short-lived. */
+let atlasUndoData=null,atlasUndoTimer=null;
+function atlasClearUndo(){
+ clearTimeout(atlasUndoTimer);atlasUndoTimer=null;atlasUndoData=null;
+ const el=$('atlas-undo');if(el){el.hidden=true;el.replaceChildren()}
+}
+function atlasOfferUndo(label,record){
+ atlasClearUndo();atlasUndoData=record;
+ const el=$('atlas-undo');if(!el)return;
+ const text=document.createElement('span');text.textContent=label;
+ const button=document.createElement('button');button.type='button';button.className='action ghost small';button.dataset.action='atlas-undo';button.textContent='Undo';
+ el.append(text,button);el.hidden=false;atlasUndoTimer=setTimeout(atlasClearUndo,7000);
+}
+function atlasUndoGesture(){
+ const record=atlasUndoData;if(!record)return;
+ atlasClearUndo();
+ if(record.kind==='complete'){
+  const t=byId(data.tasks,record.ref);
+  if(!t||!t.done||t.completedAt!==record.stamp)return showToast('Task changed. Cannot undo.');
+  Object.assign(t,record.before);
+  const created=new Set(record.created);data.tasks=data.tasks.filter(x=>!created.has(x.id));
+  return commit('Completion undone');
+ }
+ if(record.kind==='plan'){
+  const t=byId(data.tasks,record.ref);
+  if(!t||t.planned!==record.after)return showToast('Task changed. Cannot undo.');
+  t.planned=record.before.planned;t.stage=record.before.stage;return commit('Plan restored');
+ }
+ if(record.kind==='priority'){
+  const t=byId(data.tasks,record.ref);
+  if(!t||t.priority!==record.after)return showToast('Task changed. Cannot undo.');
+  t.priority=record.before;return commit('Priority restored');
+ }
+ if(record.kind==='timetable'){
+  const t=byId(data.calendarEvents,record.ref);
+  if(!t||t.startDate!==record.after)return showToast('Block changed. Cannot undo.');
+  t.startDate=record.before;t.exceptions=record.exceptions;return commit('Timetable restored');
+ }
+}
+function atlasQuickTask(ref,action){
+ const task=byId(data.tasks,ref);if(!task||task.done)return;
+ if(action==='complete'){
+  const before=clone(task),ids=new Set(data.tasks.map(t=>t.id));
+  toggleTask(ref,true);
+  if(storageLoadError||storageWarning)return;
+  return atlasOfferUndo('Task completed',{kind:'complete',ref,before,stamp:byId(data.tasks,ref)?.completedAt,created:data.tasks.filter(t=>!ids.has(t.id)).map(t=>t.id)});
+ }
+ if(action==='tomorrow'){
+  const tomorrow=dateAdd(calLondonToday(),1),before={planned:task.planned,stage:task.stage};
+  if(task.planned===tomorrow)return showToast('Already planned for tomorrow');
+  task.planned=tomorrow;task.stage='planned';commit('Planned for tomorrow');
+  if(!storageLoadError&&!storageWarning)atlasOfferUndo('Planned for tomorrow',{kind:'plan',ref,before,after:tomorrow});
+ }
+}
+function atlasTaskMenu(ref){
+ const task=byId(data.tasks,ref);if(!task)return;
+ modalState={type:'task-actions',ref};
+ const option=(label,action)=>`<button type="button" class="atlas-menu-row" data-action="${action}" data-id="${esc(ref)}">${label}</button>`;
+ $('modal-root').innerHTML=`<div class="modalback" data-action="modal-bg"><div class="sheet atlas-task-sheet" role="dialog" aria-modal="true" aria-label="Task actions"><div class="titlebar"><div><div class="eyebrow">QUICK ACTIONS</div><h2>${esc(task.title)}</h2></div><button class="iconbtn" data-action="modal-close" aria-label="Close">×</button></div><div class="atlas-menu-list">
+ ${task.done?option('Reopen task','task-quick-reopen'):option('✓ Complete','task-quick-complete')}
+ ${task.done?'':option('↳ Plan for tomorrow','task-quick-tomorrow')}
+ ${task.done?'':option(task.focus?'★ Remove from focus':'☆ Add to focus','task-quick-focus')}
+ ${task.done?'':option(task.priority==='high'?'◆ Normal priority':'◆ High priority','task-quick-priority')}
+ ${option('✎ Edit task','task-quick-edit')}</div><p class="fine atlas-gesture-help">Swipe right to finish, left for tomorrow, or hold to open actions.</p></div></div>`;
+ $('modal-root').querySelector('.atlas-menu-row')?.focus();
+}
+function atlasTaskMenuAction(action,ref){
+ const task=byId(data.tasks,ref);if(!task)return closeModal();
+ if(action==='task-quick-edit'){closeModal();return openModal('task',ref)}
+ if(action==='task-quick-reopen'){closeModal();return toggleTask(ref,false)}
+ if(action==='task-quick-focus'){closeModal();return handleAction({dataset:{action:'focus',id:ref}})}
+ if(action==='task-quick-priority'){
+  const before=task.priority,after=before==='high'?'normal':'high';
+  closeModal();task.priority=after;commit('Priority changed');
+  if(!storageLoadError&&!storageWarning)atlasOfferUndo('Priority changed',{kind:'priority',ref,before,after});
+  return;
+ }
+ closeModal();if(action==='task-quick-complete')return atlasQuickTask(ref,'complete');
+ if(action==='task-quick-tomorrow')return atlasQuickTask(ref,'tomorrow');
+}
+
 function showToast(message){const el=$('toast');if(!el)return;el.textContent=message;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),3300)}
 function setTheme(){
  const root=document.documentElement,p=palettes[data.theme]||palettes.midnight;
@@ -1687,7 +1781,7 @@ const btn=(label,action,extra='',cls='action ghost small')=>`<button class="${cl
 const blank=(icon,text,action,label)=>`<div class="empty"><div class="emptyicon">${icon}</div>${text}${action?`<div style="margin-top:12px">${btn(label,action,'','action small')}</div>`:''}</div>`;
 const heading=(title,action,label)=>`<div class="section-head"><h2>${title}</h2>${action?btn(label||'View all',action):''}</div>`;
 const meta=(text)=>`<span>${esc(text)}</span>`;
-function taskRow(t,{compact=false}={}){const subs=t.subtasks||[],completed=subs.filter(s=>s.done).length;const date=humanDate(t.due),overdue=!t.done&&dayDiff(t.due)!==null&&dayDiff(t.due)<0;const project=projectName(t.projectId);return `<div class="task ${t.done?'completed':''}" data-task="${esc(t.id)}"><input type="checkbox" class="check" data-action="toggle-task" data-id="${esc(t.id)}" ${t.done?'checked':''} aria-label="${t.done?'Reopen':'Complete'} ${esc(t.title)}"><button class="taskbody" data-action="edit" data-type="task" data-id="${esc(t.id)}"><div class="tasktitle">${esc(t.title)}</div><div class="taskmeta">${t.due?`<span class="${overdue?'danger':''}">◷ ${esc(date)}</span>`:''}${t.priority==='high'?'<span class="danger">◆ High</span>':''}${project?`<span>◈ ${esc(project)}</span>`:''}${subs.length?`<span>${completed}/${subs.length} steps</span>`:''}${t.repeat!=='none'?'<span>↻ Repeats</span>':''}${t.stage==='inbox'?'<span>Inbox</span>':''}</div></button>${!compact&&!t.done?`<div class="taskactions"><button class="micro ${t.focus?'fav':''}" data-action="focus" data-id="${esc(t.id)}" aria-label="${t.focus?'Remove from focus':'Make a focus'}" title="${t.focus?'Remove from focus':'Make a focus'}">${t.focus?'★':'☆'}</button><button class="micro" data-action="plan" data-id="${esc(t.id)}" title="${t.planned===calLondonToday()?'Remove from today':'Plan for today'}" aria-label="${t.planned===calLondonToday()?'Remove from today':'Plan for today'}" aria-pressed="${t.planned===calLondonToday()}">${t.planned===calLondonToday()?'↶':'↳'}</button></div>`:''}</div>`}
+function taskRow(t,{compact=false}={}){const subs=t.subtasks||[],completed=subs.filter(s=>s.done).length;const date=humanDate(t.due),overdue=!t.done&&dayDiff(t.due)!==null&&dayDiff(t.due)<0;const project=projectName(t.projectId);return `<div class="task ${t.done?'completed':''}" data-task="${esc(t.id)}"><input type="checkbox" class="check" data-action="toggle-task" data-id="${esc(t.id)}" ${t.done?'checked':''} aria-label="${t.done?'Reopen':'Complete'} ${esc(t.title)}"><button class="taskbody" data-action="edit" data-type="task" data-id="${esc(t.id)}"><div class="tasktitle">${esc(t.title)}</div><div class="taskmeta">${t.due?`<span class="${overdue?'danger':''}">◷ ${esc(date)}</span>`:''}${t.priority==='high'?'<span class="danger">◆ High</span>':''}${project?`<span>◈ ${esc(project)}</span>`:''}${subs.length?`<span>${completed}/${subs.length} steps</span>`:''}${t.repeat!=='none'?'<span>↻ Repeats</span>':''}${t.stage==='inbox'?'<span>Inbox</span>':''}</div></button>${!compact&&!t.done?`<div class="taskactions"><button class="micro ${t.focus?'fav':''}" data-action="focus" data-id="${esc(t.id)}" aria-label="${t.focus?'Remove from focus':'Make a focus'}" title="${t.focus?'Remove from focus':'Make a focus'}">${t.focus?'★':'☆'}</button><button class="micro" data-action="plan" data-id="${esc(t.id)}" title="${t.planned===calLondonToday()?'Remove from today':'Plan for today'}" aria-label="${t.planned===calLondonToday()?'Remove from today':'Plan for today'}" aria-pressed="${t.planned===calLondonToday()}">${t.planned===calLondonToday()?'↶':'↳'}</button><button class="micro atlas-more-task" type="button" data-action="task-menu" data-id="${esc(t.id)}" aria-label="More actions for ${esc(t.title)}" title="More task actions">⋯</button></div>`:''}</div>`}
 function taskList(tasks,compact=false){return tasks.length?`<div class="list">${tasks.map(t=>taskRow(t,{compact})).join('')}</div>`:blank('✓','Nothing here yet.')}
 function projectStats(p){const ts=data.tasks.filter(t=>t.projectId===p.id);return {all:ts.length,done:ts.filter(t=>t.done).length,open:ts.filter(t=>!t.done).length,noteCount:data.notes.filter(n=>n.projectId===p.id).length}}
 function projectCard(p){const st=projectStats(p),pct=st.all?Math.round(st.done/st.all*100):0;return `<button class="project" data-action="open-project" data-id="${esc(p.id)}"><div class="between"><div class="project-title"><span class="project-icon">◈</span><span>${esc(p.title)}</span></div><span class="pill">${esc(p.status==='paused'?'On hold':p.status)}</span></div>${p.description?`<p class="fine">${esc(p.description.slice(0,115))}</p>`:''}<div class="progress"><span style="width:${pct}%"></span></div><div class="between fine"><span>${st.open} open · ${st.done} done</span><span>${st.noteCount} notes</span></div></button>`}
@@ -2211,6 +2305,9 @@ if(a==='cal-remove'){const event=byId(data.calendarEvents,ref);if(!event)return;
 if(a==='cal-import')return $('cal-ics-file')?.click();if(a==='cal-export'){const bad=data.calendarEvents.some(e=>Object.values(e.exceptions||{}).some(ex=>!ex.cancel));if(bad)showToast('Recurring overrides need an ATLAS backup for full fidelity.');calDownload('atlas-calendar-'+dateKey()+'.ics',calICSExport(),'text/calendar;charset=utf-8');return}
 }
 function handleAction(element){const a=element.dataset.action,ref=element.dataset.id,type=element.dataset.type;if(!a)return;
+if(a==='atlas-undo')return atlasUndoGesture();
+if(a==='task-menu')return atlasTaskMenu(ref);
+if(a.startsWith('task-quick-'))return atlasTaskMenuAction(a,ref);
 if(a==='toggle-task'||a==='toggle-money')return; // checkboxes are handled by change events only
 if(a==='journal-export')return atlasDownloadJournal();
 if(a==='journal-today'){const today=calLondonToday();if(atlasJournalDate===today)return;if(!atlasJournalConfirmDiscard())return;atlasJournalDate=today;return render()}
