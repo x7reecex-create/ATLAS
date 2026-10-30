@@ -1217,6 +1217,23 @@ h1,h2,h3{font-family:var(--atlas-display-font);font-optical-sizing:auto;letter-s
  .content[data-view="calendar"] .calendar-actions .calendar-tools{min-width:54px}
  .content[data-view="calendar"] .calendar-actions .calendar-tools>summary{min-height:44px;padding:0 8px}
 }
+
+/* ATLAS GESTURES: never steal the page's natural vertical scroll. */
+.task[data-task]{touch-action:pan-y;overscroll-behavior-x:contain}
+.task .taskbody{will-change:auto}
+.task .taskbody.atlas-gesture-active{will-change:transform;transition:none!important}
+.taskactions .atlas-task-more{font-size:19px;line-height:1}
+.atlas-task-menu-sheet{max-width:520px}
+.atlas-task-menu-choices{display:grid;gap:8px;margin-top:16px}
+.atlas-task-menu-choices button{display:flex;align-items:center;gap:15px;width:100%;min-height:52px;text-align:left;border:1px solid var(--border);border-radius:13px;background:var(--surface2);color:var(--text);font-size:20px;padding:12px 15px}
+.atlas-task-menu-choices button span{font-size:14px;font-weight:710}
+.atlas-task-undo{position:fixed;z-index:29;left:50%;transform:translateX(-50%);bottom:calc(82px + env(safe-area-inset-bottom));max-width:min(440px,calc(100vw - 28px));width:max-content;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:12px 13px 12px 16px;border-radius:14px;background:var(--surface2);color:var(--text);border:1px solid var(--accent-text);box-shadow:0 12px 35px #0008;font-size:13px}
+.atlas-task-undo[hidden]{display:none}
+.atlas-task-undo-button{border-radius:9px;padding:8px 13px;min-height:44px;border:1px solid var(--border);background:var(--accent);color:var(--accent-on);font-weight:800}
+.atlas-task-menu-choices button:focus-visible,.atlas-task-more:focus-visible,.atlas-task-undo-button:focus-visible{outline:2px solid var(--accent-text);outline-offset:3px}
+@media(min-width:901px){.atlas-task-undo{bottom:26px}}
+@media(max-width:360px){.atlas-task-card .taskactions{gap:1px}.atlas-task-card .taskactions .micro{min-width:40px;width:40px}.atlas-task-card .task{gap:5px}}
+@media(prefers-reduced-motion:reduce){.task .taskbody{transition:none!important}}
 </style>
 </head>
 <body>
@@ -1232,6 +1249,7 @@ h1,h2,h3{font-family:var(--atlas-display-font);font-optical-sizing:auto;letter-s
 </main>
 <div id="modal-root"></div>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
+<div id="atlas-task-undo" class="atlas-task-undo" role="status" aria-live="polite" hidden></div>
 <script>
 (()=>{'use strict';
 // ATLAS v1.1. Local-first app; retain the original v0.x localStorage key for seamless migration.
@@ -1687,7 +1705,116 @@ const btn=(label,action,extra='',cls='action ghost small')=>`<button class="${cl
 const blank=(icon,text,action,label)=>`<div class="empty"><div class="emptyicon">${icon}</div>${text}${action?`<div style="margin-top:12px">${btn(label,action,'','action small')}</div>`:''}</div>`;
 const heading=(title,action,label)=>`<div class="section-head"><h2>${title}</h2>${action?btn(label||'View all',action):''}</div>`;
 const meta=(text)=>`<span>${esc(text)}</span>`;
-function taskRow(t,{compact=false}={}){const subs=t.subtasks||[],completed=subs.filter(s=>s.done).length;const date=humanDate(t.due),overdue=!t.done&&dayDiff(t.due)!==null&&dayDiff(t.due)<0;const project=projectName(t.projectId);return `<div class="task ${t.done?'completed':''}" data-task="${esc(t.id)}"><input type="checkbox" class="check" data-action="toggle-task" data-id="${esc(t.id)}" ${t.done?'checked':''} aria-label="${t.done?'Reopen':'Complete'} ${esc(t.title)}"><button class="taskbody" data-action="edit" data-type="task" data-id="${esc(t.id)}"><div class="tasktitle">${esc(t.title)}</div><div class="taskmeta">${t.due?`<span class="${overdue?'danger':''}">◷ ${esc(date)}</span>`:''}${t.priority==='high'?'<span class="danger">◆ High</span>':''}${project?`<span>◈ ${esc(project)}</span>`:''}${subs.length?`<span>${completed}/${subs.length} steps</span>`:''}${t.repeat!=='none'?'<span>↻ Repeats</span>':''}${t.stage==='inbox'?'<span>Inbox</span>':''}</div></button>${!compact&&!t.done?`<div class="taskactions"><button class="micro ${t.focus?'fav':''}" data-action="focus" data-id="${esc(t.id)}" aria-label="${t.focus?'Remove from focus':'Make a focus'}" title="${t.focus?'Remove from focus':'Make a focus'}">${t.focus?'★':'☆'}</button><button class="micro" data-action="plan" data-id="${esc(t.id)}" title="${t.planned===calLondonToday()?'Remove from today':'Plan for today'}" aria-label="${t.planned===calLondonToday()?'Remove from today':'Plan for today'}" aria-pressed="${t.planned===calLondonToday()}">${t.planned===calLondonToday()?'↶':'↳'}</button></div>`:''}</div>`}
+
+/* ATLAS touch: actions are available through buttons, mouse, keyboard and deliberate gestures. */
+let atlasTaskUndo=null,atlasTaskPointer=null,atlasSuppressTaskClickUntil=0;
+function atlasTaskSwipeIntent(dx,dy){
+ if(Math.abs(dx)<76||Math.abs(dy)>42||Math.abs(dx)<Math.abs(dy)*1.6)return '';
+ return dx>0?'complete':'tomorrow';
+}
+function atlasPaintTaskUndo(){
+ const el=$('atlas-task-undo');if(!el)return;
+ if(!atlasTaskUndo||Date.now()>atlasTaskUndo.until){el.hidden=true;el.innerHTML='';return}
+ el.hidden=false;
+ el.innerHTML='<span>'+esc(atlasTaskUndo.message)+'</span><button type="button" class="atlas-task-undo-button" data-action="task-undo" aria-label="Undo last task action">Undo</button>';
+}
+function atlasOpenTaskMenu(ref){
+ const t=byId(data.tasks,ref);if(!t||t.done)return;
+ atlasSuppressTaskClickUntil=Date.now()+650;
+ $('modal-root').innerHTML=`<div class="modalback" data-action="modal-bg"><div class="sheet atlas-task-menu-sheet" role="dialog" aria-modal="true" aria-label="Actions for ${esc(t.title)}">
+ <div class="titlebar"><h2>${esc(t.title)}</h2><button class="iconbtn" type="button" data-action="modal-close" aria-label="Close">×</button></div>
+ <p class="fine">Choose what happens next. Planning never changes the deadline.</p>
+ <div class="atlas-task-menu-choices">
+ <button type="button" data-action="task-quick-choice" data-id="${esc(t.id)}" data-kind="complete">✓ <span>Mark complete</span></button>
+ <button type="button" data-action="task-quick-choice" data-id="${esc(t.id)}" data-kind="tomorrow">↳ <span>Plan for tomorrow</span></button>
+ <button type="button" data-action="task-quick-choice" data-id="${esc(t.id)}" data-kind="focus">☆ <span>${t.focus?'Remove from focus':'Add to focus'}</span></button>
+ <button type="button" data-action="task-quick-choice" data-id="${esc(t.id)}" data-kind="edit">✎ <span>Edit task</span></button>
+ </div></div></div>`;
+}
+function atlasQuickTaskAction(ref,kind){
+ const task=byId(data.tasks,ref);if(!task||task.done)return;
+ if(kind==='edit'){closeModal();openModal('task',ref);return}
+ if(!['complete','tomorrow','focus'].includes(kind))return;
+ if(kind==='focus'&&!task.focus&&openTasks().filter(t=>t.focus).length>=3){showToast('Choose up to three focus tasks.');return}
+ const previous=clone(task),known=new Set(data.tasks.map(t=>t.id));
+ closeModal();
+ if(kind==='complete')toggleTask(ref,true);
+ else if(kind==='tomorrow'){task.planned=dateAdd(calLondonToday(),1);task.stage='planned';commit('Planned for tomorrow; deadline unchanged')}
+ else {task.focus=!task.focus;if(task.focus)task.stage='planned';commit(task.focus?'Added to focus':'Removed from focus')}
+ if(storageWarning||storageLoadError||localStorage.getItem(KEY)!==storageBaseline)return;
+ const current=byId(data.tasks,ref);
+ if(!current)return;
+ const added=data.tasks.filter(t=>!known.has(t.id)).map(clone);
+ atlasTaskUndo={id:ref,previous,after:clone(current),added,message:kind==='complete'?'Task completed':kind==='tomorrow'?'Planned for tomorrow':'Focus updated',until:Date.now()+8500};
+ atlasPaintTaskUndo();
+ const token=atlasTaskUndo;
+ setTimeout(()=>{if(atlasTaskUndo===token){atlasTaskUndo=null;atlasPaintTaskUndo()}},8500);
+}
+function atlasUndoLastTask(){
+ const undo=atlasTaskUndo;
+ if(!undo||Date.now()>undo.until){atlasTaskUndo=null;atlasPaintTaskUndo();return}
+ const current=byId(data.tasks,undo.id);
+ if(!current||JSON.stringify(current)!==JSON.stringify(undo.after)||undo.added.some(a=>JSON.stringify(byId(data.tasks,a.id))!==JSON.stringify(a))){
+  atlasTaskUndo=null;atlasPaintTaskUndo();showToast('Task changed since then. Undo is no longer available.');return;
+ }
+ const index=data.tasks.findIndex(t=>t.id===undo.id),copy=clone(current);
+ data.tasks[index]=clone(undo.previous);
+ const removed=new Set(undo.added.map(t=>t.id));
+ const priorNew=undo.added.map(clone);
+ data.tasks=data.tasks.filter(t=>!removed.has(t.id));
+ if(!save()){
+  data.tasks[index]=copy;
+  data.tasks.push(...priorNew);
+  return;
+ }
+ atlasTaskUndo=null;render();showToast('Last action undone');
+}
+function atlasResetTaskPointer(){
+ if(!atlasTaskPointer)return;
+ clearTimeout(atlasTaskPointer.timer);
+ atlasTaskPointer.body?.style.removeProperty('transform');
+ atlasTaskPointer.body?.classList.remove('atlas-gesture-active');
+ atlasTaskPointer=null;
+}
+function atlasTouchTaskStart(e){
+ if(e.pointerType!=='touch'&&e.pointerType!=='pen')return;
+ if(e.isPrimary===false||atlasDialog())return;
+ const body=e.target.closest('.taskbody'),row=body?.closest('.task[data-task]');
+ if(!body||!row||row.classList.contains('completed')||e.clientX<25||e.clientX>innerWidth-25)return;
+ atlasResetTaskPointer();
+ const state={id:e.pointerId,ref:row.dataset.task,body,x:e.clientX,y:e.clientY,dx:0,dy:0,moved:false,held:false,timer:null};
+ state.timer=setTimeout(()=>{if(atlasTaskPointer!==state||state.moved)return;state.held=true;atlasOpenTaskMenu(state.ref);},540);
+ atlasTaskPointer=state;
+}
+document.addEventListener('pointerdown',atlasTouchTaskStart,{passive:true});
+document.addEventListener('pointermove',e=>{
+ const g=atlasTaskPointer;if(!g||e.pointerId!==g.id||g.held)return;
+ g.dx=e.clientX-g.x;g.dy=e.clientY-g.y;
+ if(Math.abs(g.dy)>14&&Math.abs(g.dy)>Math.abs(g.dx)*1.2){atlasResetTaskPointer();return}
+ if(Math.hypot(g.dx,g.dy)>13){g.moved=true;clearTimeout(g.timer)}
+ if(Math.abs(g.dx)>16&&Math.abs(g.dx)>Math.abs(g.dy)*1.4){
+  g.body.classList.add('atlas-gesture-active');
+  g.body.style.transform=`translate3d(${Math.max(-92,Math.min(92,g.dx*.58))}px,0,0)`;
+ }
+},{passive:true});
+document.addEventListener('pointerup',e=>{
+ const g=atlasTaskPointer;if(!g||e.pointerId!==g.id)return;
+ const action=!g.held?atlasTaskSwipeIntent(e.clientX-g.x,e.clientY-g.y):'';
+ const ref=g.ref,held=g.held;atlasResetTaskPointer();
+ if(action||held)atlasSuppressTaskClickUntil=Date.now()+700;
+ if(action)atlasQuickTaskAction(ref,action);
+},{passive:true});
+document.addEventListener('pointercancel',atlasResetTaskPointer,{passive:true});
+document.addEventListener('click',e=>{
+ if(Date.now()>atlasSuppressTaskClickUntil)return;
+ if(e.target.closest('.taskbody')){e.preventDefault();e.stopImmediatePropagation()}
+},true);
+document.addEventListener('contextmenu',e=>{
+ const body=e.target.closest('.taskbody');if(!body||atlasDialog())return;
+ e.preventDefault();atlasOpenTaskMenu(body.closest('.task').dataset.task);
+});
+
+function taskRow(t,{compact=false}={}){const subs=t.subtasks||[],completed=subs.filter(s=>s.done).length;const date=humanDate(t.due),overdue=!t.done&&dayDiff(t.due)!==null&&dayDiff(t.due)<0;const project=projectName(t.projectId);return `<div class="task ${t.done?'completed':''}" data-task="${esc(t.id)}"><input type="checkbox" class="check" data-action="toggle-task" data-id="${esc(t.id)}" ${t.done?'checked':''} aria-label="${t.done?'Reopen':'Complete'} ${esc(t.title)}"><button class="taskbody" data-action="edit" data-type="task" data-id="${esc(t.id)}"><div class="tasktitle">${esc(t.title)}</div><div class="taskmeta">${t.due?`<span class="${overdue?'danger':''}">◷ ${esc(date)}</span>`:''}${t.priority==='high'?'<span class="danger">◆ High</span>':''}${project?`<span>◈ ${esc(project)}</span>`:''}${subs.length?`<span>${completed}/${subs.length} steps</span>`:''}${t.repeat!=='none'?'<span>↻ Repeats</span>':''}${t.stage==='inbox'?'<span>Inbox</span>':''}</div></button>${!compact&&!t.done?`<div class="taskactions"><button class="micro ${t.focus?'fav':''}" data-action="focus" data-id="${esc(t.id)}" aria-label="${t.focus?'Remove from focus':'Make a focus'}" title="${t.focus?'Remove from focus':'Make a focus'}">${t.focus?'★':'☆'}</button><button class="micro" data-action="plan" data-id="${esc(t.id)}" title="${t.planned===calLondonToday()?'Remove from today':'Plan for today'}" aria-label="${t.planned===calLondonToday()?'Remove from today':'Plan for today'}" aria-pressed="${t.planned===calLondonToday()}">${t.planned===calLondonToday()?'↶':'↳'}</button><button class="micro atlas-task-more" data-action="task-quick-menu" data-id="${esc(t.id)}" aria-label="More actions for ${esc(t.title)}" title="More actions">⋯</button></div>`:''}</div>`}
 function taskList(tasks,compact=false){return tasks.length?`<div class="list">${tasks.map(t=>taskRow(t,{compact})).join('')}</div>`:blank('✓','Nothing here yet.')}
 function projectStats(p){const ts=data.tasks.filter(t=>t.projectId===p.id);return {all:ts.length,done:ts.filter(t=>t.done).length,open:ts.filter(t=>!t.done).length,noteCount:data.notes.filter(n=>n.projectId===p.id).length}}
 function projectCard(p){const st=projectStats(p),pct=st.all?Math.round(st.done/st.all*100):0;return `<button class="project" data-action="open-project" data-id="${esc(p.id)}"><div class="between"><div class="project-title"><span class="project-icon">◈</span><span>${esc(p.title)}</span></div><span class="pill">${esc(p.status==='paused'?'On hold':p.status)}</span></div>${p.description?`<p class="fine">${esc(p.description.slice(0,115))}</p>`:''}<div class="progress"><span style="width:${pct}%"></span></div><div class="between fine"><span>${st.open} open · ${st.done} done</span><span>${st.noteCount} notes</span></div></button>`}
@@ -1848,7 +1975,7 @@ function today(){
  }else{
   body=`${heading(`${open.length} open`)}<div class="card atlas-task-card">${taskList(all)}</div>${data.tasks.some(t=>t.done)?`${heading('Completed')}<div class="card atlas-task-card">${taskList(data.tasks.filter(t=>t.done).sort((a,b)=>(b.completedAt||0)-(a.completedAt||0)).slice(0,50),true)}</div>`:''}`;
  }
- return `<div class="eyebrow">YOUR DAY</div><div class="page-head"><div><h1>Today</h1><p class="sub">${dueCount?`${dueCount} due or overdue · ${open.length} open`:`No deadlines today · ${open.length} open`}</p></div>${btn('＋ Task','new-task','','action small')}</div><div class="tabs" role="group" aria-label="Task views">${seg.map(([v,l])=>`<button data-action="set-view" data-view="${v}" class="${view===v?'active':''}" aria-pressed="${view===v}">${l}${v==='inbox'?` (${open.filter(t=>t.stage==='inbox').length})`:''}</button>`).join('')}</div>${body}<p class="fine atlas-task-hint">Use ☆ to highlight a task. Use ↳ to plan or remove it from today. Completing a recurring task creates the next one.</p>`;
+ return `<div class="eyebrow">YOUR DAY</div><div class="page-head"><div><h1>Today</h1><p class="sub">${dueCount?`${dueCount} due or overdue · ${open.length} open`:`No deadlines today · ${open.length} open`}</p></div>${btn('＋ Task','new-task','','action small')}</div><div class="tabs" role="group" aria-label="Task views">${seg.map(([v,l])=>`<button data-action="set-view" data-view="${v}" class="${view===v?'active':''}" aria-pressed="${view===v}">${l}${v==='inbox'?` (${open.filter(t=>t.stage==='inbox').length})`:''}</button>`).join('')}</div>${body}<p class="fine atlas-task-hint">Swipe right to finish, left to plan tomorrow. Long-press or tap ⋯ for options. Deadlines do not move when planning.</p>`;
 }
 let atlasSelectedNoteId='';
 function atlasProjectsLayout(body){const entries=[...data.projects].sort((a,b)=>a.title.localeCompare(b.title));return `<div class="landscape-workspace"><aside class="landscape-sidebar" aria-label="Project navigation"><b>YOUR PROJECTS</b><button class="landscape-side-link ${!projectOpen?'active':''}" data-action="close-project">All projects</button>${entries.map(p=>`<button class="landscape-side-link ${p.id===projectOpen?'active':''}" data-action="open-project" data-id="${esc(p.id)}">${esc(p.title)}</button>`).join('')}</aside><section class="landscape-main">${body}</section></div>`}
@@ -2027,7 +2154,7 @@ function openQuickMenu(){
  modalState={type:'chooser'};
  $('modal-root').innerHTML=`<div class="modalback" data-action="modal-bg"><div class="sheet signature-quick-sheet" role="dialog" aria-modal="true" aria-label="Quick add"><div class="titlebar"><div><span class="signature-overline">QUICK ADD</span><h2>What are we adding?</h2></div><button data-action="modal-close" class="iconbtn" aria-label="Close">×</button></div><div class="signature-quick-grid"><button class="signature-option" data-action="new-task">${uiIcon('today')}<strong>Task</strong><small>Something to do</small></button><button class="signature-option" data-action="cal-add">${uiIcon('calendar')}<strong>Event</strong><small>Time in your calendar</small></button><button class="signature-option" data-action="new-note">${uiIcon('notes')}<strong>Note</strong><small>Something to keep</small></button><button class="signature-option" data-action="new-money">${uiIcon('money')}<strong>Money</strong><small>A bill or expense</small></button></div><button class="signature-inbox" data-action="voice">${uiIcon('mic')} Talk to ATLAS <span aria-hidden="true">→</span></button><button class="signature-inbox" data-action="capture-thought">Capture a thought to Inbox <span aria-hidden="true">→</span></button></div></div>`;
 }
-function render(){setTheme();const views={home,today,calendar,timetable,projects,notes,journal,money,goals,insights,settings,library,focusTool,quickTools,decisionTool,link:linkScreen,search:searchScreen};const target=$('content');if(!target)return;if(page==='calendar'&&calView==='week'){const previous=target.querySelector?.('.cal-week-scroller');if(previous)calScrollTop=previous.scrollTop;}if(target.dataset)target.dataset.view=page;target.innerHTML=(views[page]||home)();const tabs=[['home','⌂','Home'],['calendar','▦','Calendar'],['today','✓','Tasks'],['library','▤','Library']];$('nav').innerHTML=tabs.map(([v,icon,label])=>`<button data-action="goto" data-page="${v}" class="${page===v?'active':''}" ${page===v?'aria-current="page"':''}><span class="navicon">${uiIcon(v)}</span>${label}</button>`).join('');if(matchMedia('(orientation:portrait)').matches)$('nav').querySelector('[aria-current="page"]')?.scrollIntoView({block:'nearest',inline:'nearest'});$('fab').style.display=page==='settings'||page==='search'?'none':'block';if(page==='calendar'&&calView==='week'){const sc=$('content').querySelector?.('.cal-week-scroller');if(sc){sc.scrollTop=calScrollTop===null?6*CAL_ROW_HEIGHT:calScrollTop;sc.scrollLeft=0;}}const bar=$('syncbar');bar.textContent=storageLoadError||storageWarning||(bridgeProfile?'ATLAS Link ready · Sync only when you choose':'');if(bar.textContent){bar.setAttribute('role',storageLoadError||storageWarning?'alert':'status')}else bar.removeAttribute('role');}
+function render(){setTheme();const views={home,today,calendar,timetable,projects,notes,journal,money,goals,insights,settings,library,focusTool,quickTools,decisionTool,link:linkScreen,search:searchScreen};const target=$('content');if(!target)return;if(page==='calendar'&&calView==='week'){const previous=target.querySelector?.('.cal-week-scroller');if(previous)calScrollTop=previous.scrollTop;}if(target.dataset)target.dataset.view=page;target.innerHTML=(views[page]||home)();const tabs=[['home','⌂','Home'],['calendar','▦','Calendar'],['today','✓','Tasks'],['library','▤','Library']];$('nav').innerHTML=tabs.map(([v,icon,label])=>`<button data-action="goto" data-page="${v}" class="${page===v?'active':''}" ${page===v?'aria-current="page"':''}><span class="navicon">${uiIcon(v)}</span>${label}</button>`).join('');if(matchMedia('(orientation:portrait)').matches)$('nav').querySelector('[aria-current="page"]')?.scrollIntoView({block:'nearest',inline:'nearest'});$('fab').style.display=page==='settings'||page==='search'?'none':'block';if(page==='calendar'&&calView==='week'){const sc=$('content').querySelector?.('.cal-week-scroller');if(sc){sc.scrollTop=calScrollTop===null?6*CAL_ROW_HEIGHT:calScrollTop;sc.scrollLeft=0;}}const bar=$('syncbar');bar.textContent=storageLoadError||storageWarning||(bridgeProfile?'ATLAS Link ready · Sync only when you choose':'');if(bar.textContent){bar.setAttribute('role',storageLoadError||storageWarning?'alert':'status')}else bar.removeAttribute('role');atlasPaintTaskUndo();}
 // Modal editing and quick capture.
 function field(name,label,value='',type='text',extra=''){return `<div class="field"><label for="f-${name}">${label}</label><input class="input" id="f-${name}" name="${name}" type="${type}" value="${esc(value)}" ${extra}></div>`}
 function area(name,label,value='',rows=4,extra=''){return `<div class="field"><label for="f-${name}">${label}</label><textarea class="textarea" id="f-${name}" name="${name}" rows="${rows}" ${extra}>${esc(value)}</textarea></div>`}
@@ -2212,6 +2339,9 @@ if(a==='cal-import')return $('cal-ics-file')?.click();if(a==='cal-export'){const
 }
 function handleAction(element){const a=element.dataset.action,ref=element.dataset.id,type=element.dataset.type;if(!a)return;
 if(a==='toggle-task'||a==='toggle-money')return; // checkboxes are handled by change events only
+if(a==='task-quick-menu')return atlasOpenTaskMenu(ref);
+if(a==='task-quick-choice')return atlasQuickTaskAction(ref,element.dataset.kind);
+if(a==='task-undo')return atlasUndoLastTask();
 if(a==='journal-export')return atlasDownloadJournal();
 if(a==='journal-today'){const today=calLondonToday();if(atlasJournalDate===today)return;if(!atlasJournalConfirmDiscard())return;atlasJournalDate=today;return render()}
 if(a==='journal-open'){
