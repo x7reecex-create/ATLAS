@@ -2729,7 +2729,7 @@ document.addEventListener('pointerdown',e=>{
  const grip=e.target.closest('.atlas-timetable-grip');if(!grip)return;
  const block=grip.closest('.atlas-timetable-block');if(!block)return;
  atlasTimetableGripPointer={id:e.pointerId,ref:block.dataset.id,grip,x:e.clientX,y:e.clientY,active:false};
- grip.setPointerCapture?.(e.pointerId);
+ try{grip.setPointerCapture?.(e.pointerId)}catch(_){}
 },{passive:true});
 document.addEventListener('pointermove',e=>{
  const x=atlasTimetableGripPointer;if(!x||x.id!==e.pointerId)return;
