@@ -1602,8 +1602,8 @@ try{
 }catch(e){storageLoadError='Saved data could not be read. Writes are blocked to preserve the saved copy. Export preserved storage and reload after resolving the problem.';}
 let data=defaults();
 try{
-  if(!storageLoadError){data=normalizeData(raw||defaults());for(const k of ['tasks','projects','notes','calendarEvents','money','goals','transactions','timeEntries','habits','habitLogs','goalHistory','balanceHistory'])if(raw?.[k]!==undefined&&(!Array.isArray(raw[k])||data[k].length!==raw[k].length))throw Error('Saved records need recovery.');}
-}catch(e){storageLoadError='Some saved records could not be read safely. Writes are blocked. Export preserved storage before recovery.';data=defaults();}
+  if(!storageLoadError){data=normalizeData(raw||defaults());for(const k of ['tasks','projects','notes','calendarEvents','money','goals','transactions','timeEntries','habits','habitLogs','goalHistory','balanceHistory'])if(raw?.[k]!==undefined&&(!Array.isArray(raw[k])||data[k].length!==raw[k].length))throw Error('Saved records need recovery in '+k+'.');}
+}catch(e){storageLoadError='Some saved records could not be read safely. Writes are blocked. Export preserved storage before recovery.';console.warn('ATLAS data recovery diagnosis:',e.message);data=defaults();}
 let page='home',view='today',projectOpen=null,modalState=null,searchText='',toastTimer=null,loading=false;
 let bridgeSession=null,bridgeProfile=null,bridgeMessages=[],bridgeNotice='',bridgeError=false,bridgeBusy=false;
 try{bridgeSession=JSON.parse(localStorage.getItem(AUTH_KEY)||'null')}catch(e){}
