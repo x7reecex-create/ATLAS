@@ -8,7 +8,7 @@ test('JavaScript parses and timetable is linked through Library and Calendar',()
  for(const name of ['timetable','atlasTimetableSave','atlasTimetableEditor','atlasTimetableBlocks','atlasTimetableDelete'])assert.match(html,new RegExp('function '+name+'\\('));
  assert.match(html,/data-page="\$\{pg\}"/);
  assert.match(html,/\['timetable','Timetable'/);
- assert.match(html,/data-action="goto-timetable"/);
+ assert.match(html,/btn\('Timetable','goto-timetable'/);
 });
 test('appearance styles stay within validated choices and defaults',()=>{
  assert.match(html,/fontStyle:\['native','rounded','crisp'\]/);
@@ -25,7 +25,7 @@ test('timetable blocks use Calendar events, preserving existing backups',()=>{
  assert.match(html,/calValidateEvent\(\{/);
  assert.match(html,/data\.calendarEvents\.push\(candidate\)/);
  assert.match(html,/End time must be 5 minutes to 12 hours after the start/);
- assert.match(html,/timetable:.*repeat==='weekly'/);
+ assert.match(html,/e\.timetable===true&&e\.repeat==='weekly'/);
 });
 test('small privacy banner no longer fills the screen unnecessarily',()=>{
  assert.match(html,/bar\.textContent=storageLoadError\|\|storageWarning\|\|\(bridgeProfile\?/);
