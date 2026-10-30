@@ -602,7 +602,7 @@ try {
       assert.equal(await page.locator('#atlas-accent-input').inputValue(),'#222222',size.name+' custom accent preserved across palettes');
       await page.locator('[data-action="appearance-reset"]').click();
       const reset=await page.evaluate(()=>JSON.parse(localStorage.getItem('atlas-preview:v1')).appearance);
-      assert.deepEqual(reset,{accent:'',density:'comfortable',corners:'rounded',texture:'subtle',textSize:'standard',motion:'system'},size.name+' reset restores safe appearance defaults');
+      assert.deepEqual(reset,{accent:'',density:'comfortable',corners:'rounded',texture:'subtle',textSize:'standard',fontStyle:'native',motion:'system'},size.name+' reset restores safe appearance defaults');
       assert.ok(await motionProbe()>=0.9,size.name+' reset restores device-controlled motion');
       await page.emulateMedia({reducedMotion:'reduce'});
       assert.ok(await motionProbe()<0.001,size.name+' device reduced-motion preference always wins');
