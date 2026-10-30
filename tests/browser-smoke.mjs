@@ -30,6 +30,7 @@ try {
     await page.clock.setFixedTime(new Date('2026-10-29T12:00:00Z'));
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
+    page.on('console',message=>{if(message.text().includes('ATLAS data recovery diagnosis'))console.log(size.name+' recovery:',message.text())});
     await page.goto('http://127.0.0.1:8765/index.html', {waitUntil:'load'});
     await page.locator('#nav button[data-page="home"]').waitFor({timeout:12000});
     assert.equal(await page.locator('#content').getAttribute('data-view'),'home',size.name+' home route');
@@ -63,7 +64,15 @@ try {
     await page.waitForFunction(() => JSON.parse(localStorage.getItem('atlas-preview:v1')||'null')?.appearance?.textSize === 'large');
     await page.reload();
     await page.locator('#nav button[data-page="home"]').waitFor();
-    assert.equal(await page.evaluate(() => document.documentElement.dataset.atlasTextSize),'large',size.name+' larger text persists after reload');
+    const afterReload=await page.evaluate(()=>({display:document.documentElement.dataset.atlasTextSize,stored:JSON.parse(localStorage.getItem('atlas-preview:v1')||'null')?.appearance,warning:document.getElementById('syncbar')?.textContent}));
+    assert.equal(afterReload.display,'large',size.name+' larger text persists after reload: '+JSON.stringify(afterReload));
+    await page.locator('#nav button[data-page="library"]').click();
+    await page.locator('#content button.signature-library-row[data-page="settings"]').click();
+    await page.locator('#atlas-font-style-select').selectOption('rounded');
+    assert.equal(await page.evaluate(()=>document.documentElement.dataset.atlasFontStyle),'rounded',size.name+' font style applied');
+    await page.locator('#content button[data-action="appearance-preset"][data-preset="soft"]').click();
+    assert.equal(await page.evaluate(()=>document.documentElement.dataset.atlasTheme),'graphite',size.name+' preset changes palette');
+    await page.locator('#atlas-text-size-select').selectOption('large');
     await page.locator('#nav button[data-page="home"]').click();
     const largeTextGeometry=await page.evaluate(() => {
       const nav=document.querySelector('#nav');
@@ -443,7 +452,45 @@ try {
     const taskWidth=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
     assert.ok(taskWidth<=2,size.name+' Today task controls fit the screen');
 
-    for (const destination of ['library','projects','notes','money','goals','insights','link','settings']) {
+
+    // Timetable is a true weekly Calendar series: edit, persist, and remove on every viewport.
+    await page.locator('#nav button[data-page="library"]').click();
+    await page.locator('#content button.signature-library-row[data-page="timetable"]').click();
+    assert.equal(await page.locator('#content').getAttribute('data-view'),'timetable',size.name+' timetable route');
+    assert.equal(await page.locator('.atlas-timetable-day').count(),7,size.name+' full week visible');
+    await page.locator('button[data-action="timetable-add"]').first().click();
+    await page.locator('#f-title').fill('Weekly class');
+    await page.locator('#f-day').selectOption('2');
+    await page.locator('#f-start').fill('17:00');
+    await page.locator('#f-end').fill('18:30');
+    await page.locator('#atlas-timetable-form button[type="submit"]').click();
+    const block=page.locator('.atlas-timetable-block', {hasText:'Weekly class'});
+    assert.equal(await block.count(),1,size.name+' weekly block created');
+    const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('atlas-preview:v1')).calendarEvents.filter(e=>e.timetable===true));
+    assert.equal(saved.length,1,size.name+' one timetable record');
+    assert.equal(saved[0].repeat,'weekly',size.name+' timetable syncs with Calendar');
+    await page.locator('button[data-action="timetable-mode"][data-mode="day"]').click();
+    await page.locator('button[data-action="timetable-day"][data-day="2"]').click();
+    assert.equal(await page.locator('.atlas-timetable-day').count(),1,size.name+' day switch works');
+    assert.equal(await block.count(),1,size.name+' selected day shows saved block');
+    await block.click();
+    await page.locator('#f-title').fill('Updated class');
+    await page.locator('#atlas-timetable-form button[type="submit"]').click();
+    assert.equal(await page.locator('.atlas-timetable-block', {hasText:'Updated class'}).count(),1,size.name+' edited block');
+    await page.reload();
+    await page.locator('#nav button[data-page="library"]').click();
+    await page.locator('#content button.signature-library-row[data-page="timetable"]').click();
+    assert.equal(await page.locator('.atlas-timetable-block', {hasText:'Updated class'}).count(),1,size.name+' timetable survives reload');
+    await page.locator('button[data-action="goto-calendar"]').click();
+    assert.equal(await page.locator('#content').getAttribute('data-view'),'calendar',size.name+' timetable opens Calendar');
+    // Calendar date and weekly occurrence are verified via persisted records (the week view changes orientation).
+    const occurs=await page.evaluate(()=>{
+      const state=JSON.parse(localStorage.getItem('atlas-preview:v1'));
+      return state.calendarEvents.filter(e=>e.timetable).map(e=>({repeat:e.repeat,title:e.title,start:e.startTime}));
+    });
+    assert.deepEqual(occurs,[{repeat:'weekly',title:'Updated class',start:'17:00'}],size.name+' Calendar contains timetable weekly series');
+
+    for (const destination of ['library','timetable','projects','notes','money','goals','insights','link','settings']) {
       await page.locator('#nav button[data-page="library"]').click();
       if (destination !== 'library') {
         await page.locator('#content button.signature-library-row[data-page="'+destination+'"]').click();
@@ -555,7 +602,7 @@ try {
       assert.equal(await page.locator('#atlas-accent-input').inputValue(),'#222222',size.name+' custom accent preserved across palettes');
       await page.locator('[data-action="appearance-reset"]').click();
       const reset=await page.evaluate(()=>JSON.parse(localStorage.getItem('atlas-preview:v1')).appearance);
-      assert.deepEqual(reset,{accent:'',density:'comfortable',corners:'rounded',texture:'subtle',textSize:'standard',motion:'system'},size.name+' reset restores safe appearance defaults');
+      assert.deepEqual(reset,{accent:'',density:'comfortable',corners:'rounded',texture:'subtle',textSize:'standard',fontStyle:'native',motion:'system'},size.name+' reset restores safe appearance defaults');
       assert.ok(await motionProbe()>=0.9,size.name+' reset restores device-controlled motion');
       await page.emulateMedia({reducedMotion:'reduce'});
       assert.ok(await motionProbe()<0.001,size.name+' device reduced-motion preference always wins');

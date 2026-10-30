@@ -1133,25 +1133,99 @@ body{background:radial-gradient(ellipse 80% 26% at 50% -9%,var(--mat-veil),trans
 .atlas-task-hint{margin-top:18px;max-width:66ch}
 .tabs button:focus-visible,.atlas-focus-empty button:focus-visible,.atlas-task-card .micro:focus-visible{outline:2px solid var(--accent-text);outline-offset:2px}
 @media(max-width:360px){.atlas-task-card{padding:9px 10px}.atlas-task-card .task{gap:7px}.atlas-task-card .taskactions{gap:2px}.atlas-task-card .taskactions .micro{min-width:42px}.atlas-task-card .check{width:30px;min-width:30px;height:30px}}
+
+/* ATLAS typography: readable, intentional and native on each platform. */
+:root{--atlas-font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,system-ui,sans-serif;--atlas-display-font:var(--atlas-font)}
+:root[data-atlas-font-style="rounded"]{--atlas-font:ui-rounded,"Avenir Next","Trebuchet MS",-apple-system,system-ui,sans-serif}
+:root[data-atlas-font-style="crisp"]{--atlas-font:"Helvetica Neue",Arial,Roboto,system-ui,sans-serif}
+body{font-family:var(--atlas-font);font-size:14px;line-height:1.5;font-kerning:normal}
+h1,h2,h3{font-family:var(--atlas-display-font);font-optical-sizing:auto;letter-spacing:-.026em}
+.content h1{font-size:clamp(24px,5.1vw,31px);line-height:1.14;font-weight:750}
+.content h2{font-size:17px;line-height:1.25;font-weight:725}
+.content h3{font-size:15px;line-height:1.3}
+.signature-home .signature-hero h1{font-size:clamp(27px,6.6vw,36px);line-height:1.13;letter-spacing:-.035em;font-weight:735}
+.signature-library h1{font-size:clamp(27px,6.6vw,36px);line-height:1.14;letter-spacing:-.035em}
+.signature-heading h2{font-size:18px;line-height:1.26}
+.signature-next strong{font-size:19px;letter-spacing:-.02em;font-weight:715}
+.eyebrow,.signature-overline,.signature-group-title,.card-head{letter-spacing:.095em;font-size:10px;font-weight:740}
+.signature-hero p,.sub{font-size:13.5px;line-height:1.6}
+.page-head{margin-bottom:15px}
+.section-head{margin:21px 0 11px}
+.signature-kicker{letter-spacing:.09em;font-weight:700}
+.signature-library .sub{margin-bottom:20px}
+.signature-library-row{min-height:66px}
+.library-copy strong{font-size:14px;font-weight:710}
+.library-copy small{font-size:12px;line-height:1.4}
+.brand b{font-size:18px;letter-spacing:.08em;font-weight:800}
+.brand small{font-size:9px;letter-spacing:.1em;font-weight:700}
+.mark{background:#111318;border-color:var(--border);overflow:hidden;border-radius:12px}
+.mark img{width:100%;height:100%;display:block;object-fit:contain}
+.mark-dot{display:none}
+:root[data-atlas-text-size="large"] :is(.tasktitle,.library-copy strong,.note-preview,.signature-next small,.signature-home-note,.sub,.fine){font-size:16px;line-height:1.65}
+:root[data-atlas-text-size="extra"] :is(.tasktitle,.library-copy strong,.note-preview,.signature-next small,.signature-home-note,.sub,.fine){font-size:17px;line-height:1.65}
+:root[data-atlas-text-size="extra"] :is(.taskmeta,.library-copy small,.signature-overline,.eyebrow,.card-head,.field label){font-size:13px;line-height:1.55}
+:root[data-atlas-text-size="extra"] :is(.tabs button,.action,.bottomnav button,.signature-links button){font-size:15px}
+:root[data-atlas-text-size="extra"] .content h1{font-size:clamp(25px,5.4vw,33px)}
+:root[data-atlas-text-size="extra"] .content h2{font-size:20px}
+@media(min-width:1000px){.signature-home .signature-hero h1{font-size:clamp(33px,3vw,42px);line-height:1.12}.signature-library h1{font-size:clamp(30px,2.7vw,37px)}.content h1{font-size:clamp(27px,2.4vw,34px)}}
+.syncbar{display:none;margin:0 20px 10px;border:0;border-radius:10px;background:var(--surface2);padding:9px 12px;font-size:12px;line-height:1.45;color:var(--muted)}
+.syncbar:not(:empty){display:block}
+.atlas-presets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:12px 0 17px}
+.atlas-preset{display:flex;flex-direction:column;gap:8px;align-items:flex-start;padding:11px;text-align:left;min-height:86px;color:var(--text);background:var(--surface2);border:1px solid var(--border);border-radius:13px;font-size:12px;font-weight:700;line-height:1.3}
+.atlas-preset-swatch{width:100%;height:28px;display:block;border-radius:7px}
+.atlas-preset-swatch.dark{background:linear-gradient(130deg,#101114 65%,#ac4356 65%)}
+.atlas-preset-swatch.soft{background:linear-gradient(130deg,#242a32 65%,#abbdd0 65%)}
+.atlas-preset-swatch.light{background:linear-gradient(130deg,#f4f7fc 65%,#287bb6 65%);border:1px solid #c5d0dc}
+.atlas-style-preview{display:grid;gap:5px;margin:0 0 16px;padding:16px;background:var(--surface2);border:1px solid var(--border);border-radius:14px}
+.atlas-style-preview strong{font-size:clamp(18px,5vw,22px);line-height:1.25;letter-spacing:-.025em}
+.atlas-style-preview small{color:var(--muted);font-size:13px}
+.atlas-preset:focus-visible{outline:2px solid var(--accent-text);outline-offset:2px}
+@media(max-width:360px){.atlas-presets{gap:5px}.atlas-preset{padding:8px;font-size:11px}}
+
+/* Timetable: deliberate rhythm across portrait phones, landscape and wide desktops. */
+.atlas-timetable{max-width:1160px}
+.atlas-timetable-toolbar{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+.atlas-timetable-toolbar button,.atlas-timetable-days button{border:1px solid var(--border);background:var(--surface2);color:var(--muted);font-size:12px;font-weight:700;padding:9px 12px;border-radius:11px;min-height:43px}
+.atlas-timetable-toolbar button.active,.atlas-timetable-days button.active{color:var(--accent-on);background:var(--accent);border-color:var(--accent)}
+.atlas-timetable-toolbar .atlas-timetable-calendar{margin-left:auto;color:var(--text);background:transparent}
+.atlas-timetable-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:12px;align-items:start}
+.atlas-timetable-grid.single{grid-template-columns:minmax(0,1fr);max-width:600px}
+.atlas-timetable-day{min-width:0;min-height:134px;border:1px solid var(--border);border-radius:16px;background:var(--surface);padding:12px}
+.atlas-timetable-day header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 0 11px;border-bottom:1px solid var(--border);margin-bottom:9px}
+.atlas-timetable-day-name{font-size:14px;font-weight:750;color:var(--text)}
+.atlas-timetable-current{margin-left:8px;color:var(--accent-text);font-weight:750;font-size:11px}
+.atlas-timetable-plus{width:42px;height:42px;border-radius:11px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:19px}
+.atlas-timetable-block{width:100%;min-height:74px;display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;padding:10px 11px;border:1px solid var(--border);border-left:3px solid var(--slot-hue);border-radius:10px;background:var(--surface2);color:var(--text);margin-top:7px;overflow-wrap:anywhere}
+.atlas-timetable-block strong{font-size:14px;font-weight:730;line-height:1.35}
+.atlas-timetable-block small{font-size:11px;color:var(--muted)}
+.atlas-timetable-clock{font-size:11px;font-variant-numeric:tabular-nums;color:var(--muted);font-weight:690}
+.atlas-timetable-empty{font-size:12px;color:var(--muted);padding:8px 2px}
+.atlas-timetable-days{display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;padding-bottom:14px}
+.atlas-timetable-days button{flex:1;min-width:43px;padding-inline:5px}
+.atlas-timetable-delete{margin-top:12px}
+.atlas-timetable-footnote{margin-top:16px}
+.atlas-timetable-toolbar button:focus-visible,.atlas-timetable-day button:focus-visible,.atlas-timetable-days button:focus-visible{outline:2px solid var(--accent-text);outline-offset:2px}
+:root[data-atlas-text-size="extra"] .atlas-timetable-block strong{font-size:17px}
+:root[data-atlas-text-size="extra"] .atlas-timetable-day-name{font-size:17px}
+@media(max-width:390px){.atlas-timetable-grid{grid-template-columns:1fr}.atlas-timetable-day{min-height:113px}.atlas-timetable-toolbar button{padding:8px 9px}}
+
+/* Give Calendar controls their own row on narrow portrait screens; never overlap the toolbar or top bar. */
+@media(max-width:620px) and (orientation:portrait){
+ .content[data-view="calendar"]>.page-head{display:flex;flex-wrap:wrap;align-items:flex-start;gap:10px}
+ .content[data-view="calendar"]>.page-head>div:first-child{flex:1 1 100%;min-width:0}
+ .content[data-view="calendar"] .calendar-actions{flex:1 1 100%;width:100%;display:flex;flex-wrap:wrap;justify-content:flex-start;align-items:center;gap:8px;position:relative}
+ .content[data-view="calendar"] .calendar-actions .calendar-tools{min-width:54px}
+ .content[data-view="calendar"] .calendar-actions .calendar-tools>summary{min-height:44px;padding:0 8px}
+}
 </style>
 </head>
 <body>
 <main id="app" class="app-shell">
   <header class="topbar">
-    <div class="brand" aria-label="ATLAS"><span class="mark" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="ATLAS geometric compass A">
-<defs><linearGradient id="red" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c42b38"/><stop offset="1" stop-color="#73050d"/></linearGradient></defs>
-<rect width="512" height="512" rx="118" fill="#0a090b"/>
-<rect x="24" y="24" width="464" height="464" rx="109" fill="#1b0e12" stroke="#79212b" stroke-width="4"/>
-<path d="M88 350 256 72 424 350" fill="none" stroke="#47202a" stroke-width="12" stroke-linecap="round"/>
-<path d="M139 372 255 147 373 372" fill="none" stroke="#fff2ef" stroke-width="39" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M205 299 256 196 306 299" fill="none" stroke="url(#red)" stroke-width="17" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M196 325 H323" fill="none" stroke="url(#red)" stroke-width="30" stroke-linecap="round"/>
-<circle cx="256" cy="76" r="16" fill="#d13b48"/>
-<path d="M162 411 H350" stroke="#7d2731" stroke-width="8" stroke-linecap="round"/>
-</svg></span><div><b>ATLAS</b><small>PERSONAL OS</small></div></div>
+    <div class="brand" aria-label="ATLAS"><span class="mark" aria-hidden="true"><img src="./icon.svg" width="38" height="38" alt="" decoding="async"></span><div><b>ATLAS</b><small>PERSONAL OS</small></div></div>
     <div class="top-actions"><button class="iconbtn" data-action="search" title="Search everything (Ctrl/⌘ K)" aria-label="Search everything" aria-keyshortcuts="Control+K Meta+K"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" aria-hidden="true"><circle cx="10" cy="10" r="6.5"/><path d="m15 15 5 5"/></svg></button><button class="iconbtn" data-action="settings" title="Settings" aria-label="Settings"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 17h16M8 4v6M16 14v6"/></svg></button></div>
   </header>
-  <div class="syncbar" id="syncbar">◈ Private by default · Saved on this device</div>
+  <div class="syncbar" id="syncbar" aria-live="polite"></div>
   <div id="content" class="content"><section class="fallback"><h1>ATLAS</h1><p>One place for what matters.</p><p>Open the hosted ATLAS website in Safari to use the interactive app. The iPhone Files preview does not run it.</p></section></div>
   <button class="fab" id="fab" data-action="quick" aria-label="Quick capture" title="Quick capture">＋</button>
   <nav id="nav" class="bottomnav" aria-label="Main navigation"></nav>
@@ -1164,7 +1238,7 @@ body{background:radial-gradient(ellipse 80% 26% at 50% -9%,var(--mat-veil),trans
 const KEY='atlas-preview:v1', AUTH_KEY='atlas-bridge:auth:v1';
 const palettes={midnight:['#08090b','#121315','#1c1d20','#2b2c30','#f2f1f3','#a7a5ad','#9f2938','#26171c','#80bda1','#ed8f95'],arctic:['#f2f6fc','#ffffff','#e8f0f9','#d3dfed','#172a44','#677d94','#126ebc','#e0f0ff','#0c9470','#cf4357'],forest:['#0c1715','#162923','#203b31','#315247','#e7f7ec','#a2c3ae','#94e1ae','#254536','#83e8ad','#ffa29f'],ember:['#171015','#2a1b25','#412733','#5d3645','#fff3f3','#d7aeba','#ffb58b','#51362f','#b7df9c','#ff939c'],graphite:['#0c0e11','#171a1f','#252a31','#424951','#f5f6f8','#b9c1cc','#aebfd4','#29313d','#7bd2a5','#ff9ca3']};
 /* Appearance Studio: local-first, bounded controls with no arbitrary CSS/HTML import. */
-const atlasAppearanceDefaults=()=>({accent:'',density:'comfortable',corners:'rounded',texture:'subtle',textSize:'standard',motion:'system'});
+const atlasAppearanceDefaults=()=>({accent:'',density:'comfortable',corners:'rounded',texture:'subtle',textSize:'standard',fontStyle:'native',motion:'system'});
 const atlasHex=v=>typeof v==='string'&&/^#[0-9a-f]{6}$/i.test(v);
 function atlasNormalizeAppearance(value){
  const v=value&&typeof value==='object'&&!Array.isArray(value)?value:{};
@@ -1173,7 +1247,8 @@ function atlasNormalizeAppearance(value){
   density:['comfortable','compact'].includes(v.density)?v.density:'comfortable',
   corners:['rounded','subtle'].includes(v.corners)?v.corners:'rounded',
   texture:['subtle','off'].includes(v.texture)?v.texture:'subtle',
-  textSize:['standard','large'].includes(v.textSize)?v.textSize:'standard',
+  textSize:['standard','large','extra'].includes(v.textSize)?v.textSize:'standard',
+  fontStyle:['native','rounded','crisp'].includes(v.fontStyle)?v.fontStyle:'native',
   motion:['system','reduce'].includes(v.motion)?v.motion:'system'
  };
 }
@@ -1283,7 +1358,109 @@ function calTimeSlots(d,items,conflicts){const all=items.filter(x=>x.allDay),tim
 function calDay(){const d=calAnchor,items=calFiltered(calOccurrences(d,d)),conflicts=calConflicts(items);return `<div class="cal-day-title"><b>${esc(calFormatDate(d,{weekday:'long',day:'numeric',month:'long'}))}</b><span>${items.length} entries · London time</span></div>${calTimeSlots(d,items,conflicts)}${!items.length?'<div class="fine" style="margin-top:12px">Empty day. Tap + beside an hour to time-block your day.</div>':''}`;}
 function calAgenda(){const start=calAnchor,end=dateAdd(start,29),items=calFiltered(calOccurrences(start,end)),conflicts=calConflicts(items);const groups=new Map();for(const o of items){const a=groups.get(o.date)||[];a.push(o);groups.set(o.date,a)}return items.length?Array.from(groups,([d,list])=>`<section class="cal-agenda-day" data-drop-date="${d}"><div class="cal-agenda-heading"><b>${esc(calFormatDate(d,{weekday:'long',day:'numeric',month:'long'}))}</b><button class="micro" data-action="cal-add" data-date="${d}" aria-label="Add event">＋</button></div>${list.map(o=>calEventChip(o,conflicts,'agenda')).join('')}</section>`).join(''):`<div class="card">${blank('▦','Nothing scheduled for the next 30 days.','cal-add','Add an appointment')}</div>`;}
 /* 2026-10-29: Native calendar date jump; no new dependency, no storage change. Rollback baseline dpl_CzGNeBbyGhUrc9aUThgouVHwtVBF. */
-function calendar(){const start=calView==='week'?calStartWeek(calAnchor):calView==='month'?calMonthStart(calAnchor):calAnchor;const title=calView==='month'?calFormatDate(start,{month:'long',year:'numeric'}):calView==='week'?`${calFormatDate(start)} – ${calFormatDate(dateAdd(start,6))}`:calFormatDate(calAnchor,{weekday:'long',day:'numeric',month:'long'});const unscheduled=openTasks().filter(t=>!t.planned);const dueSoon=data.calendarEvents.filter(e=>!e.allDay&&!e.repeat&&e.startDate===calLondonToday()&&calMins(e.startTime)>=calMins(calWallParts(new Date()).time)&&calMins(e.startTime)<calMins(calWallParts(new Date()).time)+60);return `<div class="eyebrow">YOUR TIME, IN ONE PLACE</div><div class="page-head"><div><h1>Calendar</h1><p class="sub">Your plans, tasks and deadlines in one view.</p></div><div class="calendar-actions">${btn(uiIcon('plus')+'Event','cal-add','','action small')}<details class="calendar-tools"><summary>${uiIcon('settings')}Tools</summary><div class="calendar-tools-panel"><div class="cal-tools"><label class="cal-search"><span>⌕</span><input id="cal-search" value="${esc(calSearch)}" placeholder="Find entries…" aria-label="Search calendar"></label><select id="cal-filter" aria-label="Filter calendar categories"><option value="all" ${calFilter==='all'?'selected':''}>All categories</option><option value="tasks" ${calFilter==='tasks'?'selected':''}>Tasks & deadlines</option>${Object.entries(CAL_CATEGORIES).map(([k,[label]])=>`<option value="${k}" ${calFilter===k?'selected':''}>${label}</option>`).join('')}</select></div><form id="cal-quick-form" class="cal-quick"><input name="quick" autocomplete="off" maxlength="240" required placeholder="e.g. Dentist tomorrow at 3pm" aria-label="Quick add event"><button class="action small" type="submit">Add</button></form><div class="btn-row">${btn('Capture task','quick')}${btn('Import .ics','cal-import')}${btn('Export .ics','cal-export')}${btn('Export backup','export')}</div><p class="fine">London time · Saved on this device. Export appointments to Apple Calendar for system reminders. Your ATLAS backup includes tasks and projects.</p></div></details></div></div><div class="cal-toolbar"><div class="cal-period"><button data-action="cal-prev" aria-label="Previous period">‹</button><button data-action="cal-today" class="cal-now">Today</button><button data-action="cal-next" aria-label="Next period">›</button><label class="cal-jump"><span>Go to</span><input id="cal-jump-date" type="date" value="${esc(calAnchor)}" aria-label="Jump to calendar date"></label></div><strong>${esc(title)}</strong></div><div class="cal-views" role="group" aria-label="Calendar view">${[['day','Day'],['week','Week'],['month','Month'],['agenda','Agenda']].map(([v,l])=>`<button data-action="cal-view" data-view="${v}" class="${calView===v?'active':''}" aria-pressed="${calView===v}">${l}</button>`).join('')}</div>${dueSoon.length?`<div class="cal-alert">Upcoming within the hour: ${esc(dueSoon.map(e=>e.title).slice(0,2).join(', '))}. In-app only; iPhone system alerts require adding the event to a native calendar.</div>`:''}<div id="cal-board">${calView==='day'?calDay():calView==='week'?calWeek():calView==='month'?calMonth():calAgenda()}</div><details class="card cal-tray"><summary>Unscheduled tasks<span class="pill">${unscheduled.length}</span></summary><div class="cal-tray-content"><div class="between"><div><div class="card-head">UNSCHEDULED TASKS</div><p class="fine">${unscheduled.length} tasks without a planned day. Deadlines remain separate.</p></div>${btn('View inbox','goto-inbox')}</div>${unscheduled.slice(0,5).map(t=>`<div class="cal-tray-row"><span>${esc(t.title)}</span><button class="micro" data-action="cal-schedule" data-id="${esc(t.id)}" aria-label="Schedule ${esc(t.title)}">Schedule</button></div>`).join('')||'<p class="fine">Everything has a plan, or your task list is empty.</p>'}</div></details>`;}
+
+/* A repeating weekly timetable backed by the existing local Calendar event schema.
+   Timetable blocks are regular events: backups, calendar visibility, and edits all work. */
+const ATLAS_WEEKDAYS=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+let atlasTimetableDay=(calDate(calLondonToday()).getDay()+6)%7;
+let atlasTimetableMode='week';
+const atlasDayIndex=date=>(calDate(date).getDay()+6)%7;
+function atlasTimetableBlocks(){
+ return data.calendarEvents.filter(e=>e.timetable===true&&e.repeat==='weekly'&&!e.allDay&&calValidTime(e.startTime))
+  .sort((a,b)=>atlasDayIndex(a.startDate)-atlasDayIndex(b.startDate)||a.startTime.localeCompare(b.startTime)||a.title.localeCompare(b.title));
+}
+function atlasTimetableConflicts(blocks){
+ const ids=new Set();
+ for(let i=0;i<blocks.length;i++)for(let j=i+1;j<blocks.length;j++){
+  const a=blocks[i],b=blocks[j];
+  if(atlasDayIndex(a.startDate)!==atlasDayIndex(b.startDate))continue;
+  const first=calMins(a.startTime),second=calMins(b.startTime);
+  if(first<second+b.durationMins&&second<first+a.durationMins){ids.add(a.id);ids.add(b.id)}
+ }
+ return ids;
+}
+function atlasTimetableDayCard(day,blocks,conflicts){
+ const current=day===(calDate(calLondonToday()).getDay()+6)%7;
+ const list=blocks.filter(e=>atlasDayIndex(e.startDate)===day);
+ return `<section class="atlas-timetable-day" aria-label="${ATLAS_WEEKDAYS[day]} timetable">
+ <header><div><span class="atlas-timetable-day-name">${ATLAS_WEEKDAYS[day]}</span>${current?'<small class="atlas-timetable-current">Today</small>':''}</div>
+ <button class="atlas-timetable-plus" type="button" data-action="timetable-add" data-day="${day}" aria-label="Add a block for ${ATLAS_WEEKDAYS[day]}">＋</button></header>
+ ${list.length?list.map(e=>{
+  const hue=(CAL_CATEGORIES[e.category]||CAL_CATEGORIES.other)[1];
+  return `<button type="button" class="atlas-timetable-block" data-action="timetable-edit" data-id="${esc(e.id)}" style="--slot-hue:${hue}" aria-label="Edit ${esc(e.title)} on ${ATLAS_WEEKDAYS[day]} at ${esc(e.startTime)}">
+  <span class="atlas-timetable-clock">${esc(e.startTime)} – ${esc(calClock(calMins(e.startTime)+e.durationMins))}</span>
+  <strong>${esc(e.title)}</strong><small>${esc((CAL_CATEGORIES[e.category]||CAL_CATEGORIES.other)[0])}${conflicts.has(e.id)?' · Overlaps':''}</small></button>`;
+ }).join(''):'<p class="atlas-timetable-empty">Nothing planned yet.</p>'}
+ </section>`;
+}
+function timetable(){
+ const blocks=atlasTimetableBlocks(),conflicts=atlasTimetableConflicts(blocks);
+ const total=blocks.length;
+ return `<section class="atlas-timetable">
+ <div class="eyebrow">YOUR WEEK, YOUR WAY</div>
+ <div class="page-head"><div><h1>Timetable</h1><p class="sub">${total?`${total} repeating block${total===1?'':'s'} · shown in Calendar too`:'Build a weekly routine that repeats automatically.'}</p></div>
+ <button class="action small" type="button" data-action="timetable-add">＋ Block</button></div>
+ <div class="atlas-timetable-toolbar" role="group" aria-label="Timetable layout">
+ <button type="button" data-action="timetable-mode" data-mode="week" aria-pressed="${atlasTimetableMode==='week'}" class="${atlasTimetableMode==='week'?'active':''}">Full week</button>
+ <button type="button" data-action="timetable-mode" data-mode="day" aria-pressed="${atlasTimetableMode==='day'}" class="${atlasTimetableMode==='day'?'active':''}">One day</button>
+ <button type="button" data-action="goto-calendar" class="atlas-timetable-calendar">Open Calendar ↗</button>
+ </div>
+ ${atlasTimetableMode==='day'?`<div class="atlas-timetable-days" role="group" aria-label="Choose timetable day">${ATLAS_WEEKDAYS.map((label,index)=>`<button data-action="timetable-day" data-day="${index}" aria-pressed="${atlasTimetableDay===index}" class="${atlasTimetableDay===index?'active':''}">${label.slice(0,3)}</button>`).join('')}</div>`:''}
+ <div class="atlas-timetable-grid ${atlasTimetableMode==='day'?'single':''}">${(atlasTimetableMode==='day'?[atlasTimetableDay]:[0,1,2,3,4,5,6]).map(day=>atlasTimetableDayCard(day,blocks,conflicts)).join('')}</div>
+ <p class="fine atlas-timetable-footnote">Blocks repeat each week in Calendar. Tap a block to edit it. Everything is saved with your usual ATLAS backup.</p>
+ </section>`;
+}
+function atlasTimetableEditor(ref='',day=atlasTimetableDay){
+ const original=ref?byId(data.calendarEvents,ref):null;
+ if(ref&&(!original||original.timetable!==true))return showToast('Block not found.');
+ const chosen=original?atlasDayIndex(original.startDate):Math.max(0,Math.min(6,Number(day)||0));
+ const time=original?.startTime||'09:00';
+ const end=calClock(calMins(time)+(original?.durationMins||60));
+ modalState={type:'timetable',ref};
+ const dayOptions=ATLAS_WEEKDAYS.map((name,i)=>[String(i),name]);
+ const form=field('title','Block name',original?.title||'','text','required maxlength="240" placeholder="Work, study, school run…"')
+  +dropdown('day','Day of the week',dayOptions,String(chosen))
+  +`<div class="form-cols">${field('start','Starts',time,'time','required')}${field('end','Finishes',end,'time','required')}</div>`
+  +dropdown('category','Category',Object.entries(CAL_CATEGORIES).map(([key,details])=>[key,details[0]]),original?.category||'personal')
+  +area('details','Notes (optional)',original?.details||'',2,'maxlength="5000"');
+ $('modal-root').innerHTML=`<div class="modalback" data-action="modal-bg"><div class="sheet" role="dialog" aria-modal="true" aria-label="${original?'Edit timetable block':'Add timetable block'}">
+ <div class="titlebar"><h2>${original?'Edit block':'New weekly block'}</h2><button type="button" class="iconbtn" data-action="modal-close" aria-label="Close">×</button></div>
+ <p class="sub">Choose a day and time. This repeats every week.</p>
+ <form id="atlas-timetable-form">${form}<div class="status error" id="atlas-timetable-error" role="alert" hidden></div><button class="action full" type="submit">${original?'Save changes':'Add to timetable'}</button></form>
+ ${original?`<button class="dangerbtn atlas-timetable-delete" type="button" data-action="timetable-delete" data-id="${esc(original.id)}">Delete this block</button>`:''}</div></div>`;
+ setTimeout(()=>$('f-title')?.focus(),50);
+}
+function atlasTimetableSave(form){
+ const f=Object.fromEntries(new FormData(form));
+ const title=String(f.title||'').trim(),day=Number(f.day),start=String(f.start||''),end=String(f.end||'');
+ if(!title||title.length>240)throw Error('Give this block a name (up to 240 characters).');
+ if(!Number.isInteger(day)||day<0||day>6)throw Error('Choose a day.');
+ if(!calValidTime(start)||!calValidTime(end))throw Error('Choose valid start and end times.');
+ const duration=calMins(end)-calMins(start);
+ if(duration<5||duration>720)throw Error('End time must be 5 minutes to 12 hours after the start.');
+ if(!Object.hasOwn(CAL_CATEGORIES,f.category))throw Error('Choose a valid category.');
+ const startDate=dateAdd(calStartWeek(calLondonToday()),day);
+ const old=modalState?.ref?byId(data.calendarEvents,modalState.ref):null;
+ if(modalState?.ref&&(!old||old.timetable!==true))throw Error('The block was not found.');
+ const candidate=calValidateEvent({
+ ...(old||{}),id:old?.id||id(),timetable:true,title,details:String(f.details||'').slice(0,5000),category:f.category,
+ startDate,startTime:start,durationMins:duration,allDay:false,repeat:'weekly',until:'',exceptions:{}
+ });
+ // Calendar already warns on event conflicts. Keep timetable blocks flexible but warn before overlapping.
+ const clash=atlasTimetableBlocks().some(b=>b.id!==candidate.id&&atlasDayIndex(b.startDate)===day&&calMins(b.startTime)<calMins(start)+duration&&calMins(start)<calMins(b.startTime)+b.durationMins);
+ if(clash&&!confirm('This overlaps another timetable block. Save anyway?'))return;
+ if(old)Object.assign(old,candidate);else data.calendarEvents.push(candidate);
+ atlasTimetableDay=day;
+ closeModal();commit(old?'Timetable updated':'Weekly block added');
+}
+function atlasTimetableDelete(ref){
+ const old=byId(data.calendarEvents,ref);
+ if(!old||old.timetable!==true)return;
+ if(!confirm('Delete “'+old.title+'” from every week? This also removes its repeating Calendar event.'))return;
+ data.calendarEvents=data.calendarEvents.filter(e=>e.id!==ref);closeModal();commit('Weekly block removed');
+}
+
+function calendar(){const start=calView==='week'?calStartWeek(calAnchor):calView==='month'?calMonthStart(calAnchor):calAnchor;const title=calView==='month'?calFormatDate(start,{month:'long',year:'numeric'}):calView==='week'?`${calFormatDate(start)} – ${calFormatDate(dateAdd(start,6))}`:calFormatDate(calAnchor,{weekday:'long',day:'numeric',month:'long'});const unscheduled=openTasks().filter(t=>!t.planned);const dueSoon=data.calendarEvents.filter(e=>!e.allDay&&!e.repeat&&e.startDate===calLondonToday()&&calMins(e.startTime)>=calMins(calWallParts(new Date()).time)&&calMins(e.startTime)<calMins(calWallParts(new Date()).time)+60);return `<div class="eyebrow">YOUR TIME, IN ONE PLACE</div><div class="page-head"><div><h1>Calendar</h1><p class="sub">Your plans, tasks and deadlines in one view.</p></div><div class="calendar-actions">${btn('Timetable','goto-timetable','','action ghost small')}${btn(uiIcon('plus')+'Event','cal-add','','action small')}<details class="calendar-tools"><summary>${uiIcon('settings')}Tools</summary><div class="calendar-tools-panel"><div class="cal-tools"><label class="cal-search"><span>⌕</span><input id="cal-search" value="${esc(calSearch)}" placeholder="Find entries…" aria-label="Search calendar"></label><select id="cal-filter" aria-label="Filter calendar categories"><option value="all" ${calFilter==='all'?'selected':''}>All categories</option><option value="tasks" ${calFilter==='tasks'?'selected':''}>Tasks & deadlines</option>${Object.entries(CAL_CATEGORIES).map(([k,[label]])=>`<option value="${k}" ${calFilter===k?'selected':''}>${label}</option>`).join('')}</select></div><form id="cal-quick-form" class="cal-quick"><input name="quick" autocomplete="off" maxlength="240" required placeholder="e.g. Dentist tomorrow at 3pm" aria-label="Quick add event"><button class="action small" type="submit">Add</button></form><div class="btn-row">${btn('Capture task','quick')}${btn('Import .ics','cal-import')}${btn('Export .ics','cal-export')}${btn('Export backup','export')}</div><p class="fine">London time · Saved on this device. Export appointments to Apple Calendar for system reminders. Your ATLAS backup includes tasks and projects.</p></div></details></div></div><div class="cal-toolbar"><div class="cal-period"><button data-action="cal-prev" aria-label="Previous period">‹</button><button data-action="cal-today" class="cal-now">Today</button><button data-action="cal-next" aria-label="Next period">›</button><label class="cal-jump"><span>Go to</span><input id="cal-jump-date" type="date" value="${esc(calAnchor)}" aria-label="Jump to calendar date"></label></div><strong>${esc(title)}</strong></div><div class="cal-views" role="group" aria-label="Calendar view">${[['day','Day'],['week','Week'],['month','Month'],['agenda','Agenda']].map(([v,l])=>`<button data-action="cal-view" data-view="${v}" class="${calView===v?'active':''}" aria-pressed="${calView===v}">${l}</button>`).join('')}</div>${dueSoon.length?`<div class="cal-alert">Upcoming within the hour: ${esc(dueSoon.map(e=>e.title).slice(0,2).join(', '))}. In-app only; iPhone system alerts require adding the event to a native calendar.</div>`:''}<div id="cal-board">${calView==='day'?calDay():calView==='week'?calWeek():calView==='month'?calMonth():calAgenda()}</div><details class="card cal-tray"><summary>Unscheduled tasks<span class="pill">${unscheduled.length}</span></summary><div class="cal-tray-content"><div class="between"><div><div class="card-head">UNSCHEDULED TASKS</div><p class="fine">${unscheduled.length} tasks without a planned day. Deadlines remain separate.</p></div>${btn('View inbox','goto-inbox')}</div>${unscheduled.slice(0,5).map(t=>`<div class="cal-tray-row"><span>${esc(t.title)}</span><button class="micro" data-action="cal-schedule" data-id="${esc(t.id)}" aria-label="Schedule ${esc(t.title)}">Schedule</button></div>`).join('')||'<p class="fine">Everything has a plan, or your task list is empty.</p>'}</div></details>`;}
 function calStep(direction){if(calView==='month'){const v=calDate(calAnchor);v.setDate(1);v.setMonth(v.getMonth()+direction);calAnchor=dateKey(v)}else if(calView==='week')calAnchor=dateAdd(calAnchor,7*direction);else calAnchor=dateAdd(calAnchor,calView==='agenda'?30*direction:direction);render();}
 function calParseQuick(s,base=calLondonToday()){let title=String(s||'').trim(),date=base,time='09:00',duration=60,repeat='none',allDay=false;const low=()=>title.toLowerCase();let match;if(/\btomorrow\b/i.test(title)){date=dateAdd(base,1);title=title.replace(/\btomorrow\b/i,' ')}else if(/\btoday\b/i.test(title)){title=title.replace(/\btoday\b/i,' ')}else if(match=title.match(/\bin\s+(\d{1,3})\s+days?\b/i)){date=dateAdd(base,+match[1]);title=title.replace(match[0],' ')}else if(match=title.match(/\b(\d{4}-\d\d-\d\d)\b/)){if(!validDate(match[1]))throw Error('That date is invalid.');date=match[1];title=title.replace(match[0],' ')}else if(match=title.match(/\b(next\s+)?(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/i)){const idx=['sunday','monday','tuesday','wednesday','thursday','friday','saturday'].indexOf(match[2].toLowerCase());const weekday=calDate(base).getDay();let n=(idx-weekday+7)%7;if(match[1]){const nextMonday=(8-weekday)%7||7;n=nextMonday+(idx+6)%7}else if(n===0)n=7;date=dateAdd(base,n);title=title.replace(match[0],' ')}if(match=title.match(/\b(?:at\s+)?(\d{1,2})(?::([0-5]\d))?\s*(am|pm)\b/i)){let h=+match[1];if(h<1||h>12)throw Error('Invalid hour.');h=(h%12)+(match[3].toLowerCase()==='pm'?12:0);time=calClock(h*60+ +(match[2]||0));title=title.replace(match[0],' ')}else if(match=title.match(/\b(?:at\s+)?([01]?\d|2[0-3]):([0-5]\d)\b/)){time=String(+match[1]).padStart(2,'0')+':'+match[2];title=title.replace(match[0],' ')}else allDay=true;if(match=title.match(/\bfor\s+(\d+)\s*(minutes?|mins?|hours?|hrs?)\b/i)){duration=+match[1]*(match[2].toLowerCase().startsWith('h')?60:1);title=title.replace(match[0],' ')}if(/\bevery\s+weekday\b/i.test(title)){repeat='weekdays';title=title.replace(/\bevery\s+weekday\b/i,' ')}else if(/\bevery\s+day\b/i.test(title)){repeat='daily';title=title.replace(/\bevery\s+day\b/i,' ')}else if(/\bevery\s+week\b/i.test(title)){repeat='weekly';title=title.replace(/\bevery\s+week\b/i,' ')}else if(/\bevery\s+month\b/i.test(title)){repeat='monthly';title=title.replace(/\bevery\s+month\b/i,' ')}title=title.replace(/\s+/g,' ').trim();if(!title)throw Error('Please include an event title.');return {title,startDate:date,startTime:time,durationMins:duration,allDay,repeat};}
 function calEditEventForm(event,origin=''){const old=event||{};const ex=origin?event?.exceptions?.[origin]||{}:{};const d=ex.date||origin||old.startDate||calAnchor;const time=ex.startTime||old.startTime||'09:00';return `<div class="cal-form-intro">${event?.id?'Edit appointment':'New appointment'} · London time</div>${field('title','Event title',ex.title||old.title||'','text','required maxlength="240" placeholder="What is happening?"')}${area('details','Details (optional)',ex.details||old.details||'',3)}<div class="form-cols">${field('startDate','Date',d,'date','required')}${field('startTime','Start time',time,'time')}</div><div class="form-cols">${field('durationMins','Duration (minutes)',ex.durationMins||old.durationMins||60,'number','min="5" max="720" step="5"')}${dropdown('category','Category',Object.entries(CAL_CATEGORIES).map(([key,x])=>[key,x[0]]),ex.category||old.category||'personal')}</div><label class="cal-form-check"><input type="checkbox" name="allDay" ${(ex.allDay??old.allDay)?'checked':''}> All-day event</label>${origin?`<div class="status">Editing just ${esc(calFormatDate(origin,{day:'numeric',month:'long',year:'numeric'}))}. The rest of the repeating series remains unchanged.</div>`:`${dropdown('repeat','Repeats',[['none','Does not repeat'],['daily','Daily'],['weekdays','Every weekday'],['weekly','Weekly'],['monthly','Monthly']],old.repeat||'none')}${field('until','End repeating on (optional)',old.until||'','date')}`}`;}
@@ -1490,12 +1667,14 @@ function setTheme(){
  root.dataset.atlasCorners=appearance.corners;
  root.dataset.atlasTexture=appearance.texture;
   root.dataset.atlasTextSize=appearance.textSize;
+ root.dataset.atlasFontStyle=appearance.fontStyle;
  root.dataset.atlasMotion=appearance.motion;
  root.style.colorScheme=data.theme==='arctic'?'light':'dark';
  document.querySelector('meta[name="theme-color"]').content=p[0];
 }
 const uiPaths={library:'M4 4h7v7H4z M13 4h7v7h-7z M4 13h7v7H4z M13 13h7v7h-7z',home:'m3 10 9-7 9 7v10H3z M9 20v-7h6v7',today:'M5 3h14v18H5z M8 8h8 M8 12h8 M8 16h4',calendar:'M4 5h16v16H4z M8 3v4 M16 3v4 M4 10h16 M8 14h2 M14 14h2 M8 17h2',projects:'M3 7h7l2-3h9v16H3z',journal:'M5 3h14v18H5z M8 8h8 M8 12h8 M8 16h5',notes:'M5 3h14v18H5z M8 8h8 M8 12h8 M8 16h5',money:'M3 6h18v14H3z M3 10h18 M16 15h2',insights:'M4 20V10 M10 20V4 M16 20v-8 M22 20H2',link:'M10 14 14 10 M8 16l-1 1a4 4 0 0 1-6-6l4-4a4 4 0 0 1 6 0 M16 8l1-1a4 4 0 0 1 6 6l-4 4a4 4 0 0 1-6 0',search:'M20 20l-5-5 M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0',settings:'M4 7h16 M4 17h16 M8 4v6 M16 14v6',plus:'M12 5v14 M5 12h14'};
 /* Lucide Static v1.64.0 icons, ISC licence; see THIRD_PARTY_NOTICES.md. */ const lucideMarkup={home:"<path d=\"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8\" /><path d=\"M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\" />",calendar:"<path d=\"M8 2v3\" /><path d=\"M16 2v3\" /><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\" /><path d=\"M3 9h18\" /><path d=\"M8 13h.01\" /><path d=\"M12 13h.01\" /><path d=\"M16 13h.01\" /><path d=\"M8 17h.01\" /><path d=\"M12 17h.01\" /><path d=\"M16 17h.01\" />",today:"<path d=\"M13 5h8\" /><path d=\"M13 12h8\" /><path d=\"M13 19h8\" /><path d=\"m3 17 2 2 4-4\" /><rect x=\"3\" y=\"4\" width=\"6\" height=\"6\" rx=\"1\" />",library:"<rect width=\"18\" height=\"18\" x=\"3\" y=\"3\" rx=\"2\" /><path d=\"M3 9h18\" /><path d=\"M9 21V9\" />",search:"<path d=\"m21 21-4.34-4.34\" /><circle cx=\"11\" cy=\"11\" r=\"8\" />",settings:"<path d=\"M14 17H5\" /><path d=\"M19 7h-9\" /><circle cx=\"17\" cy=\"17\" r=\"3\" /><circle cx=\"7\" cy=\"7\" r=\"3\" />",mic:"<path d=\"M12 19v3\" /><path d=\"M19 10v2a7 7 0 0 1-14 0v-2\" /><rect x=\"9\" y=\"2\" width=\"6\" height=\"13\" rx=\"3\" />"};Object.assign(lucideMarkup,{
+ timetable:'<path d="M8 2v3 M16 2v3"/><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18 M8 13h3 M8 17h7 M15 13h2"/>',
  goals:'<circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="5" /><circle cx="12" cy="12" r="1" />',
  focusTool:'<circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" />',
  quickTools:'<rect x="4" y="2" width="16" height="20" rx="2" /><path d="M8 6h8 M8 11h2 M14 11h2 M8 16h2 M14 16h2" />',
@@ -1631,7 +1810,7 @@ function atlasDecisionAction(el){
 
 function library(){
  const sections=[
-  ['PLAN & ORGANISE',[['projects','Projects','Plans and next steps',data.projects.length],['notes','Notes','Things worth keeping',data.notes.filter(n=>!n.journal).length],['money','Money','Bills and balances',data.money.length],['goals','Goals','Targets and progress',data.goals.length]]],
+  ['PLAN & ORGANISE',[['timetable','Timetable','Your repeating weekly routine',atlasTimetableBlocks().length],['projects','Projects','Plans and next steps',data.projects.length],['notes','Notes','Things worth keeping',data.notes.filter(n=>!n.journal).length],['money','Money','Bills and balances',data.money.length],['goals','Goals','Targets and progress',data.goals.length]]],
   ['REFLECT & FOCUS',[['journal','Journal','Daily thoughts, moods and energy',data.notes.filter(n=>n.journal===true).length],['insights','Insights','Your progress at a glance',''],['focusTool','Focus timer','15, 25 or 45 minutes of distraction-free work','']]],
   ['TOOLS & ACCOUNT',[['quickTools','12 quick tools','Money, savings, work pay and text calculators',''],['decisionTool','Decision helper','Pick between two to six options',''],['link','ATLAS Link','Optional connected workspace',''],['settings','Settings','Privacy, backups and appearance','']]]
  ];
@@ -1766,14 +1945,21 @@ function notesBody(){const items=data.notes.filter(n=>!n.journal).sort((a,b)=>Nu
 function money(){const sorted=[...data.money].sort((a,b)=>Number(a.paid)-Number(b.paid)||(a.due||'9999').localeCompare(b.due||'9999'));return `<div class="eyebrow">MANUAL FINANCES</div><div class="page-head"><div><h1>Money</h1><p class="sub">Know what you have and what is already spoken for.</p></div>${btn('Edit balance','edit-balance')}</div><div class="card card-accent"><div class="card-head">ENTERED BALANCE</div><div class="metric">${data.balance===null?'Not set':fmt(data.balance)}</div><div class="line"></div><div class="number-grid"><div><small>Unpaid bills & debts</small><strong>${fmt(totalUnpaid())}</strong></div><div><small>After obligations</small><strong class="${data.balance!==null&&data.balance-totalUnpaid()<0?'danger':''}">${data.balance===null?'—':fmt(data.balance-totalUnpaid())}</strong></div></div><p class="fine" style="margin-top:13px">Calculated from only the records you enter. This is not your bank balance or an automatic forecast.</p></div>${btn('▥ View financial graphs','goto-insights','','action ghost small')}${heading(`Bills & debts · ${data.money.length}`,'new-money','＋ Add')}<div class="card">${sorted.length?sorted.map(x=>`<div class="task ${x.paid?'completed':''}"><input class="check" type="checkbox" data-action="toggle-money" data-id="${esc(x.id)}" ${x.paid?'checked':''} aria-label="Mark ${esc(x.title)} paid"><button class="taskbody" data-action="edit" data-type="money" data-id="${esc(x.id)}"><div class="tasktitle">${esc(x.title)}</div><div class="taskmeta"><span>${esc(x.kind==='debt'?'Debt':'Bill')}</span><span class="${!x.paid&&dayDiff(x.due)!==null&&dayDiff(x.due)<0?'danger':''}">${x.paid?'Paid':esc(humanDate(x.due))}</span></div></button><b class="small">${fmt(x.amount)}</b></div>`).join(''):blank('▣','No obligations recorded. Add bills, repayments or anything you need to reserve money for.','new-money','Add a bill')}</div>${heading(`Goals · ${data.goals.length}`,'new-goal','＋ Add')}<div class="card">${data.goals.length?data.goals.map(goalCard).join(''):blank('⚑','Track savings, driving or any measurable target.','new-goal','Add a goal')}</div>`}
 function goals(){return `<div class="eyebrow">LONG-TERM PROGRESS</div><div class="page-head"><div><h1>Goals</h1><p class="sub">Know what you’re moving towards.</p></div>${btn('＋ New','new-goal','','action small')}</div><div class="card">${data.goals.length?data.goals.map(goalCard).join(''):blank('⚑','A goal is a destination. Give it a target you can measure.','new-goal','Create a goal')}</div>`}
 function settings(){return `<div class="eyebrow">SYSTEM SETTINGS</div><h1>Settings</h1><p class="sub">Make ATLAS yours, and keep control of your data.</p>${heading('Appearance')}<div class="card"><div class="fine" style="margin-bottom:12px">Blood Red & Black is the default.</div><div class="swatches">${Object.keys(palettes).map(k=>`<button class="swatch ${data.theme===k?'selected':''}" data-action="theme" data-theme="${k}" aria-pressed="${data.theme===k}" style="background:${palettes[k][1]};color:${palettes[k][4]}"><span class="dot" style="background:${palettes[k][6]}"></span>${k==='midnight'?'Blood Red':k[0].toUpperCase()+k.slice(1)}</button>`).join('')}</div><div class="atlas-appearance-studio">
- <div class="atlas-appearance-intro"><strong>Appearance Studio</strong><span>Build your own look. Changes stay on this device and are included in backups.</span></div>
+ <div class="atlas-appearance-intro"><strong>Make it yours</strong><span>Choose a look, then fine-tune it. Changes stay on this device and are included in backups.</span></div>
+<div class="atlas-presets" role="group" aria-label="Appearance presets">
+<button type="button" data-action="appearance-preset" data-preset="dark" class="atlas-preset"><i class="atlas-preset-swatch dark"></i><span>Dark & focused</span></button>
+<button type="button" data-action="appearance-preset" data-preset="soft" class="atlas-preset"><i class="atlas-preset-swatch soft"></i><span>Soft slate</span></button>
+<button type="button" data-action="appearance-preset" data-preset="light" class="atlas-preset"><i class="atlas-preset-swatch light"></i><span>Light & airy</span></button>
+</div>
  <div class="atlas-appearance-row"><label for="atlas-accent-input">Accent colour <small>Automatically adjusted for readable contrast</small></label>
  <input id="atlas-accent-input" type="color" value="${data.appearance.accent||palettes[data.theme][6]}" aria-label="Custom accent colour" title="Choose custom accent"></div>
+ <div class="atlas-style-preview" aria-label="Typography preview"><span class="eyebrow">Preview</span><strong>Better days, less noise.</strong><small>Plan what matters. Leave the rest behind.</small></div>
  <div class="atlas-appearance-grid">
+  <label for="atlas-font-style-select">Font style<select id="atlas-font-style-select" class="select"><option value="native" ${data.appearance.fontStyle==='native'?'selected':''}>Native & balanced</option><option value="rounded" ${data.appearance.fontStyle==='rounded'?'selected':''}>Soft & friendly</option><option value="crisp" ${data.appearance.fontStyle==='crisp'?'selected':''}>Clean & precise</option></select></label>
   <label for="atlas-density-select">Spacing<select id="atlas-density-select" class="select"><option value="comfortable" ${data.appearance.density==='comfortable'?'selected':''}>Comfortable</option><option value="compact" ${data.appearance.density==='compact'?'selected':''}>Compact</option></select></label>
   <label for="atlas-corners-select">Corners<select id="atlas-corners-select" class="select"><option value="rounded" ${data.appearance.corners==='rounded'?'selected':''}>Rounded</option><option value="subtle" ${data.appearance.corners==='subtle'?'selected':''}>Subtle</option></select></label>
   <label for="atlas-texture-select">Texture<select id="atlas-texture-select" class="select"><option value="subtle" ${data.appearance.texture==='subtle'?'selected':''}>Subtle grain</option><option value="off" ${data.appearance.texture==='off'?'selected':''}>Smooth</option></select></label>
-   <label for="atlas-text-size-select">Text size<select id="atlas-text-size-select" class="select" aria-describedby="atlas-text-size-help"><option value="standard" ${data.appearance.textSize==='standard'?'selected':''}>Standard</option><option value="large" ${data.appearance.textSize==='large'?'selected':''}>Larger text</option></select><small id="atlas-text-size-help" class="fine">Enlarges everyday text across ATLAS.</small></label>
+   <label for="atlas-text-size-select">Text size<select id="atlas-text-size-select" class="select" aria-describedby="atlas-text-size-help"><option value="standard" ${data.appearance.textSize==='standard'?'selected':''}>Standard</option><option value="large" ${data.appearance.textSize==='large'?'selected':''}>Large</option><option value="extra" ${data.appearance.textSize==='extra'?'selected':''}>Extra large</option></select><small id="atlas-text-size-help" class="fine">Enlarges everyday text across ATLAS.</small></label>
    <label for="atlas-motion-select">Motion<select id="atlas-motion-select" class="select" aria-describedby="atlas-motion-help"><option value="system" ${data.appearance.motion==='system'?'selected':''}>Follow device</option><option value="reduce" ${data.appearance.motion==='reduce'?'selected':''}>Reduce motion</option></select><small id="atlas-motion-help" class="fine">Device accessibility settings always take priority.</small></label>
  </div>
  <button class="action ghost small" type="button" data-action="appearance-reset">Reset custom appearance</button>
@@ -1841,7 +2027,7 @@ function openQuickMenu(){
  modalState={type:'chooser'};
  $('modal-root').innerHTML=`<div class="modalback" data-action="modal-bg"><div class="sheet signature-quick-sheet" role="dialog" aria-modal="true" aria-label="Quick add"><div class="titlebar"><div><span class="signature-overline">QUICK ADD</span><h2>What are we adding?</h2></div><button data-action="modal-close" class="iconbtn" aria-label="Close">×</button></div><div class="signature-quick-grid"><button class="signature-option" data-action="new-task">${uiIcon('today')}<strong>Task</strong><small>Something to do</small></button><button class="signature-option" data-action="cal-add">${uiIcon('calendar')}<strong>Event</strong><small>Time in your calendar</small></button><button class="signature-option" data-action="new-note">${uiIcon('notes')}<strong>Note</strong><small>Something to keep</small></button><button class="signature-option" data-action="new-money">${uiIcon('money')}<strong>Money</strong><small>A bill or expense</small></button></div><button class="signature-inbox" data-action="voice">${uiIcon('mic')} Talk to ATLAS <span aria-hidden="true">→</span></button><button class="signature-inbox" data-action="capture-thought">Capture a thought to Inbox <span aria-hidden="true">→</span></button></div></div>`;
 }
-function render(){setTheme();const views={home,today,calendar,projects,notes,journal,money,goals,insights,settings,library,focusTool,quickTools,decisionTool,link:linkScreen,search:searchScreen};const target=$('content');if(!target)return;if(page==='calendar'&&calView==='week'){const previous=target.querySelector?.('.cal-week-scroller');if(previous)calScrollTop=previous.scrollTop;}if(target.dataset)target.dataset.view=page;target.innerHTML=(views[page]||home)();const tabs=[['home','⌂','Home'],['calendar','▦','Calendar'],['today','✓','Tasks'],['library','▤','Library']];$('nav').innerHTML=tabs.map(([v,icon,label])=>`<button data-action="goto" data-page="${v}" class="${page===v?'active':''}" ${page===v?'aria-current="page"':''}><span class="navicon">${uiIcon(v)}</span>${label}</button>`).join('');if(matchMedia('(orientation:portrait)').matches)$('nav').querySelector('[aria-current="page"]')?.scrollIntoView({block:'nearest',inline:'nearest'});$('fab').style.display=page==='settings'||page==='search'?'none':'block';if(page==='calendar'&&calView==='week'){const sc=$('content').querySelector?.('.cal-week-scroller');if(sc){sc.scrollTop=calScrollTop===null?6*CAL_ROW_HEIGHT:calScrollTop;sc.scrollLeft=0;}}$('syncbar').textContent=storageLoadError||storageWarning||(bridgeProfile?'↔ ATLAS Link available · Sync only when you choose':'◈ Private by default · Saved on this device');}
+function render(){setTheme();const views={home,today,calendar,timetable,projects,notes,journal,money,goals,insights,settings,library,focusTool,quickTools,decisionTool,link:linkScreen,search:searchScreen};const target=$('content');if(!target)return;if(page==='calendar'&&calView==='week'){const previous=target.querySelector?.('.cal-week-scroller');if(previous)calScrollTop=previous.scrollTop;}if(target.dataset)target.dataset.view=page;target.innerHTML=(views[page]||home)();const tabs=[['home','⌂','Home'],['calendar','▦','Calendar'],['today','✓','Tasks'],['library','▤','Library']];$('nav').innerHTML=tabs.map(([v,icon,label])=>`<button data-action="goto" data-page="${v}" class="${page===v?'active':''}" ${page===v?'aria-current="page"':''}><span class="navicon">${uiIcon(v)}</span>${label}</button>`).join('');if(matchMedia('(orientation:portrait)').matches)$('nav').querySelector('[aria-current="page"]')?.scrollIntoView({block:'nearest',inline:'nearest'});$('fab').style.display=page==='settings'||page==='search'?'none':'block';if(page==='calendar'&&calView==='week'){const sc=$('content').querySelector?.('.cal-week-scroller');if(sc){sc.scrollTop=calScrollTop===null?6*CAL_ROW_HEIGHT:calScrollTop;sc.scrollLeft=0;}}const bar=$('syncbar');bar.textContent=storageLoadError||storageWarning||(bridgeProfile?'ATLAS Link ready · Sync only when you choose':'');if(bar.textContent){bar.setAttribute('role',storageLoadError||storageWarning?'alert':'status')}else bar.removeAttribute('role');}
 // Modal editing and quick capture.
 function field(name,label,value='',type='text',extra=''){return `<div class="field"><label for="f-${name}">${label}</label><input class="input" id="f-${name}" name="${name}" type="${type}" value="${esc(value)}" ${extra}></div>`}
 function area(name,label,value='',rows=4,extra=''){return `<div class="field"><label for="f-${name}">${label}</label><textarea class="textarea" id="f-${name}" name="${name}" rows="${rows}" ${extra}>${esc(value)}</textarea></div>`}
@@ -1966,9 +2152,9 @@ function validateImport(source,{mode='backup'}={}){
   for(const g of d.goals){text(g.title,200,'goal',true);number(g.target,Number.MIN_VALUE,Number.MAX_SAFE_INTEGER,'goal');if(g.current!==undefined)number(g.current,0,Number.MAX_SAFE_INTEGER,'goal');text(g.unit,24,'goal');}
   for(const [kind,validate] of [['transactions',insNormalizeTransaction],['timeEntries',insNormalizeTime],['habits',insNormalizeHabit],['habitLogs',insNormalizeCheck],['goalHistory',insNormalizeGoalLog],['balanceHistory',insNormalizeBalance]])for(const x of d[kind])if(!validate(x))fail(kind,'invalid record');
   if(d.appearance!==undefined){
-   if(!object(d.appearance)||Object.keys(d.appearance).some(k=>!['accent','density','corners','texture','textSize','motion'].includes(k)))fail('appearance','invalid settings');
+   if(!object(d.appearance)||Object.keys(d.appearance).some(k=>!['accent','density','corners','texture','textSize','fontStyle','motion'].includes(k)))fail('appearance','invalid settings');
    if(d.appearance.accent!==undefined&&d.appearance.accent!==''&&!atlasHex(d.appearance.accent))fail('appearance','invalid accent');
-   for(const [key,choices] of [['density',['comfortable','compact']],['corners',['rounded','subtle']],['texture',['subtle','off']],['textSize',['standard','large']],['motion',['system','reduce']]])
+   for(const [key,choices] of [['density',['comfortable','compact']],['corners',['rounded','subtle']],['texture',['subtle','off']],['textSize',['standard','large','extra']],['fontStyle',['native','rounded','crisp']],['motion',['system','reduce']]])
     if(d.appearance[key]!==undefined&&!choices.includes(d.appearance[key]))fail('appearance','invalid '+key);
   }
   if(d.balance!==undefined&&d.balance!==null)number(d.balance,0,Number.MAX_SAFE_INTEGER,'balance');
@@ -2041,7 +2227,12 @@ if(a==='journal-delete'){
 if(a==='goto')return navigate(element.dataset.page);if(a.startsWith('focus-'))return atlasFocusAction(element);if(a.startsWith('decision-'))return atlasDecisionAction(element);
 if(a==='cal-quick-toggle'){const box=element.closest('.cal-quick-drawer');box?.classList.toggle('expanded');element.setAttribute('aria-expanded',String(box?.classList.contains('expanded')));if(box?.classList.contains('expanded'))box.querySelector('input')?.focus();return};
 if(a.startsWith('cal-'))return handleCalAction(element);if(a.startsWith('ins-'))return insAction(element);
-if(a==='goto-home')return navigate('home');if(a==='goto-today'){view='today';return navigate('today')};if(a==='goto-inbox'){view='inbox';return navigate('today')};if(a==='goto-calendar')return navigate('calendar');if(a==='goto-projects')return navigate('projects');if(a==='goto-notes')return navigate('notes');if(a==='goto-money')return navigate('money');if(a==='goto-insights')return navigate('insights');if(a==='goto-goals')return navigate('goals');if(a==='goto-link')return navigate('link');
+if(a==='goto-home')return navigate('home');if(a==='timetable-add')return atlasTimetableEditor('',element.dataset.day);
+if(a==='timetable-edit')return atlasTimetableEditor(ref);
+if(a==='timetable-delete')return atlasTimetableDelete(ref);
+if(a==='timetable-mode'){if(!['week','day'].includes(element.dataset.mode))return;atlasTimetableMode=element.dataset.mode;return render();}
+if(a==='timetable-day'){const day=Number(element.dataset.day);if(Number.isInteger(day)&&day>=0&&day<=6){atlasTimetableDay=day;return render()}return}
+if(a==='goto-today'){view='today';return navigate('today')};if(a==='goto-inbox'){view='inbox';return navigate('today')};if(a==='goto-calendar')return navigate('calendar');if(a==='goto-timetable')return navigate('timetable');if(a==='goto-projects')return navigate('projects');if(a==='goto-notes')return navigate('notes');if(a==='goto-money')return navigate('money');if(a==='goto-insights')return navigate('insights');if(a==='goto-goals')return navigate('goals');if(a==='goto-link')return navigate('link');
 if(a==='settings')return navigate(page==='settings'?'home':'settings');if(a==='search'){searchText='';navigate('search');setTimeout(()=>$('search-input')?.focus(),60);return}
 if(a==='clear-search'){searchText='';render();$('search-input')?.focus();return}
 if(a==='voice')return atlasVoiceOpen();if(a==='voice-listen')return atlasVoiceListen();if(a==='voice-stop')return atlasVoiceStop(false);if(a==='voice-review')return atlasVoiceReview();if(a==='quick')return openQuickMenu();if(a==='capture-thought')return openModal('quick');if(a==='new-task')return openModal('task','',element.dataset.projectId||'',element.dataset.planned||'');if(a==='new-project')return openModal('project');if(a==='new-note')return openModal('note','',element.dataset.projectId||'');if(a==='new-money')return openModal('money');if(a==='new-goal')return openModal('goal');if(a==='edit-balance')return openModal('balance');if(a==='edit-name')return openModal('name');
@@ -2053,7 +2244,13 @@ if(a==='result'){
  if(type==='habit'){page='insights';insTab='habits';return render()}
  return openModal(type,ref)
 }
-if(a==='set-view'){view=element.dataset.view;return render()};if(a==='theme'){data.theme=element.dataset.theme;return commit('Theme changed')};if(a==='appearance-reset'){data.appearance=atlasAppearanceDefaults();return commit('Appearance reset')}
+if(a==='set-view'){view=element.dataset.view;return render()};if(a==='theme'){data.theme=element.dataset.theme;return commit('Theme changed')};if(a==='appearance-preset'){
+ const preset=element.dataset.preset;
+ const choices={dark:['midnight',{fontStyle:'native',texture:'subtle'}],soft:['graphite',{fontStyle:'rounded',texture:'subtle'}],light:['arctic',{fontStyle:'crisp',texture:'off'}]};
+ if(!Object.hasOwn(choices,preset))return;
+ data.theme=choices[preset][0];data.appearance={...atlasAppearanceDefaults(),...choices[preset][1]};
+ return commit('Appearance updated');
+}if(a==='appearance-reset'){data.appearance=atlasAppearanceDefaults();return commit('Appearance reset')}
 if(a==='toggle-task')return toggleTask(ref,!!element.checked);
 if(a==='toggle-money'){const m=byId(data.money,ref);if(m){m.paid=!!element.checked;commit(m.paid?'Marked paid':'Marked unpaid')}return}
 if(a==='focus'){const t=byId(data.tasks,ref);if(!t)return;if(!t.focus&&openTasks().filter(x=>x.focus).length>=3){showToast('Choose a maximum of three focus tasks.');return}t.focus=!t.focus;t.stage='planned';return commit(t.focus?'Added to focus':'Removed from focus')}
@@ -2090,7 +2287,8 @@ document.addEventListener('change',async e=>{
  const setting=({ 'atlas-density-select':['density',['comfortable','compact']],
   'atlas-corners-select':['corners',['rounded','subtle']],
   'atlas-texture-select':['texture',['subtle','off']],
-   'atlas-text-size-select':['textSize',['standard','large']],
+   'atlas-text-size-select':['textSize',['standard','large','extra']],
+   'atlas-font-style-select':['fontStyle',['native','rounded','crisp']],
    'atlas-motion-select':['motion',['system','reduce']] })[e.target.id];
  if(setting){if(!setting[1].includes(e.target.value))return showToast('Invalid appearance setting.');data.appearance[setting[0]]=e.target.value;return commit('Appearance saved');}
 if(e.target.id==='merge-file'){const input=e.target,file=input.files?.[0];if(!file)return;try{
@@ -2111,7 +2309,9 @@ if(e.target.id==='import-file'){const input=e.target,file=input.files?.[0];if(!f
   persistWorkspace(imported,{checkpoint:true,recoverUnreadable:true});page='home';projectOpen=null;render();showToast('Backup restored. Previous workspace is recoverable in Settings.');
 }catch(err){alert('Restore failed; existing records are unchanged. '+err.message)}finally{input.value=''}return}
 if(e.target.dataset.action==='toggle-subtask'){const task=byId(data.tasks,e.target.dataset.id),sub=task?.subtasks?.find(s=>s.id===e.target.dataset.sub);if(sub){sub.done=!!e.target.checked;save();showToast('Step updated')}return}if(e.target.dataset.action==='toggle-task')toggleTask(e.target.dataset.id,!!e.target.checked);if(e.target.dataset.action==='toggle-money'){const m=byId(data.money,e.target.dataset.id);if(m){m.paid=!!e.target.checked;commit(m.paid?'Marked paid':'Marked unpaid')}}});
-document.addEventListener('submit',e=>{if(e.target.id==='atlas-journal-form'){
+document.addEventListener('submit',e=>{if(e.target.id==='atlas-timetable-form'){
+ e.preventDefault();try{atlasTimetableSave(e.target)}catch(err){const alert=$('atlas-timetable-error');if(alert){alert.textContent=err.message;alert.hidden=false}else showToast(err.message)}return;
+}if(e.target.id==='atlas-journal-form'){
  e.preventDefault();
  const values=Object.fromEntries(new FormData(e.target));
  const date=String(values.date||''),body=String(values.body||'').trim(),mood=String(values.mood||'okay'),energy=Number(values.energy);

@@ -18,7 +18,7 @@ test('untrusted motion values cannot inject styles',()=>{
   for(const value of ['fast','none','url(evil)',{},['reduce'],null,1])
     assert.equal(normalize({motion:value}).motion,'system');
   assert.match(html,/\['motion',\['system','reduce'\]\]/,'strict import validator rejects invalid motion');
-  assert.match(html,/\['accent','density','corners','texture','textSize','motion'\]/,'strict import key allowlist');
+  assert.match(html,/\['accent','density','corners','texture','textSize','fontStyle','motion'\]/,'strict import key allowlist');
 });
 test('motion control is accessible, persistent and cannot disable OS reduced motion',()=>{
   assert.match(html,/id="atlas-motion-select"[^>]*aria-describedby="atlas-motion-help"/);
