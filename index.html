@@ -1235,6 +1235,11 @@ h1,h2,h3{font-family:var(--atlas-display-font);font-optical-sizing:auto;letter-s
 .task[data-atlas-swipe="right"]::after{content:"✓ Done";color:var(--positive)}
 .task[data-atlas-swipe="left"]::after{content:"Tomorrow";color:var(--accent-text)}
 @media(prefers-reduced-motion:reduce){.taskbody{transition:none!important}}
+
+.atlas-timetable-block{position:relative;padding-right:48px}
+.atlas-timetable-grip{position:absolute;right:3px;top:4px;display:grid;place-items:center;width:42px;height:42px;touch-action:none;user-select:none;-webkit-user-select:none;font-size:22px;color:var(--muted);cursor:grab}
+.atlas-timetable-block[draggable="true"]{cursor:grab}
+.atlas-timetable-day.atlas-drop-hover{outline:2px solid var(--accent-text);outline-offset:2px;background:var(--soft)}
 </style>
 </head>
 <body>
@@ -1400,14 +1405,14 @@ function atlasTimetableConflicts(blocks){
 function atlasTimetableDayCard(day,blocks,conflicts){
  const current=day===(calDate(calLondonToday()).getDay()+6)%7;
  const list=blocks.filter(e=>atlasDayIndex(e.startDate)===day);
- return `<section class="atlas-timetable-day" aria-label="${ATLAS_WEEKDAYS[day]} timetable">
+ return `<section class="atlas-timetable-day" data-atlas-day="${day}" aria-label="${ATLAS_WEEKDAYS[day]} timetable">
  <header><div><span class="atlas-timetable-day-name">${ATLAS_WEEKDAYS[day]}</span>${current?'<small class="atlas-timetable-current">Today</small>':''}</div>
  <button class="atlas-timetable-plus" type="button" data-action="timetable-add" data-day="${day}" aria-label="Add a block for ${ATLAS_WEEKDAYS[day]}">＋</button></header>
  ${list.length?list.map(e=>{
   const hue=(CAL_CATEGORIES[e.category]||CAL_CATEGORIES.other)[1];
-  return `<button type="button" class="atlas-timetable-block" data-action="timetable-edit" data-id="${esc(e.id)}" style="--slot-hue:${hue}" aria-label="Edit ${esc(e.title)} on ${ATLAS_WEEKDAYS[day]} at ${esc(e.startTime)}">
+  return `<button type="button" draggable="true" class="atlas-timetable-block" data-action="timetable-edit" data-id="${esc(e.id)}" style="--slot-hue:${hue}" aria-label="Edit ${esc(e.title)} on ${ATLAS_WEEKDAYS[day]} at ${esc(e.startTime)}. Use drag grip or Alt arrow to move">
   <span class="atlas-timetable-clock">${esc(e.startTime)} – ${esc(calClock(calMins(e.startTime)+e.durationMins))}</span>
-  <strong>${esc(e.title)}</strong><small>${esc((CAL_CATEGORIES[e.category]||CAL_CATEGORIES.other)[0])}${conflicts.has(e.id)?' · Overlaps':''}</small></button>`;
+  <strong>${esc(e.title)}</strong><small>${esc((CAL_CATEGORIES[e.category]||CAL_CATEGORIES.other)[0])}${conflicts.has(e.id)?' · Overlaps':''}</small><span class="atlas-timetable-grip" aria-hidden="true" title="Drag to another day">⠿</span></button>`;
  }).join(''):'<p class="atlas-timetable-empty">Nothing planned yet.</p>'}
  </section>`;
 }
@@ -2682,6 +2687,79 @@ document.addEventListener('touchend',e=>{
  calStep(dx<0?1:-1);
 },{passive:false});
 document.addEventListener('touchcancel',()=>{atlasCalendarDayTouch=null},{passive:true});
+
+
+/* Timetable blocks retain their Calendar event IDs and original repeat rules. */
+let atlasTimetableDesktopDrag=null,atlasTimetableGripPointer=null,atlasTimetableBlockClickUntil=0;
+function atlasMoveTimetable(ref,day){
+ const event=byId(data.calendarEvents,ref);
+ if(!event||event.timetable!==true||event.repeat!=='weekly'||!Number.isInteger(day)||day<0||day>6)return;
+ if(atlasDayIndex(event.startDate)===day)return;
+ const before=event.startDate,after=dateAdd(calStartWeek(before),day);
+ const clash=atlasTimetableBlocks().some(b=>b.id!==ref&&atlasDayIndex(b.startDate)===day&&calMins(b.startTime)<calMins(event.startTime)+event.durationMins&&calMins(event.startTime)<calMins(b.startTime)+b.durationMins);
+ if(clash&&!confirm('This block overlaps another weekly block. Move it anyway?'))return;
+ const exceptions=clone(event.exceptions||{});
+ event.startDate=after;event.exceptions={};atlasTimetableDay=day;
+ commit('Weekly block moved');
+ if(!storageLoadError&&!storageWarning)atlasOfferUndo('Moved to '+ATLAS_WEEKDAYS[day],{kind:'timetable',ref,before,after,exceptions});
+}
+function atlasClearTimetableHighlight(){
+ document.querySelectorAll('.atlas-timetable-day.atlas-drop-hover').forEach(d=>d.classList.remove('atlas-drop-hover'));
+}
+document.addEventListener('dragstart',e=>{
+ if(page!=='timetable')return;
+ const b=e.target.closest('.atlas-timetable-block');if(!b)return;
+ atlasTimetableDesktopDrag=b.dataset.id;
+ if(e.dataTransfer){e.dataTransfer.setData('text/plain','atlas-block');e.dataTransfer.effectAllowed='move'}
+});
+document.addEventListener('dragover',e=>{
+ if(!atlasTimetableDesktopDrag)return;
+ const day=e.target.closest('.atlas-timetable-day');if(!day)return;
+ e.preventDefault();if(e.dataTransfer)e.dataTransfer.dropEffect='move';
+ atlasClearTimetableHighlight();day.classList.add('atlas-drop-hover');
+});
+document.addEventListener('drop',e=>{
+ const ref=atlasTimetableDesktopDrag;atlasTimetableDesktopDrag=null;atlasClearTimetableHighlight();
+ const target=e.target.closest('.atlas-timetable-day');if(!ref||!target)return;
+ e.preventDefault();atlasMoveTimetable(ref,Number(target.dataset.atlasDay));
+});
+document.addEventListener('dragend',()=>{atlasTimetableDesktopDrag=null;atlasClearTimetableHighlight()});
+document.addEventListener('pointerdown',e=>{
+ if(page!=='timetable'||!['touch','pen'].includes(e.pointerType)||e.isPrimary===false)return;
+ const grip=e.target.closest('.atlas-timetable-grip');if(!grip)return;
+ const block=grip.closest('.atlas-timetable-block');if(!block)return;
+ atlasTimetableGripPointer={id:e.pointerId,ref:block.dataset.id,grip,x:e.clientX,y:e.clientY,active:false};
+ grip.setPointerCapture?.(e.pointerId);
+},{passive:true});
+document.addEventListener('pointermove',e=>{
+ const x=atlasTimetableGripPointer;if(!x||x.id!==e.pointerId)return;
+ if(Math.hypot(e.clientX-x.x,e.clientY-x.y)<10&&!x.active)return;
+ x.active=true;
+ const target=document.elementFromPoint(e.clientX,e.clientY)?.closest('.atlas-timetable-day');
+ atlasClearTimetableHighlight();target?.classList.add('atlas-drop-hover');
+},{passive:true});
+function atlasEndTimetablePointer(e,cancelled=false){
+ const x=atlasTimetableGripPointer;if(!x||x.id!==e.pointerId)return;
+ atlasTimetableGripPointer=null;
+ const target=!cancelled&&x.active?document.elementFromPoint(e.clientX,e.clientY)?.closest('.atlas-timetable-day'):null;
+ atlasClearTimetableHighlight();
+ if(x.grip?.hasPointerCapture?.(x.id))try{x.grip.releasePointerCapture(x.id)}catch(_){}
+ if(x.active){atlasTimetableBlockClickUntil=Date.now()+600;
+  if(target)return atlasMoveTimetable(x.ref,Number(target.dataset.atlasDay));
+  return showToast('Move cancelled');
+ }
+}
+document.addEventListener('pointerup',e=>atlasEndTimetablePointer(e),{passive:true});
+document.addEventListener('pointercancel',e=>atlasEndTimetablePointer(e,true),{passive:true});
+document.addEventListener('click',e=>{
+ if(Date.now()<atlasTimetableBlockClickUntil&&e.target.closest('.atlas-timetable-block')){e.preventDefault();e.stopImmediatePropagation()}
+},true);
+document.addEventListener('keydown',e=>{
+ if(page!=='timetable'||!e.altKey||e.ctrlKey||e.metaKey||!['ArrowLeft','ArrowRight'].includes(e.key))return;
+ const block=e.target.closest('.atlas-timetable-block');if(!block)return;
+ const entry=byId(data.calendarEvents,block.dataset.id);if(!entry)return;
+ e.preventDefault();atlasMoveTimetable(entry.id,(atlasDayIndex(entry.startDate)+(e.key==='ArrowRight'?1:6))%7);
+});
 
 /* Editing focus/visual viewport management is deliberately local to presentation.
    Do not infer that a keyboard opened purely because a text input has focus. */
