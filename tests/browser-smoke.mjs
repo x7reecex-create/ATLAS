@@ -637,6 +637,8 @@ try {
       assert.deepEqual(heights,['20%','80%'],size.name+' mood graph faithfully renders rough and good scores');
       await page.locator('#atlas-journal-search').fill('family');
       assert.equal(await page.locator('.atlas-journal-history-row:visible').count(),1,size.name+' journal tag search filters history');
+      // Explicitly dismiss the mobile search keyboard before selecting history.
+      await page.locator('#atlas-journal-search').evaluate(el=>el.blur());
       await page.locator('.atlas-journal-history-row:visible').click();
       assert.equal(await page.locator('#atlas-journal-day').inputValue(),'2026-10-29',size.name+' history selects day');
       await page.locator('[data-action="journal-calendar"]').click();
