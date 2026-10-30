@@ -1240,6 +1240,11 @@ h1,h2,h3{font-family:var(--atlas-display-font);font-optical-sizing:auto;letter-s
 .atlas-timetable-block.atlas-being-dragged{opacity:.55;cursor:grabbing}
 .atlas-timetable-day.atlas-timetable-drop-target{outline:2px dashed var(--accent-text);outline-offset:-5px;background:var(--surface2)}
 .cal-portrait-date-strip,.cal-portrait-events,.cal-portrait-day-head{touch-action:pan-y}
+
+.task[data-focus-draggable="true"]{cursor:grab}
+.task.atlas-focus-dragging{opacity:.5}
+.task.atlas-focus-drop-target{outline:2px dashed var(--accent-text);outline-offset:-2px;border-radius:10px}
+@media(pointer:coarse){.task[data-focus-draggable="true"]{cursor:default}}
 </style>
 </head>
 <body>
@@ -1306,7 +1311,10 @@ const fmt=n=>`${n<0?'-':''}£${Math.abs(Number(n)||0).toLocaleString('en-GB',{mi
 const saneNum=x=>Number.isFinite(Number(x))?Number(x):0;
 const taskPriority=x=>({high:3,normal:2,low:1})[x]||2;
 const taskScore=t=>{const d=dayDiff(t.due),p=taskPriority(t.priority);return (t.focus?30:0)+(d===null?0:d<0?25:d===0?22:d<=2?10:0)+p*3};
-const byPriority=(a,b)=>taskScore(b)-taskScore(a)||(a.createdAt||0)-(b.createdAt||0);
+const byPriority=(a,b)=>{
+ if(a.focus&&b.focus&&Number.isInteger(a.focusOrder)&&Number.isInteger(b.focusOrder)&&a.focusOrder!==b.focusOrder)return a.focusOrder-b.focusOrder;
+ return taskScore(b)-taskScore(a)||(a.createdAt||0)-(b.createdAt||0);
+};
 const openTasks=()=>data.tasks.filter(t=>!t.done);
 const byId=(arr,ref)=>arr.find(x=>x.id===ref);
 const projectName=pid=>byId(data.projects,pid)?.title||'';
@@ -1773,6 +1781,56 @@ const blank=(icon,text,action,label)=>`<div class="empty"><div class="emptyicon"
 const heading=(title,action,label)=>`<div class="section-head"><h2>${title}</h2>${action?btn(label||'View all',action):''}</div>`;
 const meta=(text)=>`<span>${esc(text)}</span>`;
 
+
+/* Focus order is user-controlled only for the three selected focus tasks. */
+let atlasFocusDrag=null;
+function atlasReorderFocus(ref,destination,step=0){
+ const focused=openTasks().filter(t=>t.focus).sort(byPriority);
+ const sourceIndex=focused.findIndex(t=>t.id===ref);
+ const targetIndex=destination?focused.findIndex(t=>t.id===destination):Math.max(0,Math.min(focused.length-1,sourceIndex+step));
+ if(sourceIndex<0||targetIndex<0||sourceIndex===targetIndex)return false;
+ const [task]=focused.splice(sourceIndex,1);
+ focused.splice(targetIndex,0,task);
+ const previous=focused.map(t=>[t.id,t.focusOrder]);
+ focused.forEach((t,i)=>{t.focusOrder=i});
+ if(!save()){
+  for(const [id,value] of previous){const t=byId(data.tasks,id);if(t){if(value===undefined)delete t.focusOrder;else t.focusOrder=value}}
+  return false;
+ }
+ closeModal();render();showToast('Focus order updated');
+ return true;
+}
+document.addEventListener('dragstart',e=>{
+ if(page!=='today')return;
+ const row=e.target.closest('.task[data-focus-draggable="true"]');
+ if(!row||!e.dataTransfer)return;
+ atlasFocusDrag=row.dataset.task;
+ e.dataTransfer.effectAllowed='move';
+ e.dataTransfer.setData('text/plain','ATLAS focus task');
+ row.classList.add('atlas-focus-dragging');
+});
+document.addEventListener('dragover',e=>{
+ if(page!=='today'||!atlasFocusDrag)return;
+ const row=e.target.closest('.task[data-focus-draggable="true"]');
+ if(!row||row.dataset.task===atlasFocusDrag)return;
+ e.preventDefault();
+ if(e.dataTransfer)e.dataTransfer.dropEffect='move';
+ document.querySelectorAll('.atlas-focus-drop-target').forEach(el=>{if(el!==row)el.classList.remove('atlas-focus-drop-target')});
+ row.classList.add('atlas-focus-drop-target');
+});
+document.addEventListener('drop',e=>{
+ if(page!=='today'||!atlasFocusDrag)return;
+ const row=e.target.closest('.task[data-focus-draggable="true"]'),source=atlasFocusDrag;
+ atlasFocusDrag=null;
+ document.querySelectorAll('.atlas-focus-dragging,.atlas-focus-drop-target').forEach(el=>el.classList.remove('atlas-focus-dragging','atlas-focus-drop-target'));
+ if(!row)return;
+ e.preventDefault();atlasReorderFocus(source,row.dataset.task);
+});
+document.addEventListener('dragend',()=>{
+ atlasFocusDrag=null;
+ document.querySelectorAll('.atlas-focus-dragging,.atlas-focus-drop-target').forEach(el=>el.classList.remove('atlas-focus-dragging','atlas-focus-drop-target'));
+});
+
 /* ATLAS touch: actions are available through buttons, mouse, keyboard and deliberate gestures. */
 let atlasTaskUndo=null,atlasTaskPointer=null,atlasSuppressTaskClickUntil=0;
 function atlasTaskSwipeIntent(dx,dy){
@@ -1797,6 +1855,7 @@ function atlasOpenTaskMenu(ref){
  <button type="button" data-action="task-quick-choice" data-id="${esc(t.id)}" data-kind="complete">✓ <span>Mark complete</span></button>
  <button type="button" data-action="task-quick-choice" data-id="${esc(t.id)}" data-kind="tomorrow">↳ <span>Plan for tomorrow</span></button>
  <button type="button" data-action="task-quick-choice" data-id="${esc(t.id)}" data-kind="focus">☆ <span>${t.focus?'Remove from focus':'Add to focus'}</span></button>
+ ${t.focus?`<button type="button" data-action="focus-move" data-id="${esc(t.id)}" data-direction="-1">↑ <span>Move up in focus</span></button><button type="button" data-action="focus-move" data-id="${esc(t.id)}" data-direction="1">↓ <span>Move down in focus</span></button>`:''}
  <button type="button" data-action="task-quick-choice" data-id="${esc(t.id)}" data-kind="edit">✎ <span>Edit task</span></button>
  </div></div></div>`;
 }
@@ -1809,7 +1868,7 @@ function atlasQuickTaskAction(ref,kind){
  closeModal();
  if(kind==='complete')toggleTask(ref,true);
  else if(kind==='tomorrow'){task.planned=dateAdd(calLondonToday(),1);task.stage='planned';commit('Planned for tomorrow; deadline unchanged')}
- else {task.focus=!task.focus;if(task.focus)task.stage='planned';commit(task.focus?'Added to focus':'Removed from focus')}
+ else {task.focus=!task.focus;if(task.focus){task.stage='planned';task.focusOrder=openTasks().filter(t=>t.focus&&t.id!==task.id).length}commit(task.focus?'Added to focus':'Removed from focus')}
  if(storageWarning||storageLoadError||localStorage.getItem(KEY)!==storageBaseline)return;
  const current=byId(data.tasks,ref);
  if(!current)return;
@@ -1884,7 +1943,7 @@ document.addEventListener('contextmenu',e=>{
  e.preventDefault();atlasOpenTaskMenu(body.closest('.task').dataset.task);
 });
 
-function taskRow(t,{compact=false}={}){const subs=t.subtasks||[],completed=subs.filter(s=>s.done).length;const date=humanDate(t.due),overdue=!t.done&&dayDiff(t.due)!==null&&dayDiff(t.due)<0;const project=projectName(t.projectId);return `<div class="task ${t.done?'completed':''}" data-task="${esc(t.id)}"><input type="checkbox" class="check" data-action="toggle-task" data-id="${esc(t.id)}" ${t.done?'checked':''} aria-label="${t.done?'Reopen':'Complete'} ${esc(t.title)}"><button class="taskbody" data-action="edit" data-type="task" data-id="${esc(t.id)}"><div class="tasktitle">${esc(t.title)}</div><div class="taskmeta">${t.due?`<span class="${overdue?'danger':''}">◷ ${esc(date)}</span>`:''}${t.priority==='high'?'<span class="danger">◆ High</span>':''}${project?`<span>◈ ${esc(project)}</span>`:''}${subs.length?`<span>${completed}/${subs.length} steps</span>`:''}${t.repeat!=='none'?'<span>↻ Repeats</span>':''}${t.stage==='inbox'?'<span>Inbox</span>':''}</div></button>${!compact&&!t.done?`<div class="taskactions"><button class="micro ${t.focus?'fav':''}" data-action="focus" data-id="${esc(t.id)}" aria-label="${t.focus?'Remove from focus':'Make a focus'}" title="${t.focus?'Remove from focus':'Make a focus'}">${t.focus?'★':'☆'}</button><button class="micro" data-action="plan" data-id="${esc(t.id)}" title="${t.planned===calLondonToday()?'Remove from today':'Plan for today'}" aria-label="${t.planned===calLondonToday()?'Remove from today':'Plan for today'}" aria-pressed="${t.planned===calLondonToday()}">${t.planned===calLondonToday()?'↶':'↳'}</button><button class="micro atlas-task-more" data-action="task-quick-menu" data-id="${esc(t.id)}" aria-label="More actions for ${esc(t.title)}" title="More actions">⋯</button></div>`:''}</div>`}
+function taskRow(t,{compact=false}={}){const subs=t.subtasks||[],completed=subs.filter(s=>s.done).length;const date=humanDate(t.due),overdue=!t.done&&dayDiff(t.due)!==null&&dayDiff(t.due)<0;const project=projectName(t.projectId);return `<div class="task ${t.done?'completed':''}" data-task="${esc(t.id)}" ${t.focus&&!t.done?'draggable="true" data-focus-draggable="true" title="Drag to reorder focus tasks"':''}><input type="checkbox" class="check" data-action="toggle-task" data-id="${esc(t.id)}" ${t.done?'checked':''} aria-label="${t.done?'Reopen':'Complete'} ${esc(t.title)}"><button class="taskbody" data-action="edit" data-type="task" data-id="${esc(t.id)}"><div class="tasktitle">${esc(t.title)}</div><div class="taskmeta">${t.due?`<span class="${overdue?'danger':''}">◷ ${esc(date)}</span>`:''}${t.priority==='high'?'<span class="danger">◆ High</span>':''}${project?`<span>◈ ${esc(project)}</span>`:''}${subs.length?`<span>${completed}/${subs.length} steps</span>`:''}${t.repeat!=='none'?'<span>↻ Repeats</span>':''}${t.stage==='inbox'?'<span>Inbox</span>':''}</div></button>${!compact&&!t.done?`<div class="taskactions"><button class="micro ${t.focus?'fav':''}" data-action="focus" data-id="${esc(t.id)}" aria-label="${t.focus?'Remove from focus':'Make a focus'}" title="${t.focus?'Remove from focus':'Make a focus'}">${t.focus?'★':'☆'}</button><button class="micro" data-action="plan" data-id="${esc(t.id)}" title="${t.planned===calLondonToday()?'Remove from today':'Plan for today'}" aria-label="${t.planned===calLondonToday()?'Remove from today':'Plan for today'}" aria-pressed="${t.planned===calLondonToday()}">${t.planned===calLondonToday()?'↶':'↳'}</button><button class="micro atlas-task-more" data-action="task-quick-menu" data-id="${esc(t.id)}" aria-label="More actions for ${esc(t.title)}" title="More actions">⋯</button></div>`:''}</div>`}
 function taskList(tasks,compact=false){return tasks.length?`<div class="list">${tasks.map(t=>taskRow(t,{compact})).join('')}</div>`:blank('✓','Nothing here yet.')}
 function projectStats(p){const ts=data.tasks.filter(t=>t.projectId===p.id);return {all:ts.length,done:ts.filter(t=>t.done).length,open:ts.filter(t=>!t.done).length,noteCount:data.notes.filter(n=>n.projectId===p.id).length}}
 function projectCard(p){const st=projectStats(p),pct=st.all?Math.round(st.done/st.all*100):0;return `<button class="project" data-action="open-project" data-id="${esc(p.id)}"><div class="between"><div class="project-title"><span class="project-icon">◈</span><span>${esc(p.title)}</span></div><span class="pill">${esc(p.status==='paused'?'On hold':p.status)}</span></div>${p.description?`<p class="fine">${esc(p.description.slice(0,115))}</p>`:''}<div class="progress"><span style="width:${pct}%"></span></div><div class="between fine"><span>${st.open} open · ${st.done} done</span><span>${st.noteCount} notes</span></div></button>`}
@@ -2045,7 +2104,7 @@ function today(){
  }else{
   body=`${heading(`${open.length} open`)}<div class="card atlas-task-card">${taskList(all)}</div>${data.tasks.some(t=>t.done)?`${heading('Completed')}<div class="card atlas-task-card">${taskList(data.tasks.filter(t=>t.done).sort((a,b)=>(b.completedAt||0)-(a.completedAt||0)).slice(0,50),true)}</div>`:''}`;
  }
- return `<div class="eyebrow">YOUR DAY</div><div class="page-head"><div><h1>Today</h1><p class="sub">${dueCount?`${dueCount} due or overdue · ${open.length} open`:`No deadlines today · ${open.length} open`}</p></div>${btn('＋ Task','new-task','','action small')}</div><div class="tabs" role="group" aria-label="Task views">${seg.map(([v,l])=>`<button data-action="set-view" data-view="${v}" class="${view===v?'active':''}" aria-pressed="${view===v}">${l}${v==='inbox'?` (${open.filter(t=>t.stage==='inbox').length})`:''}</button>`).join('')}</div>${body}<p class="fine atlas-task-hint">Swipe right to finish, left to plan tomorrow. Long-press or tap ⋯ for options. Deadlines do not move when planning.</p>`;
+ return `<div class="eyebrow">YOUR DAY</div><div class="page-head"><div><h1>Today</h1><p class="sub">${dueCount?`${dueCount} due or overdue · ${open.length} open`:`No deadlines today · ${open.length} open`}</p></div>${btn('＋ Task','new-task','','action small')}</div><div class="tabs" role="group" aria-label="Task views">${seg.map(([v,l])=>`<button data-action="set-view" data-view="${v}" class="${view===v?'active':''}" aria-pressed="${view===v}">${l}${v==='inbox'?` (${open.filter(t=>t.stage==='inbox').length})`:''}</button>`).join('')}</div>${body}<p class="fine atlas-task-hint">Swipe right to finish, left to plan tomorrow. Long-press or tap ⋯ for options; drag focused tasks to reorder on desktop.</p>`;
 }
 let atlasSelectedNoteId='';
 function atlasProjectsLayout(body){const entries=[...data.projects].sort((a,b)=>a.title.localeCompare(b.title));return `<div class="landscape-workspace"><aside class="landscape-sidebar" aria-label="Project navigation"><b>YOUR PROJECTS</b><button class="landscape-side-link ${!projectOpen?'active':''}" data-action="close-project">All projects</button>${entries.map(p=>`<button class="landscape-side-link ${p.id===projectOpen?'active':''}" data-action="open-project" data-id="${esc(p.id)}">${esc(p.title)}</button>`).join('')}</aside><section class="landscape-main">${body}</section></div>`}
@@ -2411,6 +2470,7 @@ function handleAction(element){const a=element.dataset.action,ref=element.datase
 if(a==='toggle-task'||a==='toggle-money')return; // checkboxes are handled by change events only
 if(a==='task-quick-menu')return atlasOpenTaskMenu(ref);
 if(a==='task-quick-choice')return atlasQuickTaskAction(ref,element.dataset.kind);
+if(a==='focus-move')return atlasReorderFocus(ref,'',Number(element.dataset.direction));
 if(a==='task-undo')return atlasUndoLastTask();
 if(a==='timetable-undo')return atlasUndoTimetableMove();
 if(a==='journal-export')return atlasDownloadJournal();
@@ -2454,7 +2514,7 @@ if(a==='set-view'){view=element.dataset.view;return render()};if(a==='theme'){da
 }if(a==='appearance-reset'){data.appearance=atlasAppearanceDefaults();return commit('Appearance reset')}
 if(a==='toggle-task')return toggleTask(ref,!!element.checked);
 if(a==='toggle-money'){const m=byId(data.money,ref);if(m){m.paid=!!element.checked;commit(m.paid?'Marked paid':'Marked unpaid')}return}
-if(a==='focus'){const t=byId(data.tasks,ref);if(!t)return;if(!t.focus&&openTasks().filter(x=>x.focus).length>=3){showToast('Choose a maximum of three focus tasks.');return}t.focus=!t.focus;t.stage='planned';return commit(t.focus?'Added to focus':'Removed from focus')}
+if(a==='focus'){const t=byId(data.tasks,ref);if(!t)return;if(!t.focus&&openTasks().filter(x=>x.focus).length>=3){showToast('Choose a maximum of three focus tasks.');return}t.focus=!t.focus;t.stage='planned';if(t.focus)t.focusOrder=openTasks().filter(x=>x.focus&&x.id!==t.id).length;return commit(t.focus?'Added to focus':'Removed from focus')}
 if(a==='plan'){const t=byId(data.tasks,ref);if(!t||t.done)return;const wasToday=t.planned===calLondonToday();t.planned=wasToday?'':calLondonToday();if(!wasToday)t.stage='planned';return commit(wasToday?'Removed from today':'Planned for today')}
 if(a==='modal-close'||a==='modal-bg')return closeModal();if(a==='delete')return deleteRecord(type,ref);if(a==='export')return downloadBackup();if(a==='import')return $('import-file')?.click();if(a==='merge')return $('merge-file')?.click();
 if(a==='restore-checkpoint'){try{if(confirm('Restore the last local recovery checkpoint? This replaces the workspace. The current workspace will become the new checkpoint.'))restoreRecovery()}catch(err){alert('Recovery failed: '+err.message)}return}
