@@ -133,6 +133,19 @@ try {
     await page.locator('[data-action="decision-pick"]').click();
     const decision=await page.locator('#content [role="status"] h2').first().textContent({timeout:5000}).catch(async()=>{throw new Error('Decision pick did not render: '+JSON.stringify(await page.locator('#content').innerText())+' | inputs '+JSON.stringify(await page.locator('[data-decision-option]').evaluateAll(nodes=>nodes.map(n=>n.value)))+' | errors '+JSON.stringify(errors));});
     assert.ok(['Walk','Read'].includes(decision),size.name+' decision picks a supplied option');
+    // Editing invalidates the displayed choice immediately, without disrupting typing.
+    const chosenIndex=decision==='Walk'?0:1;
+    const editedOption=page.locator(`[data-decision-option="${chosenIndex}"]`);
+    await editedOption.fill('Cook');
+    assert.equal(await page.locator('#atlas-decision-result').count(),0,size.name+' stale decision disappears on edit');
+    assert.equal(await editedOption.evaluate(el=>el===document.activeElement),true,size.name+' editing keeps input focus');
+    await page.locator('[data-action="decision-pick"]').click();
+    const updatedDecision=await page.locator('#atlas-decision-result h2').textContent();
+    assert.ok(['Cook',decision==='Walk'?'Read':'Walk'].includes(updatedDecision),size.name+' next pick uses edited options');
+    await page.locator('[data-decision-option="0"]').fill('');
+    await page.locator('[data-decision-option="1"]').fill('');
+    await page.locator('[data-action="decision-pick"]').click();
+    assert.equal(await page.locator('#atlas-decision-result').count(),0,size.name+' invalid empty choices never show an old pick');
     await page.locator('[data-action="decision-clear"]').click();
     assert.equal(await page.locator('[data-decision-option="0"]').inputValue(),'',size.name+' decision scratchpad clears');
     await page.evaluate(() => document.activeElement?.blur());
