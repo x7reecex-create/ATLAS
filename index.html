@@ -1229,6 +1229,12 @@ h1,h2,h3{font-family:var(--atlas-display-font);font-optical-sizing:auto;letter-s
 .atlas-undo .action{min-height:42px;color:var(--accent-text)}
 @media(orientation:landscape) and (min-width:620px){.atlas-undo{bottom:16px;left:50%}}
 @media(max-width:360px){.atlas-more-task{min-width:42px}.atlas-task-card .taskactions{gap:0}}
+
+.task[data-atlas-swipe]{position:relative}
+.task[data-atlas-swipe]::after{position:absolute;pointer-events:none;right:110px;top:6px;font-size:11px;font-weight:750;opacity:.85}
+.task[data-atlas-swipe="right"]::after{content:"✓ Done";color:var(--positive)}
+.task[data-atlas-swipe="left"]::after{content:"Tomorrow";color:var(--accent-text)}
+@media(prefers-reduced-motion:reduce){.taskbody{transition:none!important}}
 </style>
 </head>
 <body>
@@ -2608,6 +2614,74 @@ document.addEventListener('touchend',e=>{
  render();
 },{passive:false});
 document.addEventListener('touchcancel',()=>{atlasWeekSwipe=null},{passive:true});
+
+
+/* Touch pointer gestures are conservative: edge swipes and scrolling always win. */
+let atlasTaskTouch=null,atlasGestureClickBlockUntil=0,atlasCalendarDayTouch=null;
+function atlasResetTaskTouch(){
+ const x=atlasTaskTouch;atlasTaskTouch=null;
+ if(!x)return;clearTimeout(x.timer);
+ if(x.body?.isConnected){x.body.style.transform='';x.body.style.transition='';x.body.closest('.task')?.removeAttribute('data-atlas-swipe')}
+}
+document.addEventListener('pointerdown',e=>{
+ if(!['touch','pen'].includes(e.pointerType)||e.isPrimary===false||e.button!==0)return;
+ if(e.clientX<28||e.clientX>innerWidth-28||$('modal-root').children.length)return;
+ const body=e.target.closest('.taskbody'),row=body?.closest('.task');
+ if(!row||!byId(data.tasks,row.dataset.task))return;
+ atlasResetTaskTouch();
+ const touch={id:e.pointerId,ref:row.dataset.task,body,x:e.clientX,y:e.clientY,dx:0,dy:0,timer:null};
+ touch.timer=setTimeout(()=>{
+  if(atlasTaskTouch!==touch||Math.abs(touch.dx)>9||Math.abs(touch.dy)>9)return;
+  atlasGestureClickBlockUntil=Date.now()+650;
+  atlasResetTaskTouch();atlasTaskMenu(touch.ref);
+ },560);
+ atlasTaskTouch=touch;
+},{passive:true});
+document.addEventListener('pointermove',e=>{
+ const x=atlasTaskTouch;if(!x||x.id!==e.pointerId)return;
+ x.dx=e.clientX-x.x;x.dy=e.clientY-x.y;
+ if(Math.abs(x.dy)>16&&Math.abs(x.dy)>Math.abs(x.dx)){atlasResetTaskTouch();return}
+ if(Math.abs(x.dx)>9||Math.abs(x.dy)>9)clearTimeout(x.timer);
+ if(Math.abs(x.dx)>13&&Math.abs(x.dx)>Math.abs(x.dy)*1.5&&x.body?.isConnected){
+  x.body.style.transition='none';
+  x.body.style.transform=`translateX(${Math.max(-30,Math.min(30,x.dx/3))}px)`;
+  x.body.closest('.task')?.setAttribute('data-atlas-swipe',x.dx>0?'right':'left');
+ }
+},{passive:true});
+document.addEventListener('pointerup',e=>{
+ const x=atlasTaskTouch;if(!x||x.id!==e.pointerId)return;
+ const dx=e.clientX-x.x,dy=e.clientY-x.y;
+ atlasResetTaskTouch();
+ if(Math.abs(dx)<84||Math.abs(dx)<Math.abs(dy)*1.7||Math.abs(dy)>44)return;
+ atlasGestureClickBlockUntil=Date.now()+650;
+ atlasQuickTask(x.ref,dx>0?'complete':'tomorrow');
+},{passive:true});
+document.addEventListener('pointercancel',e=>{if(atlasTaskTouch?.id===e.pointerId)atlasResetTaskTouch()},{passive:true});
+document.addEventListener('click',e=>{
+ if(Date.now()>atlasGestureClickBlockUntil)return;
+ if(e.target.closest('.task,.taskbody,#cal-board')){e.preventDefault();e.stopImmediatePropagation()}
+},true);
+document.addEventListener('contextmenu',e=>{
+ const row=e.target.closest('.taskbody')?.closest('.task');
+ if(!row)return;e.preventDefault();atlasTaskMenu(row.dataset.task);
+});
+document.addEventListener('touchstart',e=>{
+ if(page!=='calendar'||calView!=='day'||e.touches.length!==1){atlasCalendarDayTouch=null;return}
+ if(!e.target.closest('#cal-board')||e.target.closest('input,textarea,select,[contenteditable]'))return;
+ const t=e.touches[0];if(t.clientX<28||t.clientX>innerWidth-28)return;
+ atlasCalendarDayTouch={id:t.identifier,x:t.clientX,y:t.clientY};
+},{passive:true});
+document.addEventListener('touchend',e=>{
+ const x=atlasCalendarDayTouch;atlasCalendarDayTouch=null;
+ if(!x||page!=='calendar'||calView!=='day'||e.touches.length!==0)return;
+ const t=Array.from(e.changedTouches).find(t=>t.identifier===x.id);if(!t)return;
+ const dx=t.clientX-x.x,dy=t.clientY-x.y;
+ if(Math.abs(dx)<85||Math.abs(dx)<Math.abs(dy)*1.7||Math.abs(dy)>42)return;
+ if(e.cancelable)e.preventDefault();
+ atlasGestureClickBlockUntil=Date.now()+650;
+ calStep(dx<0?1:-1);
+},{passive:false});
+document.addEventListener('touchcancel',()=>{atlasCalendarDayTouch=null},{passive:true});
 
 /* Editing focus/visual viewport management is deliberately local to presentation.
    Do not infer that a keyboard opened purely because a text input has focus. */
