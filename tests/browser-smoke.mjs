@@ -437,7 +437,7 @@ try {
     assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('atlas-preview:v1')).tasks.find(t=>t.id==='flow-planned').planned),'2026-10-29',size.name+' task re-planned');
     await page.locator('.tabs button[data-view="today"]').click();
     assert.equal(await page.locator('.task[data-task="flow-planned"]').count(),1,size.name+' re-planned task reappears');
-    await page.locator('.task[data-task="flow-due"] input.check').check();
+    await page.locator('.task[data-task="flow-due"] input.check').click();
     assert.equal(await page.locator('.task[data-task="flow-due"]').count(),0,size.name+' completed task leaves Today');
     assert.match(await page.locator('.atlas-today-summary').innerText(),/1 finished today/,size.name+' completion feedback reflects saved data');
     const taskWidth=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
