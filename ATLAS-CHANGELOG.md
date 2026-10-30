@@ -1,3 +1,8 @@
+ATLAS — Rapid touch evolution (30 October 2026)
+Changes: horizontal taskbody swipes (right = complete, left = plan tomorrow with deadline unchanged), accessible long-press/right-click/ellipsis task menu, one-step Undo for quick task actions, persistent manual ordering of up to three Focus tasks by drag or menu, portrait Calendar gesture for week on date strip and day on agenda, and desktop timetable drag between weekdays with Undo. Keyboard/mouse controls remain and mobile timetable editor remains the touch move alternative.
+Safety: ignore system screen edges and predominantly vertical scroll gestures; preserve native vertical scrolling and reduced-motion settings. No destructive swipe, no invented cloud sync or background reminder service, no new network permissions, no schema migration. Backup captures focus ordering and timetable edits.
+Verification: see CI checks attached to the merge commit; installed PWAs use v32 offline shell. Production should be promoted only after source and six-viewport browser tests pass.
+
 ATLAS — release log (2026-10-29 Europe/London)
 Baseline production: dpl_5DceFA2s4gRfg3sEJ2zqJnHqSiJG
 Preview: dpl_Hv84VwaHnxPeZodBRs7ugLHJN6h3
