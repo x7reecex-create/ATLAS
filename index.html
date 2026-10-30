@@ -2664,7 +2664,7 @@ document.addEventListener('pointerup',e=>{
 document.addEventListener('pointercancel',e=>{if(atlasTaskTouch?.id===e.pointerId)atlasResetTaskTouch()},{passive:true});
 document.addEventListener('click',e=>{
  if(Date.now()>atlasGestureClickBlockUntil)return;
- if(e.target.closest('.task,.taskbody,#cal-board')){e.preventDefault();e.stopImmediatePropagation()}
+ if(e.target.closest('.taskbody,#cal-board')){e.preventDefault();e.stopImmediatePropagation()}
 },true);
 document.addEventListener('contextmenu',e=>{
  const row=e.target.closest('.taskbody')?.closest('.task');
@@ -2752,7 +2752,7 @@ function atlasEndTimetablePointer(e,cancelled=false){
 document.addEventListener('pointerup',e=>atlasEndTimetablePointer(e),{passive:true});
 document.addEventListener('pointercancel',e=>atlasEndTimetablePointer(e,true),{passive:true});
 document.addEventListener('click',e=>{
- if(Date.now()<atlasTimetableBlockClickUntil&&e.target.closest('.atlas-timetable-block')){e.preventDefault();e.stopImmediatePropagation()}
+ if(Date.now()<atlasTimetableBlockClickUntil&&e.target.closest('.atlas-timetable-grip')){e.preventDefault();e.stopImmediatePropagation()}
 },true);
 document.addEventListener('keydown',e=>{
  if(page!=='timetable'||!e.altKey||e.ctrlKey||e.metaKey||!['ArrowLeft','ArrowRight'].includes(e.key))return;
