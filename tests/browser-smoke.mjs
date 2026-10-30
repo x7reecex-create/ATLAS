@@ -452,6 +452,43 @@ try {
     const taskWidth=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
     assert.ok(taskWidth<=2,size.name+' Today task controls fit the screen');
 
+    // Gesture interactions are tested against persisted workspace data.
+    await page.locator('.tabs button[data-view="all"]').click();
+    await page.locator('.task[data-task="flow-planned"] .atlas-task-more').click();
+    assert.equal(await page.locator('.atlas-task-menu-sheet [role="button"]').count(),0,size.name+' task sheet uses genuine buttons');
+    await page.locator('.atlas-task-menu-sheet [data-kind="tomorrow"]').click();
+    assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('atlas-preview:v1')).tasks.find(t=>t.id==='flow-planned').planned),'2026-10-30',size.name+' action plans tomorrow without moving due date');
+    assert.equal(await page.locator('#atlas-task-undo:visible').count(),1,size.name+' undo stays visible');
+    await page.locator('#atlas-task-undo [data-action="task-undo"]').click();
+    assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('atlas-preview:v1')).tasks.find(t=>t.id==='flow-planned').planned),'2026-10-29',size.name+' undo restores original planning');
+    const simulateTaskPointer=async(id,dx,dy)=>{
+      await page.evaluate(({id,dx,dy})=>{
+        const body=document.querySelector('.task[data-task="'+id+'"] .taskbody');
+        const r=body.getBoundingClientRect();
+        const x=Math.max(55,Math.min(innerWidth-55,r.left+Math.min(60,r.width/2))),y=Math.max(90,Math.min(innerHeight-90,r.top+20));
+        const make=(type,px,py)=>new PointerEvent(type,{bubbles:true,cancelable:true,pointerId:77,pointerType:'touch',isPrimary:true,clientX:px,clientY:py});
+        body.dispatchEvent(make('pointerdown',x,y));
+        document.dispatchEvent(make('pointermove',x+dx,y+dy));
+        document.dispatchEvent(make('pointerup',x+dx,y+dy));
+      },{id,dx,dy});
+    };
+    await simulateTaskPointer('flow-planned',12,95);
+    assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('atlas-preview:v1')).tasks.find(t=>t.id==='flow-planned').planned),'2026-10-29',size.name+' vertical scrolling gesture changes nothing');
+    await simulateTaskPointer('flow-planned',-125,6);
+    assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('atlas-preview:v1')).tasks.find(t=>t.id==='flow-planned').planned),'2026-10-30',size.name+' left swipe postpones planned date');
+    await page.locator('#atlas-task-undo [data-action="task-undo"]').click();
+    assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('atlas-preview:v1')).tasks.find(t=>t.id==='flow-planned').planned),'2026-10-29',size.name+' left swipe undo restored');
+    await simulateTaskPointer('flow-focus-due',120,5);
+    assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('atlas-preview:v1')).tasks.find(t=>t.id==='flow-focus-due').done),true,size.name+' right swipe completes');
+    await page.locator('#atlas-task-undo [data-action="task-undo"]').click();
+    assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('atlas-preview:v1')).tasks.find(t=>t.id==='flow-focus-due').done),false,size.name+' completion swipe undo');
+    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+2),size.name+' gestures do not create overflow');
+    await page.locator('.task[data-task="flow-planned"] .atlas-task-more').click();
+    await page.locator('.atlas-task-menu-sheet [data-kind="edit"]').click();
+    assert.equal(await page.locator('#modal-root #f-title').inputValue(),'ATLAS flow-planned',size.name+' keyboard/mouse edit fallback opens task');
+    await page.locator('#modal-root [data-action="modal-close"]').click();
+
+
 
     // Timetable is a true weekly Calendar series: edit, persist, and remove on every viewport.
     await page.locator('#nav button[data-page="library"]').click();
@@ -481,6 +518,21 @@ try {
     await page.locator('#nav button[data-page="library"]').click();
     await page.locator('#content button.signature-library-row[data-page="timetable"]').click();
     assert.equal(await page.locator('.atlas-timetable-block', {hasText:'Updated class'}).count(),1,size.name+' timetable survives reload');
+
+    if (size.name==='desktop') {
+      await page.locator('button[data-action="timetable-mode"][data-mode="week"]').click();
+      await page.locator('.atlas-timetable-block', {hasText:'Updated class'}).dragTo(page.locator('[data-timetable-drop-day="3"]'));
+      assert.equal(await page.evaluate(()=>{
+        const e=JSON.parse(localStorage.getItem('atlas-preview:v1')).calendarEvents.find(e=>e.timetable);
+        return new Date(e.startDate+'T12:00:00').getDay();
+      }),4,'desktop dragged weekly block to Thursday');
+      await page.locator('#atlas-task-undo [data-action="timetable-undo"]').click();
+      assert.equal(await page.evaluate(()=>{
+        const e=JSON.parse(localStorage.getItem('atlas-preview:v1')).calendarEvents.find(e=>e.timetable);
+        return new Date(e.startDate+'T12:00:00').getDay();
+      }),3,'desktop timetable drag can undo');
+    }
+
     await page.locator('button[data-action="goto-calendar"]').click();
     assert.equal(await page.locator('#content').getAttribute('data-view'),'calendar',size.name+' timetable opens Calendar');
     // Calendar date and weekly occurrence are verified via persisted records (the week view changes orientation).
@@ -489,6 +541,26 @@ try {
       return state.calendarEvents.filter(e=>e.timetable).map(e=>({repeat:e.repeat,title:e.title,start:e.startTime}));
     });
     assert.deepEqual(occurs,[{repeat:'weekly',title:'Updated class',start:'17:00'}],size.name+' Calendar contains timetable weekly series');
+
+    if (mobile && size.width<size.height) {
+      const touchSwipe=async(selector,dx)=>{
+        return page.evaluate(({selector,dx})=>{
+          const node=document.querySelector(selector),startX=190,startY=240,id=91;
+          const touch=(x)=>new Touch({identifier:id,target:node,clientX:x,clientY:startY});
+          node.dispatchEvent(new TouchEvent('touchstart',{bubbles:true,cancelable:true,touches:[touch(startX)],changedTouches:[touch(startX)]}));
+          node.dispatchEvent(new TouchEvent('touchend',{bubbles:true,cancelable:true,touches:[],changedTouches:[touch(startX+dx)]}));
+        },{selector,dx});
+      };
+      const getSelected=()=>page.locator('.cal-portrait-date.is-selected').getAttribute('data-date');
+      const initial=await getSelected();
+      await touchSwipe('.cal-portrait-date-strip',-110);
+      const weekAfter=await getSelected();
+      assert.equal(Math.round((Date.parse(weekAfter+'T12:00:00')-Date.parse(initial+'T12:00:00'))/86400000),7,size.name+' rail swipe advances one week');
+      await touchSwipe('.cal-portrait-day-head',-105);
+      const dayAfter=await getSelected();
+      assert.equal(Math.round((Date.parse(dayAfter+'T12:00:00')-Date.parse(weekAfter+'T12:00:00'))/86400000),1,size.name+' agenda swipe advances one day');
+    }
+
 
     for (const destination of ['library','timetable','projects','notes','money','goals','insights','link','settings']) {
       await page.locator('#nav button[data-page="library"]').click();
