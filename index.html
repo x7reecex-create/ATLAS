@@ -1133,25 +1133,63 @@ body{background:radial-gradient(ellipse 80% 26% at 50% -9%,var(--mat-veil),trans
 .atlas-task-hint{margin-top:18px;max-width:66ch}
 .tabs button:focus-visible,.atlas-focus-empty button:focus-visible,.atlas-task-card .micro:focus-visible{outline:2px solid var(--accent-text);outline-offset:2px}
 @media(max-width:360px){.atlas-task-card{padding:9px 10px}.atlas-task-card .task{gap:7px}.atlas-task-card .taskactions{gap:2px}.atlas-task-card .taskactions .micro{min-width:42px}.atlas-task-card .check{width:30px;min-width:30px;height:30px}}
+
+/* ATLAS typography: readable, intentional and native on each platform. */
+:root{--atlas-font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,system-ui,sans-serif;--atlas-display-font:var(--atlas-font)}
+:root[data-atlas-font-style="rounded"]{--atlas-font:ui-rounded,"Avenir Next","Trebuchet MS",-apple-system,system-ui,sans-serif}
+:root[data-atlas-font-style="crisp"]{--atlas-font:"Helvetica Neue",Arial,Roboto,system-ui,sans-serif}
+body{font-family:var(--atlas-font);font-size:14px;line-height:1.5;font-kerning:normal}
+h1,h2,h3{font-family:var(--atlas-display-font);font-optical-sizing:auto;letter-spacing:-.026em}
+.content h1{font-size:clamp(24px,5.1vw,31px);line-height:1.14;font-weight:750}
+.content h2{font-size:17px;line-height:1.25;font-weight:725}
+.content h3{font-size:15px;line-height:1.3}
+.signature-home .signature-hero h1{font-size:clamp(27px,6.6vw,36px);line-height:1.13;letter-spacing:-.035em;font-weight:735}
+.signature-library h1{font-size:clamp(27px,6.6vw,36px);line-height:1.14;letter-spacing:-.035em}
+.signature-heading h2{font-size:18px;line-height:1.26}
+.signature-next strong{font-size:19px;letter-spacing:-.02em;font-weight:715}
+.eyebrow,.signature-overline,.signature-group-title,.card-head{letter-spacing:.095em;font-size:10px;font-weight:740}
+.signature-hero p,.sub{font-size:13.5px;line-height:1.6}
+.page-head{margin-bottom:15px}
+.section-head{margin:21px 0 11px}
+.signature-kicker{letter-spacing:.09em;font-weight:700}
+.signature-library .sub{margin-bottom:20px}
+.signature-library-row{min-height:66px}
+.library-copy strong{font-size:14px;font-weight:710}
+.library-copy small{font-size:12px;line-height:1.4}
+.brand b{font-size:18px;letter-spacing:.08em;font-weight:800}
+.brand small{font-size:9px;letter-spacing:.1em;font-weight:700}
+.mark{background:#111318;border-color:var(--border);overflow:hidden;border-radius:12px}
+.mark img{width:100%;height:100%;display:block;object-fit:contain}
+.mark-dot{display:none}
+:root[data-atlas-text-size="large"] :is(.tasktitle,.library-copy strong,.note-preview,.signature-next small,.signature-home-note,.sub,.fine){font-size:15px;line-height:1.65}
+:root[data-atlas-text-size="extra"] :is(.tasktitle,.library-copy strong,.note-preview,.signature-next small,.signature-home-note,.sub,.fine){font-size:17px;line-height:1.65}
+:root[data-atlas-text-size="extra"] :is(.taskmeta,.library-copy small,.signature-overline,.eyebrow,.card-head,.field label){font-size:13px;line-height:1.55}
+:root[data-atlas-text-size="extra"] :is(.tabs button,.action,.bottomnav button,.signature-links button){font-size:15px}
+:root[data-atlas-text-size="extra"] .content h1{font-size:clamp(25px,5.4vw,33px)}
+:root[data-atlas-text-size="extra"] .content h2{font-size:20px}
+@media(min-width:1000px){.signature-home .signature-hero h1{font-size:clamp(33px,3vw,42px);line-height:1.12}.signature-library h1{font-size:clamp(30px,2.7vw,37px)}.content h1{font-size:clamp(27px,2.4vw,34px)}}
+.syncbar{display:none;margin:0 20px 10px;border:0;border-radius:10px;background:var(--surface2);padding:9px 12px;font-size:12px;line-height:1.45;color:var(--muted)}
+.syncbar:not(:empty){display:block}
+.atlas-presets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:12px 0 17px}
+.atlas-preset{display:flex;flex-direction:column;gap:8px;align-items:flex-start;padding:11px;text-align:left;min-height:86px;color:var(--text);background:var(--surface2);border:1px solid var(--border);border-radius:13px;font-size:12px;font-weight:700;line-height:1.3}
+.atlas-preset-swatch{width:100%;height:28px;display:block;border-radius:7px}
+.atlas-preset-swatch.dark{background:linear-gradient(130deg,#101114 65%,#ac4356 65%)}
+.atlas-preset-swatch.soft{background:linear-gradient(130deg,#242a32 65%,#abbdd0 65%)}
+.atlas-preset-swatch.light{background:linear-gradient(130deg,#f4f7fc 65%,#287bb6 65%);border:1px solid #c5d0dc}
+.atlas-style-preview{display:grid;gap:5px;margin:0 0 16px;padding:16px;background:var(--surface2);border:1px solid var(--border);border-radius:14px}
+.atlas-style-preview strong{font-size:clamp(18px,5vw,22px);line-height:1.25;letter-spacing:-.025em}
+.atlas-style-preview small{color:var(--muted);font-size:13px}
+.atlas-preset:focus-visible{outline:2px solid var(--accent-text);outline-offset:2px}
+@media(max-width:360px){.atlas-presets{gap:5px}.atlas-preset{padding:8px;font-size:11px}}
 </style>
 </head>
 <body>
 <main id="app" class="app-shell">
   <header class="topbar">
-    <div class="brand" aria-label="ATLAS"><span class="mark" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="ATLAS geometric compass A">
-<defs><linearGradient id="red" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c42b38"/><stop offset="1" stop-color="#73050d"/></linearGradient></defs>
-<rect width="512" height="512" rx="118" fill="#0a090b"/>
-<rect x="24" y="24" width="464" height="464" rx="109" fill="#1b0e12" stroke="#79212b" stroke-width="4"/>
-<path d="M88 350 256 72 424 350" fill="none" stroke="#47202a" stroke-width="12" stroke-linecap="round"/>
-<path d="M139 372 255 147 373 372" fill="none" stroke="#fff2ef" stroke-width="39" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M205 299 256 196 306 299" fill="none" stroke="url(#red)" stroke-width="17" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M196 325 H323" fill="none" stroke="url(#red)" stroke-width="30" stroke-linecap="round"/>
-<circle cx="256" cy="76" r="16" fill="#d13b48"/>
-<path d="M162 411 H350" stroke="#7d2731" stroke-width="8" stroke-linecap="round"/>
-</svg></span><div><b>ATLAS</b><small>PERSONAL OS</small></div></div>
+    <div class="brand" aria-label="ATLAS"><span class="mark" aria-hidden="true"><img src="./icon.svg" width="38" height="38" alt="" decoding="async"></span><div><b>ATLAS</b><small>PERSONAL OS</small></div></div>
     <div class="top-actions"><button class="iconbtn" data-action="search" title="Search everything (Ctrl/⌘ K)" aria-label="Search everything" aria-keyshortcuts="Control+K Meta+K"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" aria-hidden="true"><circle cx="10" cy="10" r="6.5"/><path d="m15 15 5 5"/></svg></button><button class="iconbtn" data-action="settings" title="Settings" aria-label="Settings"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 17h16M8 4v6M16 14v6"/></svg></button></div>
   </header>
-  <div class="syncbar" id="syncbar">◈ Private by default · Saved on this device</div>
+  <div class="syncbar" id="syncbar" aria-live="polite"></div>
   <div id="content" class="content"><section class="fallback"><h1>ATLAS</h1><p>One place for what matters.</p><p>Open the hosted ATLAS website in Safari to use the interactive app. The iPhone Files preview does not run it.</p></section></div>
   <button class="fab" id="fab" data-action="quick" aria-label="Quick capture" title="Quick capture">＋</button>
   <nav id="nav" class="bottomnav" aria-label="Main navigation"></nav>
@@ -1164,7 +1202,7 @@ body{background:radial-gradient(ellipse 80% 26% at 50% -9%,var(--mat-veil),trans
 const KEY='atlas-preview:v1', AUTH_KEY='atlas-bridge:auth:v1';
 const palettes={midnight:['#08090b','#121315','#1c1d20','#2b2c30','#f2f1f3','#a7a5ad','#9f2938','#26171c','#80bda1','#ed8f95'],arctic:['#f2f6fc','#ffffff','#e8f0f9','#d3dfed','#172a44','#677d94','#126ebc','#e0f0ff','#0c9470','#cf4357'],forest:['#0c1715','#162923','#203b31','#315247','#e7f7ec','#a2c3ae','#94e1ae','#254536','#83e8ad','#ffa29f'],ember:['#171015','#2a1b25','#412733','#5d3645','#fff3f3','#d7aeba','#ffb58b','#51362f','#b7df9c','#ff939c'],graphite:['#0c0e11','#171a1f','#252a31','#424951','#f5f6f8','#b9c1cc','#aebfd4','#29313d','#7bd2a5','#ff9ca3']};
 /* Appearance Studio: local-first, bounded controls with no arbitrary CSS/HTML import. */
-const atlasAppearanceDefaults=()=>({accent:'',density:'comfortable',corners:'rounded',texture:'subtle',textSize:'standard',motion:'system'});
+const atlasAppearanceDefaults=()=>({accent:'',density:'comfortable',corners:'rounded',texture:'subtle',textSize:'standard',fontStyle:'native',motion:'system'});
 const atlasHex=v=>typeof v==='string'&&/^#[0-9a-f]{6}$/i.test(v);
 function atlasNormalizeAppearance(value){
  const v=value&&typeof value==='object'&&!Array.isArray(value)?value:{};
@@ -1173,7 +1211,8 @@ function atlasNormalizeAppearance(value){
   density:['comfortable','compact'].includes(v.density)?v.density:'comfortable',
   corners:['rounded','subtle'].includes(v.corners)?v.corners:'rounded',
   texture:['subtle','off'].includes(v.texture)?v.texture:'subtle',
-  textSize:['standard','large'].includes(v.textSize)?v.textSize:'standard',
+  textSize:['standard','large','extra'].includes(v.textSize)?v.textSize:'standard',
+  fontStyle:['native','rounded','crisp'].includes(v.fontStyle)?v.fontStyle:'native',
   motion:['system','reduce'].includes(v.motion)?v.motion:'system'
  };
 }
@@ -1490,6 +1529,7 @@ function setTheme(){
  root.dataset.atlasCorners=appearance.corners;
  root.dataset.atlasTexture=appearance.texture;
   root.dataset.atlasTextSize=appearance.textSize;
+ root.dataset.atlasFontStyle=appearance.fontStyle;
  root.dataset.atlasMotion=appearance.motion;
  root.style.colorScheme=data.theme==='arctic'?'light':'dark';
  document.querySelector('meta[name="theme-color"]').content=p[0];
@@ -1766,14 +1806,21 @@ function notesBody(){const items=data.notes.filter(n=>!n.journal).sort((a,b)=>Nu
 function money(){const sorted=[...data.money].sort((a,b)=>Number(a.paid)-Number(b.paid)||(a.due||'9999').localeCompare(b.due||'9999'));return `<div class="eyebrow">MANUAL FINANCES</div><div class="page-head"><div><h1>Money</h1><p class="sub">Know what you have and what is already spoken for.</p></div>${btn('Edit balance','edit-balance')}</div><div class="card card-accent"><div class="card-head">ENTERED BALANCE</div><div class="metric">${data.balance===null?'Not set':fmt(data.balance)}</div><div class="line"></div><div class="number-grid"><div><small>Unpaid bills & debts</small><strong>${fmt(totalUnpaid())}</strong></div><div><small>After obligations</small><strong class="${data.balance!==null&&data.balance-totalUnpaid()<0?'danger':''}">${data.balance===null?'—':fmt(data.balance-totalUnpaid())}</strong></div></div><p class="fine" style="margin-top:13px">Calculated from only the records you enter. This is not your bank balance or an automatic forecast.</p></div>${btn('▥ View financial graphs','goto-insights','','action ghost small')}${heading(`Bills & debts · ${data.money.length}`,'new-money','＋ Add')}<div class="card">${sorted.length?sorted.map(x=>`<div class="task ${x.paid?'completed':''}"><input class="check" type="checkbox" data-action="toggle-money" data-id="${esc(x.id)}" ${x.paid?'checked':''} aria-label="Mark ${esc(x.title)} paid"><button class="taskbody" data-action="edit" data-type="money" data-id="${esc(x.id)}"><div class="tasktitle">${esc(x.title)}</div><div class="taskmeta"><span>${esc(x.kind==='debt'?'Debt':'Bill')}</span><span class="${!x.paid&&dayDiff(x.due)!==null&&dayDiff(x.due)<0?'danger':''}">${x.paid?'Paid':esc(humanDate(x.due))}</span></div></button><b class="small">${fmt(x.amount)}</b></div>`).join(''):blank('▣','No obligations recorded. Add bills, repayments or anything you need to reserve money for.','new-money','Add a bill')}</div>${heading(`Goals · ${data.goals.length}`,'new-goal','＋ Add')}<div class="card">${data.goals.length?data.goals.map(goalCard).join(''):blank('⚑','Track savings, driving or any measurable target.','new-goal','Add a goal')}</div>`}
 function goals(){return `<div class="eyebrow">LONG-TERM PROGRESS</div><div class="page-head"><div><h1>Goals</h1><p class="sub">Know what you’re moving towards.</p></div>${btn('＋ New','new-goal','','action small')}</div><div class="card">${data.goals.length?data.goals.map(goalCard).join(''):blank('⚑','A goal is a destination. Give it a target you can measure.','new-goal','Create a goal')}</div>`}
 function settings(){return `<div class="eyebrow">SYSTEM SETTINGS</div><h1>Settings</h1><p class="sub">Make ATLAS yours, and keep control of your data.</p>${heading('Appearance')}<div class="card"><div class="fine" style="margin-bottom:12px">Blood Red & Black is the default.</div><div class="swatches">${Object.keys(palettes).map(k=>`<button class="swatch ${data.theme===k?'selected':''}" data-action="theme" data-theme="${k}" aria-pressed="${data.theme===k}" style="background:${palettes[k][1]};color:${palettes[k][4]}"><span class="dot" style="background:${palettes[k][6]}"></span>${k==='midnight'?'Blood Red':k[0].toUpperCase()+k.slice(1)}</button>`).join('')}</div><div class="atlas-appearance-studio">
- <div class="atlas-appearance-intro"><strong>Appearance Studio</strong><span>Build your own look. Changes stay on this device and are included in backups.</span></div>
+ <div class="atlas-appearance-intro"><strong>Make it yours</strong><span>Choose a look, then fine-tune it. Changes stay on this device and are included in backups.</span></div>
+<div class="atlas-presets" role="group" aria-label="Appearance presets">
+<button type="button" data-action="appearance-preset" data-preset="dark" class="atlas-preset"><i class="atlas-preset-swatch dark"></i><span>Dark & focused</span></button>
+<button type="button" data-action="appearance-preset" data-preset="soft" class="atlas-preset"><i class="atlas-preset-swatch soft"></i><span>Soft slate</span></button>
+<button type="button" data-action="appearance-preset" data-preset="light" class="atlas-preset"><i class="atlas-preset-swatch light"></i><span>Light & airy</span></button>
+</div>
  <div class="atlas-appearance-row"><label for="atlas-accent-input">Accent colour <small>Automatically adjusted for readable contrast</small></label>
  <input id="atlas-accent-input" type="color" value="${data.appearance.accent||palettes[data.theme][6]}" aria-label="Custom accent colour" title="Choose custom accent"></div>
+ <div class="atlas-style-preview" aria-label="Typography preview"><span class="eyebrow">Preview</span><strong>Better days, less noise.</strong><small>Plan what matters. Leave the rest behind.</small></div>
  <div class="atlas-appearance-grid">
+  <label for="atlas-font-style-select">Font style<select id="atlas-font-style-select" class="select"><option value="native" ${data.appearance.fontStyle==='native'?'selected':''}>Native & balanced</option><option value="rounded" ${data.appearance.fontStyle==='rounded'?'selected':''}>Soft & friendly</option><option value="crisp" ${data.appearance.fontStyle==='crisp'?'selected':''}>Clean & precise</option></select></label>
   <label for="atlas-density-select">Spacing<select id="atlas-density-select" class="select"><option value="comfortable" ${data.appearance.density==='comfortable'?'selected':''}>Comfortable</option><option value="compact" ${data.appearance.density==='compact'?'selected':''}>Compact</option></select></label>
   <label for="atlas-corners-select">Corners<select id="atlas-corners-select" class="select"><option value="rounded" ${data.appearance.corners==='rounded'?'selected':''}>Rounded</option><option value="subtle" ${data.appearance.corners==='subtle'?'selected':''}>Subtle</option></select></label>
   <label for="atlas-texture-select">Texture<select id="atlas-texture-select" class="select"><option value="subtle" ${data.appearance.texture==='subtle'?'selected':''}>Subtle grain</option><option value="off" ${data.appearance.texture==='off'?'selected':''}>Smooth</option></select></label>
-   <label for="atlas-text-size-select">Text size<select id="atlas-text-size-select" class="select" aria-describedby="atlas-text-size-help"><option value="standard" ${data.appearance.textSize==='standard'?'selected':''}>Standard</option><option value="large" ${data.appearance.textSize==='large'?'selected':''}>Larger text</option></select><small id="atlas-text-size-help" class="fine">Enlarges everyday text across ATLAS.</small></label>
+   <label for="atlas-text-size-select">Text size<select id="atlas-text-size-select" class="select" aria-describedby="atlas-text-size-help"><option value="standard" ${data.appearance.textSize==='standard'?'selected':''}>Standard</option><option value="large" ${data.appearance.textSize==='large'?'selected':''}>Large</option><option value="extra" ${data.appearance.textSize==='extra'?'selected':''}>Extra large</option></select><small id="atlas-text-size-help" class="fine">Enlarges everyday text across ATLAS.</small></label>
    <label for="atlas-motion-select">Motion<select id="atlas-motion-select" class="select" aria-describedby="atlas-motion-help"><option value="system" ${data.appearance.motion==='system'?'selected':''}>Follow device</option><option value="reduce" ${data.appearance.motion==='reduce'?'selected':''}>Reduce motion</option></select><small id="atlas-motion-help" class="fine">Device accessibility settings always take priority.</small></label>
  </div>
  <button class="action ghost small" type="button" data-action="appearance-reset">Reset custom appearance</button>
@@ -1841,7 +1888,7 @@ function openQuickMenu(){
  modalState={type:'chooser'};
  $('modal-root').innerHTML=`<div class="modalback" data-action="modal-bg"><div class="sheet signature-quick-sheet" role="dialog" aria-modal="true" aria-label="Quick add"><div class="titlebar"><div><span class="signature-overline">QUICK ADD</span><h2>What are we adding?</h2></div><button data-action="modal-close" class="iconbtn" aria-label="Close">×</button></div><div class="signature-quick-grid"><button class="signature-option" data-action="new-task">${uiIcon('today')}<strong>Task</strong><small>Something to do</small></button><button class="signature-option" data-action="cal-add">${uiIcon('calendar')}<strong>Event</strong><small>Time in your calendar</small></button><button class="signature-option" data-action="new-note">${uiIcon('notes')}<strong>Note</strong><small>Something to keep</small></button><button class="signature-option" data-action="new-money">${uiIcon('money')}<strong>Money</strong><small>A bill or expense</small></button></div><button class="signature-inbox" data-action="voice">${uiIcon('mic')} Talk to ATLAS <span aria-hidden="true">→</span></button><button class="signature-inbox" data-action="capture-thought">Capture a thought to Inbox <span aria-hidden="true">→</span></button></div></div>`;
 }
-function render(){setTheme();const views={home,today,calendar,projects,notes,journal,money,goals,insights,settings,library,focusTool,quickTools,decisionTool,link:linkScreen,search:searchScreen};const target=$('content');if(!target)return;if(page==='calendar'&&calView==='week'){const previous=target.querySelector?.('.cal-week-scroller');if(previous)calScrollTop=previous.scrollTop;}if(target.dataset)target.dataset.view=page;target.innerHTML=(views[page]||home)();const tabs=[['home','⌂','Home'],['calendar','▦','Calendar'],['today','✓','Tasks'],['library','▤','Library']];$('nav').innerHTML=tabs.map(([v,icon,label])=>`<button data-action="goto" data-page="${v}" class="${page===v?'active':''}" ${page===v?'aria-current="page"':''}><span class="navicon">${uiIcon(v)}</span>${label}</button>`).join('');if(matchMedia('(orientation:portrait)').matches)$('nav').querySelector('[aria-current="page"]')?.scrollIntoView({block:'nearest',inline:'nearest'});$('fab').style.display=page==='settings'||page==='search'?'none':'block';if(page==='calendar'&&calView==='week'){const sc=$('content').querySelector?.('.cal-week-scroller');if(sc){sc.scrollTop=calScrollTop===null?6*CAL_ROW_HEIGHT:calScrollTop;sc.scrollLeft=0;}}$('syncbar').textContent=storageLoadError||storageWarning||(bridgeProfile?'↔ ATLAS Link available · Sync only when you choose':'◈ Private by default · Saved on this device');}
+function render(){setTheme();const views={home,today,calendar,projects,notes,journal,money,goals,insights,settings,library,focusTool,quickTools,decisionTool,link:linkScreen,search:searchScreen};const target=$('content');if(!target)return;if(page==='calendar'&&calView==='week'){const previous=target.querySelector?.('.cal-week-scroller');if(previous)calScrollTop=previous.scrollTop;}if(target.dataset)target.dataset.view=page;target.innerHTML=(views[page]||home)();const tabs=[['home','⌂','Home'],['calendar','▦','Calendar'],['today','✓','Tasks'],['library','▤','Library']];$('nav').innerHTML=tabs.map(([v,icon,label])=>`<button data-action="goto" data-page="${v}" class="${page===v?'active':''}" ${page===v?'aria-current="page"':''}><span class="navicon">${uiIcon(v)}</span>${label}</button>`).join('');if(matchMedia('(orientation:portrait)').matches)$('nav').querySelector('[aria-current="page"]')?.scrollIntoView({block:'nearest',inline:'nearest'});$('fab').style.display=page==='settings'||page==='search'?'none':'block';if(page==='calendar'&&calView==='week'){const sc=$('content').querySelector?.('.cal-week-scroller');if(sc){sc.scrollTop=calScrollTop===null?6*CAL_ROW_HEIGHT:calScrollTop;sc.scrollLeft=0;}}const bar=$('syncbar');bar.textContent=storageLoadError||storageWarning||(bridgeProfile?'ATLAS Link ready · Sync only when you choose':'');if(bar.textContent){bar.setAttribute('role',storageLoadError||storageWarning?'alert':'status')}else bar.removeAttribute('role');}
 // Modal editing and quick capture.
 function field(name,label,value='',type='text',extra=''){return `<div class="field"><label for="f-${name}">${label}</label><input class="input" id="f-${name}" name="${name}" type="${type}" value="${esc(value)}" ${extra}></div>`}
 function area(name,label,value='',rows=4,extra=''){return `<div class="field"><label for="f-${name}">${label}</label><textarea class="textarea" id="f-${name}" name="${name}" rows="${rows}" ${extra}>${esc(value)}</textarea></div>`}
@@ -2053,7 +2100,13 @@ if(a==='result'){
  if(type==='habit'){page='insights';insTab='habits';return render()}
  return openModal(type,ref)
 }
-if(a==='set-view'){view=element.dataset.view;return render()};if(a==='theme'){data.theme=element.dataset.theme;return commit('Theme changed')};if(a==='appearance-reset'){data.appearance=atlasAppearanceDefaults();return commit('Appearance reset')}
+if(a==='set-view'){view=element.dataset.view;return render()};if(a==='theme'){data.theme=element.dataset.theme;return commit('Theme changed')};if(a==='appearance-preset'){
+ const preset=element.dataset.preset;
+ const choices={dark:['midnight',{fontStyle:'native',texture:'subtle'}],soft:['graphite',{fontStyle:'rounded',texture:'subtle'}],light:['arctic',{fontStyle:'crisp',texture:'off'}]};
+ if(!Object.hasOwn(choices,preset))return;
+ data.theme=choices[preset][0];data.appearance={...atlasAppearanceDefaults(),...choices[preset][1]};
+ return commit('Appearance updated');
+}if(a==='appearance-reset'){data.appearance=atlasAppearanceDefaults();return commit('Appearance reset')}
 if(a==='toggle-task')return toggleTask(ref,!!element.checked);
 if(a==='toggle-money'){const m=byId(data.money,ref);if(m){m.paid=!!element.checked;commit(m.paid?'Marked paid':'Marked unpaid')}return}
 if(a==='focus'){const t=byId(data.tasks,ref);if(!t)return;if(!t.focus&&openTasks().filter(x=>x.focus).length>=3){showToast('Choose a maximum of three focus tasks.');return}t.focus=!t.focus;t.stage='planned';return commit(t.focus?'Added to focus':'Removed from focus')}
@@ -2090,7 +2143,8 @@ document.addEventListener('change',async e=>{
  const setting=({ 'atlas-density-select':['density',['comfortable','compact']],
   'atlas-corners-select':['corners',['rounded','subtle']],
   'atlas-texture-select':['texture',['subtle','off']],
-   'atlas-text-size-select':['textSize',['standard','large']],
+   'atlas-text-size-select':['textSize',['standard','large','extra']],
+   'atlas-font-style-select':['fontStyle',['native','rounded','crisp']],
    'atlas-motion-select':['motion',['system','reduce']] })[e.target.id];
  if(setting){if(!setting[1].includes(e.target.value))return showToast('Invalid appearance setting.');data.appearance[setting[0]]=e.target.value;return commit('Appearance saved');}
 if(e.target.id==='merge-file'){const input=e.target,file=input.files?.[0];if(!file)return;try{
