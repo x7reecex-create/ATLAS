@@ -22,7 +22,7 @@ try{
   assert.equal(await page.locator('.atlas-greeting').innerText(),'Good afternoon.');
   assert.equal(await page.locator('.atlas-start-actions button').count(),3);
   assert.deepEqual(await page.locator('.atlas-day-stats strong').allTextContents(),['0','0','0']);
-  assert.equal(await page.locator('#fab').innerText(),'＋\nAdd');
+  assert.equal(await page.locator('#fab').innerText(),'+\nAdd');
   await page.locator('.atlas-start-actions [data-action="new-task"]').click();
   assert.equal(await page.locator('#f-title').count(),1);
   await page.locator('[data-action="modal-close"]').click();

@@ -1306,7 +1306,7 @@ h1,h2,h3{font-family:var(--atlas-display-font);font-optical-sizing:auto;letter-s
   </header>
   <div class="syncbar" id="syncbar" aria-live="polite"></div>
   <div id="content" class="content"><section class="fallback"><h1>ATLAS</h1><p>One place for what matters.</p><p>Open the hosted ATLAS website in Safari to use the interactive app. The iPhone Files preview does not run it.</p></section></div>
-  <button class="fab" id="fab" data-action="quick" aria-label="Add something" title="Add something"><span aria-hidden="true">＋</span><span>Add</span></button>
+  <button class="fab" id="fab" data-action="quick" aria-label="Add something" title="Add something"><span aria-hidden="true">+</span><span>Add</span></button>
   <nav id="nav" class="bottomnav" aria-label="Main navigation"></nav>
 </main>
 <div id="modal-root"></div>
@@ -2001,7 +2001,7 @@ function projectCard(p){const st=projectStats(p),pct=st.all?Math.round(st.done/s
 function noteCard(n){return `<button class="note" data-action="edit" data-type="note" data-id="${esc(n.id)}"><div class="between"><b>${n.pinned?'◆ ':''}${esc(n.title)}</b><span class="fine">›</span></div><p>${esc(n.body.slice(0,180)||'Empty note')}</p><small>${esc(projectName(n.projectId)||'General')} · ${new Date(n.updatedAt||n.createdAt||Date.now()).toLocaleDateString('en-GB')}</small></button>`}
 function goalCard(g){return `<button class="goal" data-action="edit" data-type="goal" data-id="${esc(g.id)}"><div class="between"><b>${esc(g.title)}</b><strong style="color:var(--accent-text)">${goalPct(g)}%</strong></div><div class="progress"><span style="width:${goalPct(g)}%"></span></div><div class="fine">${esc(String(g.current))} / ${esc(String(g.target))} ${esc(g.unit||'')}</div></button>`}
 function miniStat(label,value,action,icon){return `<button class="tile" data-action="${action}"><span class="symbol">${icon}</span><b>${value}</b><small>${label}</small></button>`}
-function quickCapture(){return `<form id="capture" class="capture"><input id="capture-text" aria-label="Quick task" name="title" maxlength="240" placeholder="Add a task or reminder…" autocomplete="off" required><button type="button" class="capture-voice" data-action="voice" aria-label="Speak a task or event">${uiIcon('mic')}</button><button class="action" type="submit" aria-label="Capture">＋</button></form>`}
+function quickCapture(){return `<form id="capture" class="capture"><input id="capture-text" aria-label="Quick task" name="title" maxlength="240" placeholder="Add a task or reminder…" autocomplete="off" required><button type="button" class="capture-voice" data-action="voice" aria-label="Speak a task or event">${uiIcon('mic')}</button><button class="action" type="submit" aria-label="Capture">+</button></form>`}
 function atlasHomeStatus(due,focus,planned,open){
  const count=(n)=>n===1?'1 task':n+' tasks';
  if(due>0)return {kind:'attention',message:count(due)+' due or overdue. Start with one.'};
