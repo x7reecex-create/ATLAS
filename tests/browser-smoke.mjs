@@ -405,6 +405,44 @@ try {
     // This detects real-world narrow-screen overflow and broken navigation.
     await page.locator('#nav button[data-page="today"]').click();
     assert.equal(await page.locator('#content').getAttribute('data-view'),'today',size.name+' tasks route');
+
+    // Today's real task workflow: no duplicates, urgent tasks shown, planning reversible.
+    await page.evaluate(()=>{
+      const key='atlas-preview:v1';
+      const state=JSON.parse(localStorage.getItem(key));
+      const mk=(id,props)=>({id,title:'ATLAS '+id,details:'',due:'',planned:'',focus:false,stage:'planned',priority:'normal',done:false,repeat:'none',subtasks:[],...props});
+      state.tasks.push(
+        mk('flow-focus-due',{due:'2026-10-28',planned:'2026-10-29',focus:true}),
+        mk('flow-due',{due:'2026-10-29',planned:'2026-10-29'}),
+        mk('flow-planned',{planned:'2026-10-29'}),
+        mk('flow-inbox',{stage:'inbox'})
+      );
+      localStorage.setItem(key,JSON.stringify(state));
+    });
+    await page.reload();
+    await page.locator('#nav button[data-page="today"]').click();
+    const taskRows=page.locator('#content .task[data-task]');
+    const taskIds=await taskRows.evaluateAll(rows=>rows.map(x=>x.dataset.task));
+    assert.equal(new Set(taskIds).size,taskIds.length,size.name+' Today never repeats the same task');
+    for(const id of ['flow-focus-due','flow-due','flow-planned','flow-inbox'])
+      assert.equal(await page.locator('#content .task[data-task="'+id+'"]').count(),1,size.name+' '+id+' appears once');
+    assert.match(await page.locator('.atlas-today-summary').innerText(),/2 due or overdue/,size.name+' urgency summary counts correctly');
+    assert.match(await page.locator('#content').innerText(),/Your focus · 1\/3/,size.name+' focus count correct');
+    await page.locator('.task[data-task="flow-planned"] [data-action="plan"]').click();
+    assert.equal(await page.locator('.task[data-task="flow-planned"]').count(),0,size.name+' unplanning removes task from Today');
+    await page.locator('.tabs button[data-view="all"]').click();
+    const planAgain=page.locator('.task[data-task="flow-planned"] [data-action="plan"]');
+    assert.equal(await planAgain.getAttribute('aria-label'),'Plan for today',size.name+' reversible control explains action');
+    await planAgain.click();
+    assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('atlas-preview:v1')).tasks.find(t=>t.id==='flow-planned').planned),'2026-10-29',size.name+' task re-planned');
+    await page.locator('.tabs button[data-view="today"]').click();
+    assert.equal(await page.locator('.task[data-task="flow-planned"]').count(),1,size.name+' re-planned task reappears');
+    await page.locator('.task[data-task="flow-due"] input.check').check();
+    assert.equal(await page.locator('.task[data-task="flow-due"]').count(),0,size.name+' completed task leaves Today');
+    assert.match(await page.locator('.atlas-today-summary').innerText(),/1 finished today/,size.name+' completion feedback reflects saved data');
+    const taskWidth=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
+    assert.ok(taskWidth<=2,size.name+' Today task controls fit the screen');
+
     for (const destination of ['library','projects','notes','money','goals','insights','link','settings']) {
       await page.locator('#nav button[data-page="library"]').click();
       if (destination !== 'library') {
