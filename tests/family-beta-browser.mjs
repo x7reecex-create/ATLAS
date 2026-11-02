@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
 
 const base=process.env.ATLAS_BETA_URL||'http://127.0.0.1:8765/beta/';
-const browser=await chromium.launch({headless:true,args:['--no-sandbox']});
+const browser=await chromium.launch({channel:'chrome',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
 try{
   for(const viewport of [{width:390,height:844},{width:1365,height:900}]){
     const context=await browser.newContext({viewport,acceptDownloads:true});
