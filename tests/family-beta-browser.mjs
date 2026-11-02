@@ -49,6 +49,7 @@ try{
     const download=await downloadPromise;
     assert.match(download.suggestedFilename(),/^atlas-beta-backup-/);
     await page.reload();
+    await page.locator(nav+' [data-view="more"]').click();
     assert.match(await page.locator('#view').innerText(),/Read for ten minutes/);
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2),true,'No horizontal overflow');
     assert.deepEqual(errors,[]);
