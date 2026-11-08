@@ -1,3 +1,10 @@
+ATLAS / FORGE — Living Valley expansion (8 November 2026)
+Changes: 16-place fog-of-war map; adjacent travel funded by one trail token per distinct completed task or daily habit check-in; one-time fixed location loot; three landmark-locked furniture blueprints (Quarry anvil, Ancient relic, Starwatch scope); inventory and workshop integration; accessible compact map for phone and desktop.
+Safety: no network calls, purchases, Supabase changes or separate activity ledger. Exploration is local-first, normalized from a contiguous route and bounded by previously earned actions. Repeated taps cannot harvest loot. Failed persistence rolls back discoveries and materials. Older saves and crafted furniture remain valid; offline shell cache v38.
+Verification: 106 source tests pass, including seven new world-unit tests. GitHub Actions now also runs a real Chromium task → map → crafting → reload journey on three viewports. Physical Safari and Android checks remain necessary.
+
+---
+
 ATLAS — Rapid touch evolution (30 October 2026)
 Changes: horizontal taskbody swipes (right = complete, left = plan tomorrow with deadline unchanged), accessible long-press/right-click/ellipsis task menu, one-step Undo for quick task actions, persistent manual ordering of up to three Focus tasks by drag or menu, portrait Calendar gesture for week on date strip and day on agenda, and desktop timetable drag between weekdays with Undo. Keyboard/mouse controls remain and mobile timetable editor remains the touch move alternative.
 Safety: ignore system screen edges and predominantly vertical scroll gestures; preserve native vertical scrolling and reduced-motion settings. No destructive swipe, no invented cloud sync or background reminder service, no new network permissions, no schema migration. Backup captures focus ordering and timetable edits.
