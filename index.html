@@ -1305,8 +1305,19 @@ h1,h2,h3{font-family:var(--atlas-display-font);font-optical-sizing:auto;letter-s
 @media(prefers-reduced-motion:reduce){.quest-track>span{transition:none}}
 
 /* ATLAS / FORGE — a compact, original, local-first workshop. */
-.atlas-journey .quest-tabs{grid-template-columns:repeat(5,minmax(0,1fr));gap:3px}
+.atlas-journey .quest-tabs{grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
 .atlas-journey .quest-tabs button{min-width:0;padding:8px 1px;font-size:11px}
+@media(min-width:620px){.atlas-journey .quest-tabs{grid-template-columns:repeat(6,minmax(0,1fr))}}
+.forge-skill-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.forge-skill-card{min-width:0;display:flex;flex-direction:column;padding:15px;background:linear-gradient(145deg,var(--surface),var(--surface2));border:1px solid var(--border);border-radius:18px}
+.forge-skill-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+.forge-skill-emblem{height:37px;width:37px;display:grid;place-items:center;background:color-mix(in srgb,var(--accent) 20%,var(--surface));border:1px solid var(--border);border-radius:12px;color:var(--quest-gold);font-size:21px}
+.forge-skill-level{font-size:11px;font-weight:850;color:var(--quest-lilac);font-variant-numeric:tabular-nums}
+.forge-skill-card strong{font-size:14px;line-height:1.35;overflow-wrap:anywhere}
+.forge-skill-card>small{font-size:11px;color:var(--muted);line-height:1.45;margin-top:4px;min-height:31px}
+.forge-skill-card .quest-track{height:8px;margin-top:auto}
+.forge-skill-foot{display:flex;justify-content:space-between;gap:7px;margin-top:8px;font-size:10px;color:var(--muted);font-variant-numeric:tabular-nums}
+@media(max-width:365px){.forge-skill-grid{grid-template-columns:1fr}.forge-skill-card>small{min-height:0}}
 .forge-screen{--forge-brass:#c8a679;--forge-sage:#92b69c;--forge-shadow:rgba(0,0,0,.24)}
 .forge-screen h2,.forge-screen h3{margin:0;letter-spacing:-.035em}
 .forge-intro{padding:5px 2px 17px}
@@ -1416,6 +1427,27 @@ function atlasContrastSafe(hex,against){
 /* FORGE materials come from the original one-time award ledger; they never need a second grant transaction. */
 const GAME_MATERIALS=['timber','iron','fibre','essence'];
 const GAME_DROPS={task:{timber:2,iron:1},habit:{fibre:2,essence:1},milestone:{timber:4,iron:2,fibre:2}};
+const GAME_SKILLS=[
+ {id:'focus',name:'Focus',symbol:'◇',description:'Concentration and deep work'},
+ {id:'craft',name:'Craftsmanship',symbol:'⚒',description:'Making, repairing and practical work'},
+ {id:'knowledge',name:'Knowledge',symbol:'✦',description:'Learning and discovery'},
+ {id:'fitness',name:'Fitness',symbol:'♡',description:'Movement and training'},
+ {id:'home',name:'Home',symbol:'⌂',description:'Your space and responsibilities'},
+ {id:'creativity',name:'Creativity',symbol:'✎',description:'Ideas and projects'},
+ {id:'finance',name:'Financial Stewardship',symbol:'◈',description:'Planning and managing money'},
+ {id:'discipline',name:'Discipline',symbol:'✧',description:'Showing up for your habits'}
+];
+const gameValidSkill=value=>GAME_SKILLS.some(s=>s.id===value);
+function gameTaskSkill(task){
+ if(gameValidSkill(task?.forgeSkill))return task.forgeSkill;
+ return ({work:'craft',family:'home',health:'fitness',personal:'home',focus:'focus',other:'knowledge'})[task?.category]||'focus';
+}
+function gameTaskReward(task){
+ const minutes=Math.max(5,Math.min(720,Math.round(Number(task?.durationMins)||30)));
+ const priorityBonus=task?.priority==='high'?10:task?.priority==='low'?0:5;
+ const xp=Math.max(4,Math.min(100,Math.round(minutes/2)+priorityBonus));
+ return {xp,coins:Math.max(1,Math.min(25,Math.round(xp/4))),skill:gameTaskSkill(task)};
+}
 const GAME_RECIPES=[
  {id:'stool',name:'Foundry stool',description:'A place to rest between adventures.',cost:{timber:2,iron:1}},
  {id:'plant',name:'Evergreen planter',description:'A little life for your living space.',cost:{fibre:2,essence:1}},
@@ -1433,7 +1465,7 @@ function gameSupply(awards,crafted){
 }
 function gameNormalize(raw){
  const value=raw&&typeof raw==='object'&&!Array.isArray(raw)?raw:{};
- const awards=Array.isArray(value.awards)?value.awards.slice(0,10000).filter(x=>x&&typeof x.key==='string'&&x.key.length<=260&&['task','habit','milestone'].includes(x.kind)&&Number.isInteger(x.xp)&&x.xp>=0&&x.xp<=100&&Number.isInteger(x.coins)&&x.coins>=0&&x.coins<=50&&Number.isFinite(x.at)).map(x=>({key:x.key,kind:x.kind,xp:x.xp,coins:x.coins,at:x.at})):[];
+ const awards=Array.isArray(value.awards)?value.awards.slice(0,10000).filter(x=>x&&typeof x.key==='string'&&x.key.length<=260&&['task','habit','milestone'].includes(x.kind)&&Number.isInteger(x.xp)&&x.xp>=0&&x.xp<=100&&Number.isInteger(x.coins)&&x.coins>=0&&x.coins<=50&&Number.isFinite(x.at)&&(x.skill===undefined||gameValidSkill(x.skill))).map(x=>({key:x.key,kind:x.kind,xp:x.xp,coins:x.coins,at:x.at,...(x.skill===undefined?{}:{skill:x.skill})})):[];
  const rewards=Array.isArray(value.rewards)?value.rewards.slice(0,100).filter(x=>x&&typeof x.id==='string'&&x.id.length<=240&&typeof x.title==='string'&&x.title.trim()&&x.title.length<=120&&Number.isInteger(x.cost)&&x.cost>=1&&x.cost<=10000).map(x=>({id:x.id,title:x.title,cost:x.cost})):[];
  const claims=Array.isArray(value.claims)?value.claims.slice(0,10000).filter(x=>x&&typeof x.id==='string'&&x.id.length<=240&&typeof x.title==='string'&&x.title.length<=120&&Number.isInteger(x.cost)&&x.cost>=1&&x.cost<=10000&&Number.isFinite(x.at)).map(x=>({id:x.id,title:x.title,cost:x.cost,at:x.at})):[];
  const uniqueAwards=awards.filter((x,i)=>awards.findIndex(y=>y.key===x.key)===i);
@@ -1471,7 +1503,7 @@ const byId=(arr,ref)=>arr.find(x=>x.id===ref);
 const projectName=pid=>byId(data.projects,pid)?.title||'';
 const totalUnpaid=()=>data.money.filter(x=>!x.paid).reduce((v,x)=>v+saneNum(x.amount),0);
 const goalPct=g=>Math.max(0,Math.min(100,Math.round(saneNum(g.current)/Math.max(1,saneNum(g.target))*100)));
-function normalizeTask(t){return {...t,scheduledTime:calValidTime(t.scheduledTime)?t.scheduledTime:'',durationMins:Math.max(5,Math.min(720,Number(t.durationMins)||30)),category:CAL_CATEGORIES[t.category]?t.category:'focus',id:String(t.id||id()),title:String(t.title||'Untitled'),due:validDate(t.due)?(t.due||''):'',planned:validDate(t.planned)?(t.planned||''):'',priority:['high','normal','low'].includes(t.priority)?t.priority:'normal',done:!!t.done,createdAt:Number(t.createdAt)||Date.now(),createdAtInferred:!!t.createdAtInferred||!Number(t.createdAt),completedAt:t.completedAt||null,repeat:['none','daily','weekdays','weekly','monthly'].includes(t.repeat)?t.repeat:'none',projectId:String(t.projectId||''),focus:!!t.focus,stage:t.stage==='inbox'?'inbox':'planned',details:String(t.details||''),subtasks:Array.isArray(t.subtasks)?t.subtasks.filter(s=>s&&typeof s.title==='string').map(s=>({id:String(s.id||id()),title:s.title,done:!!s.done})):[]}};
+function normalizeTask(t){return {...t,scheduledTime:calValidTime(t.scheduledTime)?t.scheduledTime:'',durationMins:Math.max(5,Math.min(720,Number(t.durationMins)||30)),category:CAL_CATEGORIES[t.category]?t.category:'focus',forgeSkill:gameValidSkill(t.forgeSkill)?t.forgeSkill:'',id:String(t.id||id()),title:String(t.title||'Untitled'),due:validDate(t.due)?(t.due||''):'',planned:validDate(t.planned)?(t.planned||''):'',priority:['high','normal','low'].includes(t.priority)?t.priority:'normal',done:!!t.done,createdAt:Number(t.createdAt)||Date.now(),createdAtInferred:!!t.createdAtInferred||!Number(t.createdAt),completedAt:t.completedAt||null,repeat:['none','daily','weekdays','weekly','monthly'].includes(t.repeat)?t.repeat:'none',projectId:String(t.projectId||''),focus:!!t.focus,stage:t.stage==='inbox'?'inbox':'planned',details:String(t.details||''),subtasks:Array.isArray(t.subtasks)?t.subtasks.filter(s=>s&&typeof s.title==='string').map(s=>({id:String(s.id||id()),title:s.title,done:!!s.done})):[]}};
 function normalizeData(raw){const d={...defaults(),...raw};for(const name of ['tasks','projects','notes','calendarEvents','money','goals','transactions','timeEntries','habits','habitLogs','goalHistory','balanceHistory'])if(!Array.isArray(d[name]))d[name]=[];d.tasks=d.tasks.filter(t=>t&&typeof t==='object').map(normalizeTask);d.projects=d.projects.filter(p=>p&&typeof p.title==='string'&&typeof p.id==='string').map(p=>({...p,status:['active','paused','done'].includes(p.status)?p.status:'active',description:String(p.description||'')}));d.notes=d.notes.filter(n=>n&&typeof n.title==='string'&&typeof n.id==='string').map(n=>({...n,body:String(n.body||''),pinned:!!n.pinned,projectId:String(n.projectId||'')}));d.calendarEvents=d.calendarEvents.filter(e=>e&&typeof e==='object').slice(0,10000).flatMap(e=>{try{return [calValidateEvent(e)]}catch(_){return []}});d.transactions=d.transactions.slice(0,10000).map(insNormalizeTransaction).filter(Boolean);d.timeEntries=d.timeEntries.slice(0,10000).map(insNormalizeTime).filter(Boolean);d.habits=d.habits.slice(0,1000).map(insNormalizeHabit).filter(Boolean);d.habitLogs=d.habitLogs.slice(0,10000).map(insNormalizeCheck).filter(c=>c&&d.habits.some(h=>h.id===c.habitId));d.habitLogs=d.habitLogs.filter((c,i,a)=>a.findIndex(x=>x.habitId===c.habitId&&x.date===c.date)===i);d.goalHistory=d.goalHistory.slice(0,10000).map(insNormalizeGoalLog).filter(x=>x&&d.goals.some(g=>g.id===x.goalId));d.balanceHistory=d.balanceHistory.slice(0,10000).map(insNormalizeBalance).filter(Boolean);d.theme=palettes[d.theme]?d.theme:'midnight';d.appearance=atlasNormalizeAppearance(d.appearance);d.game=gameNormalize(d.game);d.displayName=typeof d.displayName==='string'?d.displayName.slice(0,50):'';if(d.balance!==null&&(!Number.isFinite(Number(d.balance))||Number(d.balance)<0))d.balance=null;d.version=4;return d;}
 
 // ATLAS Calendar 1.2: private local-first calendar, operating in Europe/London wall-clock time.
@@ -2179,18 +2211,36 @@ function gameTransact(change,message){
  }
  return true;
 }
+function gameLevel(xp,base=75,step=25){
+ const value=Math.max(0,Math.min(Number.MAX_SAFE_INTEGER,Number.isFinite(xp)?xp:0)),b=base-step/2;
+ const threshold=n=>n*base+step*n*(n-1)/2;
+ let n=Math.max(0,Math.floor((Math.sqrt(b*b+2*step*value)-b)/step));
+ while(threshold(n+1)<=value)n++;
+ while(threshold(n)>value)n--;
+ return {level:n+1,levelXP:value-threshold(n),levelNeeded:base+step*n};
+}
+function gameSkillTotals(){
+ const skills=Object.fromEntries(GAME_SKILLS.map(s=>[s.id,{xp:0,actions:0}]));
+ for(const award of data.game.awards){
+  if(award.kind==='milestone')continue;
+  const skill=gameValidSkill(award.skill)?award.skill:award.kind==='habit'?'discipline':'focus';
+  skills[skill].xp+=award.xp;
+  skills[skill].actions++;
+ }
+ for(const skill of Object.values(skills))Object.assign(skill,gameLevel(skill.xp,50,20));
+ return skills;
+}
 function gameTotals(){
  const xp=data.game.awards.reduce((total,a)=>total+a.xp,0);
  const earned=data.game.awards.reduce((total,a)=>total+a.coins,0);
  const spent=data.game.claims.reduce((total,c)=>total+c.cost,0);
- let level=1,used=0,needed=75;
- while(xp>=used+needed&&level<999){used+=needed;level++;needed=75+(level-1)*25;}
- return {xp,earned,spent,coins:Math.max(0,earned-spent),level,levelXP:xp-used,levelNeeded:needed};
+ return {xp,earned,spent,coins:Math.max(0,earned-spent),...gameLevel(xp)};
 }
-function gameAward(kind,key){
+function gameAward(kind,key,reward){
  if(!data.game.enabled||data.game.awards.some(a=>a.key===key))return false;
  if(data.game.awards.length>=9998){showToast('Journey history is full. Export a backup.');return false;}
- const award=kind==='habit'?{xp:10,coins:3}:{xp:20,coins:5};
+ const base=kind==='habit'?{xp:10,coins:3,skill:'discipline'}:{xp:20,coins:5,skill:'focus'};
+ const award=kind==='task'&&reward&&Number.isInteger(reward.xp)&&reward.xp>=1&&reward.xp<=100&&Number.isInteger(reward.coins)&&reward.coins>=1&&reward.coins<=25&&gameValidSkill(reward.skill)?{xp:reward.xp,coins:reward.coins,skill:reward.skill}:base;
  data.game.awards.push({key,kind,at:Date.now(),...award});
  if(data.game.awards.filter(a=>a.kind!=='milestone').length===5&&!data.game.awards.some(a=>a.key==='milestone:first-five')){
   data.game.awards.push({key:'milestone:first-five',kind:'milestone',at:Date.now(),xp:50,coins:30});
@@ -2220,10 +2270,17 @@ function gameWorkshop(){
  const inventory=loose.length?loose.map(item=>{const recipe=GAME_RECIPES.find(r=>r.id===item.recipeId);return `<button type="button" class="forge-inventory-item ${picked?.id===item.id?'selected':''}" data-action="game-select" data-id="${esc(item.id)}" aria-pressed="${picked?.id===item.id}">${gameFurnitureSprite(item.recipeId)}<span>${esc(recipe.name)}<small>${picked?.id===item.id?'Selected — tap a room space':'Tap to place'}</small></span></button>`}).join(''):'<p class="forge-empty-note">Craft a piece of furniture and it will appear here.</p>';
  return `<section class="forge-screen"><div class="forge-intro"><span class="quest-kicker">THE FIRST ROOM</span><h2>Your workshop</h2><p>Turn real effort into a place of your own. Earn materials in Tasks and Habits; make something here.</p></div><div class="forge-materials" aria-label="Crafting materials">${materials}</div><div class="forge-room-card"><div class="forge-room-header"><div><span class="quest-kicker">YOUR SPACE</span><h3>The Foundry</h3></div><span class="forge-room-count">${placed.size} / 9 furnished</span></div><div class="forge-room-wall"><span class="forge-window" aria-hidden="true">✦</span></div><div class="forge-room-grid" aria-label="Customisable room">${tiles}</div><p class="forge-room-hint">${picked?'Choose an empty space for your selected item.':placed.size?'Tap furniture to return it to your inventory.':'Your room is waiting for its first piece.'}</p></div><div class="forge-section-title"><h3>Inventory <span>${loose.length}</span></h3><small>Choose an item to place</small></div><div class="forge-inventory">${inventory}</div><div class="forge-section-title"><h3>Crafting bench</h3><small>${GAME_RECIPES.length} starter blueprints</small></div><div class="forge-recipes">${recipes}</div><p class="quest-help">Materials are fictional and generated once per real task or daily habit check-in. Older Journey rewards count too. Crafting and decoration stay saved in your ATLAS backups.</p></section>`;
 }
-function gameTaskRow(t){const old=t.done;return `<div class="quest-entry"><input type="checkbox" class="check" data-action="toggle-task" data-id="${esc(t.id)}" ${old?'checked':''} aria-label="${old?'Reopen':'Complete'} ${esc(t.title)}"><div class="quest-entry-info"><strong>${esc(t.title)}</strong><small>${old?'Complete · ':''}${t.repeat!=='none'?'↻ '+esc(t.repeat)+' · ':''}${t.due?esc(humanDate(t.due))+' · ':''}+20 XP / 5 coins on first completion</small></div><button type="button" class="micro" data-action="edit" data-type="task" data-id="${esc(t.id)}" aria-label="Edit ${esc(t.title)}">↗</button></div>`;}
+function gameSkillsScreen(){
+ const progress=gameSkillTotals();
+ return `<section class="forge-skills"><div class="quest-section-head"><div><h2>Skill progress</h2><p>Eight independent paths. Every earned point stays with its skill.</p></div></div><div class="forge-skill-grid">${GAME_SKILLS.map(s=>{
+  const current=progress[s.id],percent=Math.min(100,Math.round(current.levelXP/current.levelNeeded*100));
+  return `<article class="forge-skill-card"><div class="forge-skill-top"><span class="forge-skill-emblem" aria-hidden="true">${s.symbol}</span><span class="forge-skill-level">Lvl ${current.level}</span></div><strong>${esc(s.name)}</strong><small>${esc(s.description)}</small><div class="quest-track" role="progressbar" aria-label="${esc(s.name)} level progress" aria-valuenow="${current.levelXP}" aria-valuemin="0" aria-valuemax="${current.levelNeeded}"><span style="width:${percent}%"></span></div><div class="forge-skill-foot"><span>${current.levelXP} / ${current.levelNeeded} XP</span><span>${current.actions} actions</span></div></article>`;
+ }).join('')}</div><p class="quest-help">Choose a skill in the task editor before completing it. Estimated duration and priority determine its one-time XP reward. Older tasks retain their earned XP as Focus; older habits count towards Discipline. Rest and missed days never reduce skill levels.</p></section>`;
+}
+function gameTaskRow(t){const old=t.done,earned=data.game.awards.find(a=>a.key==='task:'+t.id),reward=earned||gameTaskReward(t),skill=GAME_SKILLS.find(s=>s.id===(earned?(earned.skill||'focus'):gameTaskSkill(t)));return `<div class="quest-entry"><input type="checkbox" class="check" data-action="toggle-task" data-id="${esc(t.id)}" ${old?'checked':''} aria-label="${old?'Reopen':'Complete'} ${esc(t.title)}"><div class="quest-entry-info"><strong>${esc(t.title)}</strong><small>${old?'Complete · ':''}${t.repeat!=='none'?'↻ '+esc(t.repeat)+' · ':''}${t.due?esc(humanDate(t.due))+' · ':''}${esc(skill?.name||'Focus')} · ${earned?'Earned':'Est.'} +${reward.xp} XP / ${reward.coins} coins</small></div><button type="button" class="micro" data-action="edit" data-type="task" data-id="${esc(t.id)}" aria-label="Edit ${esc(t.title)}">↗</button></div>`;}
 function gameScreen(){
  const stats=gameTotals(),today=calLondonToday(),week={start:calStartWeek(today),end:today};
- const tabs=[['habits','Habits','✦'],['dailies','Dailies','▦'],['todos','To-dos','✓'],['forge','Workshop','⚒'],['rewards','Rewards','◈']];
+ const tabs=[['habits','Habits','✦'],['dailies','Dailies','▦'],['todos','To-dos','✓'],['skills','Skills','◇'],['forge','Workshop','⚒'],['rewards','Rewards','◈']];
  const realActions=data.game.awards.filter(a=>a.kind!=='milestone').length;
  const progress=Math.min(5,realActions),objectiveDone=data.game.awards.some(a=>a.key==='milestone:first-five');
  const bar=Math.round(stats.levelXP/stats.levelNeeded*100);
@@ -2235,7 +2292,9 @@ function gameScreen(){
   const daily=gameTab==='dailies',tasks=data.tasks.filter(t=>daily?t.repeat!=='none':t.repeat==='none');
   const open=tasks.filter(t=>!t.done).sort(byPriority),finished=tasks.filter(t=>t.done).sort((a,b)=>(b.completedAt||0)-(a.completedAt||0)).slice(0,3);
   const shown=[...open.slice(0,60),...finished];
-  contents=`<div class="quest-section-head"><div><h2>${daily?'Repeat & grow':'One quest at a time'}</h2><p>${daily?'Repeating tasks carry over when completed':'Finish a task · +20 XP, 5 coins'}</p></div><button class="action ghost small" data-action="${daily?'game-new-daily':'new-task'}">＋ ${daily?'Daily':'To-do'}</button></div>${shown.length?shown.map(gameTaskRow).join(''):`<div class="quest-empty"><span>${daily?'▦':'✓'}</span><strong>${daily?'Nothing on repeat yet.':'Your quest log is clear.'}</strong><p>${daily?'Add a daily or weekly task and build consistency.':'Add something that needs doing — the rest will follow.'}</p><button class="action small" data-action="${daily?'game-new-daily':'new-task'}">Add ${daily?'a recurring task':'a to-do'}</button></div>`}${open.length>60?`<button class="action ghost small" data-action="goto-today">See ${open.length-60} more in Tasks</button>`:''}`;
+  contents=`<div class="quest-section-head"><div><h2>${daily?'Repeat & grow':'One quest at a time'}</h2><p>${daily?'Repeating tasks carry over when completed':'Earn XP based on estimated effort and priority'}</p></div><button class="action ghost small" data-action="${daily?'game-new-daily':'new-task'}">＋ ${daily?'Daily':'To-do'}</button></div>${shown.length?shown.map(gameTaskRow).join(''):`<div class="quest-empty"><span>${daily?'▦':'✓'}</span><strong>${daily?'Nothing on repeat yet.':'Your quest log is clear.'}</strong><p>${daily?'Add a daily or weekly task and build consistency.':'Add something that needs doing — the rest will follow.'}</p><button class="action small" data-action="${daily?'game-new-daily':'new-task'}">Add ${daily?'a recurring task':'a to-do'}</button></div>`}${open.length>60?`<button class="action ghost small" data-action="goto-today">See ${open.length-60} more in Tasks</button>`:''}`;
+ }else if(gameTab==='skills'){
+  contents=gameSkillsScreen();
  }else if(gameTab==='forge'){
   contents=gameWorkshop();
  }else{
@@ -2250,7 +2309,7 @@ function gameAddReward(){
 }
 function gameAction(element){
  const a=element.dataset.action,ref=element.dataset.id;
- if(a==='game-tab'){if(!['habits','dailies','todos','forge','rewards'].includes(element.dataset.tab))return;gameTab=element.dataset.tab;return render()}
+ if(a==='game-tab'){if(!['habits','dailies','todos','skills','forge','rewards'].includes(element.dataset.tab))return;gameTab=element.dataset.tab;return render()}
  if(a==='game-toggle'){data.game.enabled=!data.game.enabled;return commit(data.game.enabled?'Journey enabled':'Journey paused')}
  if(a==='game-craft'){
   const result=gameTransact(()=>{
@@ -2618,6 +2677,7 @@ const projectOptions=()=>[['','No project'],...data.projects.filter(p=>p.status!
 function openModal(type,ref='',forcedProject='',forcedPlanned=''){
 const coll=({task:'tasks',project:'projects',note:'notes',money:'money',goal:'goals'})[type];const old=coll?byId(data[coll],ref):null;modalState={type,ref,projectId:forcedProject,planned:forcedPlanned};let form='';
 if(type==='task')form=field('title','Task',old?.title||'','text','required maxlength="240" placeholder="What needs doing?"')+`<div class="form-cols">${field('due','Due date',old?.due||'','date')}${field('planned','Plan to do it',old?.planned||forcedPlanned||'','date')}</div>`+`<details class="signature-advanced" ${old?'open':''}><summary>More options <span aria-hidden="true">⌄</span></summary>`+area('details','Details · optional',old?.details||'',3,'maxlength="20000" placeholder="Useful context, links, instructions…"')+`<div class="form-cols">${field('scheduledTime','Calendar start time (optional)',old?.scheduledTime||'','time')}${field('durationMins','Estimated minutes',old?.durationMins||30,'number','min="5" max="720" step="5"')}</div>`+`<div class="form-cols">${dropdown('priority','Priority',[['high','High'],['normal','Normal'],['low','Low']],old?.priority||'normal')}${dropdown('repeat','Repeat',[['none','Never'],['daily','Daily'],['weekdays','Weekdays'],['weekly','Weekly'],['monthly','Monthly']],old?.repeat||'none')}</div>`+dropdown('projectId','Project',projectOptions(),old?.projectId||forcedProject||'')+dropdown('stage','Workflow',[['inbox','Inbox — organise later'],['planned','Organised']],old?.stage||'planned')+area('subtasks','Subtasks · one per line',(old?.subtasks||[]).map(s=>s.title).join('\n'),4,'placeholder="First small step\nSecond small step" maxlength="3000"')+`${old?.subtasks?.length?`<div class="card flat"><div class="card-head">CHECK OFF STEPS</div>${old.subtasks.map(st=>`<label class="between" style="padding:8px 0;gap:10px"><span class="small" style="flex:1">${esc(st.title)}</span><input class="switch" type="checkbox" data-action="toggle-subtask" data-id="${esc(old.id)}" data-sub="${esc(st.id)}" ${st.done?'checked':''}></label>`).join('')}</div>`:''}<div class="status">On completion, repeating tasks generate the next occurrence. Existing completed items remain in history.</div>`+`</details>`;
+if(type==='task')form+=dropdown('forgeSkill','FORGED skill · optional',[['','Automatic — based on task type'],...GAME_SKILLS.map(s=>[s.id,s.name])],old?.forgeSkill||'')+'<p class="fine">Estimated minutes and priority determine one-time XP. Choose which skill the task trains.</p>';
 if(type==='project')form=field('title','Project name',old?.title||'','text','required maxlength="180" placeholder="e.g. Pass driving test"')+area('description','What success looks like',old?.description||'',4,'maxlength="3000" placeholder="Outcome, next milestone, why it matters…"')+dropdown('status','Status',[['active','Active'],['paused','On hold'],['done','Finished']],old?.status||'active');
 if(type==='note')form=field('title','Note title',old?.title||'','text','required maxlength="200" placeholder="What is this about?"')+area('body','Write your note',old?.body||'',11,'maxlength="100000" placeholder="Ideas, plans, checklists, useful links…"')+dropdown('projectId','Project',projectOptions(),old?.projectId||forcedProject||'')+`<label class="between" style="padding:12px 0"><span class="small">◆ Pin this note</span><input class="switch" name="pinned" type="checkbox" ${old?.pinned?'checked':''}></label><div class="fine">You can write headings with # and **bold** text. Nothing is sent to AI.</div>`;
 if(type==='money')form=field('title','Name',old?.title||'','text','required maxlength="200" placeholder="Electricity, rent, repayment…"')+`<div class="form-cols">${field('amount','Amount (£)',old?.amount||'','number','min="0.01" step="0.01" required')}${field('due','Due date',old?.due||'','date')}</div>`+dropdown('kind','Type',[['bill','Bill'],['debt','Debt']],old?.kind||'bill');
@@ -2672,16 +2732,27 @@ if(type==='balance'){const s=String(values.balance||'').trim();if(s!==''&&(!Numb
 if(type==='quick'){if(!atlasCaptureTask(title))throw Error(storageWarning||'Task not saved. Your text is kept here; please try again.');closeModal();return}
 let item={...old,id:ref||id(),title};
 if(type==='task'){if(!validDate(values.due)||!validDate(values.planned))throw Error('Enter valid dates.');if(values.scheduledTime&&!calValidTime(values.scheduledTime))throw Error('Invalid calendar start time.');if(+values.durationMins<5||+values.durationMins>720)throw Error('Duration must be between 5 and 720 minutes.');const titles=String(values.subtasks||'').split('\n').map(x=>x.trim()).filter(Boolean).slice(0,50);const prev=old?.subtasks||[];const used=new Set();const subtasks=titles.map(s=>{const match=prev.find(x=>x.title===s&&!used.has(x.id));if(match){used.add(match.id);return match}return {id:id(),title:s,done:false}});item=normalizeTask({...item,details:String(values.details||'').slice(0,20000),due:values.due||'',planned:values.planned||'',priority:values.priority,repeat:values.repeat,projectId:values.projectId||'',stage:values.stage,scheduledTime:values.scheduledTime||'',durationMins:+values.durationMins||30,subtasks,done:old?.done||false,focus:old?.focus||false,createdAt:old?.createdAt||Date.now()});}
+if(type==='task'){
+ if(values.forgeSkill&&!gameValidSkill(values.forgeSkill))throw Error('Choose a valid FORGED skill.');
+ item.forgeSkill=values.forgeSkill||'';
+}
 if(type==='project')item={...item,description:String(values.description||'').slice(0,3000),status:['active','paused','done'].includes(values.status)?values.status:'active',createdAt:old?.createdAt||Date.now()};
 if(type==='note')item={...item,body:String(values.body||'').slice(0,100000),projectId:values.projectId||'',pinned:values.pinned==='on',createdAt:old?.createdAt||Date.now(),updatedAt:Date.now()};
 if(type==='money'){const amt=Number(values.amount);if(!Number.isFinite(amt)||amt<=0)throw Error('Amount must be greater than zero.');if(!validDate(values.due))throw Error('Invalid due date.');item={...item,amount:Math.round(amt*100)/100,due:values.due||'',kind:values.kind==='debt'?'debt':'bill',paid:old?.paid||false};}
 if(type==='goal'){const target=Number(values.target),current=Number(values.current);if(!Number.isFinite(target)||target<=0||!Number.isFinite(current)||current<0)throw Error('Target must be above zero and progress cannot be negative.');item={...item,target,current,unit:String(values.unit||'').slice(0,24)};if(!old||Number(old.current)!==current)data.goalHistory.push({id:id(),goalId:item.id,date:calLondonToday(),value:current,createdAt:Date.now()});}
 if(old)data[list]=data[list].map(x=>x.id===ref?item:x);else data[list].unshift(item);closeModal();commit(old?'Updated successfully':'Added to ATLAS');}
 function nextRecurring(t){const anchor=validDate(t.due)&&t.due&&dayDiff(t.due)>=0?t.due:dateKey();if(t.repeat==='none')return null;let next=anchor;if(t.repeat==='daily')next=dateAdd(anchor,1);if(t.repeat==='weekly')next=dateAdd(anchor,7);if(t.repeat==='weekdays'){next=dateAdd(anchor,1);while([0,6].includes(new Date(next+'T12:00:00').getDay()))next=dateAdd(next,1)}if(t.repeat==='monthly'){const d=new Date(anchor+'T12:00:00'),day=d.getDate();d.setDate(1);d.setMonth(d.getMonth()+1);const last=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();d.setDate(Math.min(day,last));next=dateKey(d)}return next;}
-function toggleTask(ref,done){const t=byId(data.tasks,ref);if(!t||t.done===done)return;t.done=done;t.completedAt=done?Date.now():null;t.focus=done?false:t.focus;
+function toggleTask(ref,done){const t=byId(data.tasks,ref);if(!t||t.done===done)return;const before={done:t.done,completedAt:t.completedAt,focus:t.focus},taskCount=data.tasks.length,awardCount=data.game.awards.length;t.done=done;t.completedAt=done?Date.now():null;t.focus=done?false:t.focus;
 if(done&&t.repeat!=='none'){const next=nextRecurring(t);const marker=`repeat:${t.id}:${next}`;if(next&&!data.tasks.some(x=>x.source===marker)){const copy=normalizeTask({...t,id:id(),done:false,completedAt:null,createdAt:Date.now(),createdAtInferred:false,due:next,planned:'',focus:false,stage:'planned',subtasks:(t.subtasks||[]).map(s=>({...s,id:id(),done:false})),source:marker});data.tasks.push(copy);}}
-if(done)gameAward('task','task:'+t.id);
-commit(done?'Task completed':'Task reopened');}
+if(done)gameAward('task','task:'+t.id,gameTaskReward(t));
+if(!commit(done?'Task completed':'Task reopened')){
+ Object.assign(t,before);
+ data.tasks.length=taskCount;
+ data.game.awards.length=awardCount;
+ render();
+ return false;
+}
+return true;}
 function deleteRecord(type,ref){const coll=({task:'tasks',project:'projects',note:'notes',money:'money',goal:'goals'})[type];if(!coll)return;const item=byId(data[coll],ref);if(!item)return;if(!confirm(`Permanently delete “${item.title}”?${type==='goal'?' Its recorded progress history will also be removed.':''} Export a backup first if you may need it.`))return;
 if(type==='goal')data.goalHistory=data.goalHistory.filter(x=>x.goalId!==ref);
 if(type==='project'){for(const t of data.tasks)if(t.projectId===ref)t.projectId='';for(const n of data.notes)if(n.projectId===ref)n.projectId='';if(projectOpen===ref)projectOpen=null}
