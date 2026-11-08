@@ -1,3 +1,11 @@
+ATLAS / FORGE — Reward rollback released (8 November 2026)
+Release source: main 242a4cad419769a5673e44d56ff5ca60dc7dd104, merged PR #52. Final PR CI run 42536082575 passed on 3c881c201f47458f65936c16737b47954ed5fa8e; merged tree exactly matched that tested head. No unrelated work merged.
+Live deployment: dpl_4jwhBWzgzApp5Ra38ehaBmhHnUgP, READY, production alias https://atlas-personal-ios.vercel.app/ verified by deployment alias metadata and byte comparison of all eight public runtime files to reviewed source. Direct preview promotion returned HTTP 422; redeployment of the verified preview source to the existing project's production target succeeded. Deployment metadata identifies the merge commit; runtime files are identical to implementation 4a9eea2 (later commits changed tests/log only).
+Post-release: unmodified tests/forge-rewards-browser.mjs passed against the production alias at 320/393/1366px: real tasks award coins, failed quota save preserves prior balance/claims, cancel is unchanged, keyboard retry spends once, reload retains correct history, no overflow/page errors. Preview offline reload and Rewards navigation also passed with zero console/page errors. All test data stayed in isolated browser contexts.
+Rollback retained: dpl_2ZnLY3ayCT1ceZA4ebQr1EAR3uHM / 1d7556b828905b5547694bb544b25dcbb754faa5. No release blocker remains. Physical iPhone Safari/Android remains untested; next priority is other Journey failed-save rollback paths, then the pending crafting-goal integration. This follow-up changes only the engineering log.
+
+---
+
 ATLAS / FORGE — Reward redemption verification continuation (8 November 2026)
 Reviewed source: 3566a5b006123eac5811ff803906c4c1acb78666 (fix 4a9eea285f8c0b57c49eea9f7458832b7c28c848), PR #52. Continued the unfinished cycle after the user confirmed the prior run had finished; refreshed both branch heads and acquired a local atomic run lock.
 Before/after: production reproduced a phantom deduction from 35 to 15 coins after a failed redemption save; the fixed preview retains 35 coins and retry spends exactly once. Existing claims and the shared real-task award ledger survive reload. No schema/storage key/auth changes.
