@@ -21,10 +21,10 @@ try{
   }
   await page.getByRole('tab',{name:'Rewards'}).click();
   const claim=page.locator('[data-action="game-claim"][data-id="break"]');
-  assert.equal(await page.locator('.quest-coins').innerText(),'◈55 coins');
+  assert.equal(await page.locator('.quest-coins').textContent(),'◈55 coins');
   page.once('dialog',dialog=>dialog.accept());
   await claim.click();
-  assert.equal(await page.locator('.quest-coins').innerText(),'◈35 coins');
+  assert.equal(await page.locator('.quest-coins').textContent(),'◈35 coins');
   const before=await page.evaluate(key=>localStorage.getItem(key),key);
   await page.evaluate(key=>{
    const original=Storage.prototype.setItem;
@@ -38,7 +38,7 @@ try{
   // Force a fresh render: an unchanged stale label alone cannot prove rollback.
   await page.getByRole('tab',{name:'To-dos'}).click();
   await page.getByRole('tab',{name:'Rewards'}).click();
-  assert.equal(await page.locator('.quest-coins').innerText(),'◈35 coins');
+  assert.equal(await page.locator('.quest-coins').textContent(),'◈35 coins');
   await page.evaluate(()=>window.restoreRewardStorage());
   page.once('dialog',dialog=>dialog.dismiss());
   await claim.click();
@@ -46,14 +46,14 @@ try{
   page.once('dialog',dialog=>dialog.accept());
   await claim.focus();
   await page.keyboard.press('Enter');
-  assert.equal(await page.locator('.quest-coins').innerText(),'◈15 coins');
+  assert.equal(await page.locator('.quest-coins').textContent(),'◈15 coins');
   const saved=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),key);
   assert.equal(saved.game.claims.length,2,'only the two successful redemptions persist');
   assert.equal(saved.game.awards.length,6,'task and milestone rewards stay intact');
   await page.reload();
   await page.locator('#nav [data-page="gameScreen"]').click();
   await page.getByRole('tab',{name:'Rewards'}).click();
-  assert.equal(await page.locator('.quest-coins').innerText(),'◈15 coins');
+  assert.equal(await page.locator('.quest-coins').textContent(),'◈15 coins');
   assert.equal(await claim.isDisabled(),true,'insufficient coins disables another redemption');
   const layout=await page.evaluate(()=>({width:document.documentElement.clientWidth,scroll:document.documentElement.scrollWidth}));
   assert.ok(layout.scroll<=layout.width+2,`no overflow at ${width}px`);
