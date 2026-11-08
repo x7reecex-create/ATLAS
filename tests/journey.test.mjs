@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
-const normalizer=html.slice(html.indexOf('const gameDefaults='),html.indexOf('const defaults='));
+const normalizer=html.slice(html.indexOf('const GAME_MATERIALS='),html.indexOf('const defaults='));
 const game=html.slice(html.indexOf('/* Journey derives'),html.indexOf('function home(){'));
 
 function harness(){

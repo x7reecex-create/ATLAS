@@ -1304,6 +1304,63 @@ h1,h2,h3{font-family:var(--atlas-display-font);font-optical-sizing:auto;letter-s
 @media(max-width:390px){.quest-hero{padding:18px 15px}.quest-avatar{width:79px;height:100px}.quest-avatar svg{width:68px;height:82px}.quest-profile{gap:12px}.quest-profile-main h2{font-size:20px}.quest-tabs button{font-size:10px}.quest-reward{padding:13px}}
 @media(prefers-reduced-motion:reduce){.quest-track>span{transition:none}}
 
+/* ATLAS / FORGE — a compact, original, local-first workshop. */
+.atlas-journey .quest-tabs{grid-template-columns:repeat(5,minmax(0,1fr));gap:3px}
+.atlas-journey .quest-tabs button{min-width:0;padding:8px 1px;font-size:11px}
+.forge-screen{--forge-brass:#c8a679;--forge-sage:#92b69c;--forge-shadow:rgba(0,0,0,.24)}
+.forge-screen h2,.forge-screen h3{margin:0;letter-spacing:-.035em}
+.forge-intro{padding:5px 2px 17px}
+.forge-intro .quest-kicker,.forge-room-header .quest-kicker{font-size:10px;letter-spacing:.15em;color:var(--forge-brass);font-weight:850}
+.forge-intro h2{margin-top:5px;font-size:26px;color:var(--text)}
+.forge-intro p{max-width:45ch;color:var(--muted);line-height:1.5;margin:9px 0 0;font-size:13px}
+.forge-materials{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin:0 0 18px}
+.forge-material{min-width:0;padding:11px 8px;display:flex;align-items:center;flex-direction:column;gap:6px;text-align:center;border:1px solid var(--border);border-radius:12px;background:var(--surface)}
+.forge-material strong{display:block;letter-spacing:.05em;font-size:10px;font-weight:850;overflow-wrap:anywhere}
+.forge-material small{display:block;color:var(--muted);font-size:10px;margin-top:3px;font-variant-numeric:tabular-nums}
+.forge-material-symbol{width:35px;height:35px;display:grid;place-items:center;border-radius:10px;font-size:19px;font-weight:900;color:#eac296;background:#4e382b;border:1px solid #906343}
+.forge-material-symbol.iron{color:#c1d0da;background:#3b4750;border-color:#627988}
+.forge-material-symbol.fibre{color:#bdd8a4;background:#334a39;border-color:#60755b}
+.forge-material-symbol.essence{color:#d9bffb;background:#493c65;border-color:#756093}
+.forge-room-card{overflow:hidden;padding:0;background:var(--surface);border:1px solid var(--border);border-radius:20px;box-shadow:0 16px 40px var(--forge-shadow)}
+.forge-room-header{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:18px 18px 14px}
+.forge-room-header h3{font-size:20px;margin-top:3px}
+.forge-room-count{font-size:11px;font-weight:750;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.forge-room-wall{height:80px;position:relative;background:linear-gradient(0deg,rgba(20,14,19,.22) 0 5px,transparent 5px),repeating-linear-gradient(90deg,#423840 0 22px,#4b3d42 22px 24px);border-top:1px solid #67545b;border-bottom:7px solid #756052;display:grid;place-items:center}
+.forge-window{width:59px;height:51px;border:6px solid #a17e65;background:linear-gradient(160deg,#354a62,#64728a);display:grid;place-items:center;color:#f3d9a4;font-size:22px;box-shadow:0 5px 0 #3d3138,inset 0 0 0 2px #7d8997}
+.forge-room-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;padding:11px;max-width:480px;margin:auto;background:linear-gradient(45deg,rgba(0,0,0,.045) 25%,transparent 25%,transparent 75%,rgba(0,0,0,.045) 75%),linear-gradient(160deg,#947354,#665344);background-size:28px 28px,auto}
+.forge-room-tile{position:relative;min-width:0;aspect-ratio:1.12;min-height:73px;border:1px solid rgba(230,201,165,.26);border-radius:5px;display:grid;place-items:center;background:linear-gradient(135deg,rgba(255,230,185,.065),rgba(42,23,21,.1));color:#e8d3af;cursor:pointer;transition:background .15s,border-color .15s}
+.forge-room-tile.occupied{background:radial-gradient(circle at 50% 85%,rgba(23,11,11,.24),transparent 48%),rgba(255,224,181,.08)}
+.forge-room-tile.forge-target:not(.occupied){border:2px dashed #edd09b;background:rgba(211,173,111,.16)}
+.forge-room-tile:focus-visible{outline:3px solid #e9d3a1;outline-offset:-4px}
+.forge-room-tile .forge-sprite{width:min(76%,72px);height:auto;filter:drop-shadow(0 5px 1px rgba(39,22,17,.28))}
+.forge-tile-empty{font-size:24px;font-weight:350;opacity:.23}
+.forge-room-hint{margin:0;padding:10px 15px 15px;font-size:12px;text-align:center;color:var(--muted);line-height:1.4}
+.forge-section-title{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:23px 2px 12px}
+.forge-section-title h3{font-size:19px}
+.forge-section-title h3 span{color:var(--muted);font-size:12px;vertical-align:middle;padding-left:3px}
+.forge-section-title small{font-size:11px;color:var(--muted)}
+.forge-inventory{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.forge-inventory-item{min-width:0;display:flex;align-items:center;gap:8px;text-align:left;border:1px solid var(--border);border-radius:14px;padding:9px;background:var(--surface);color:var(--text);min-height:73px;cursor:pointer}
+.forge-inventory-item.selected{border-color:var(--forge-brass);background:color-mix(in srgb,var(--surface) 80%,var(--forge-brass))}
+.forge-inventory-item svg{width:46px;height:46px;flex:none;image-rendering:pixelated}
+.forge-inventory-item span{font-weight:750;font-size:12px;line-height:1.4;overflow-wrap:anywhere}
+.forge-inventory-item small{display:block;color:var(--muted);font-size:10px;margin-top:4px;font-weight:500}
+.forge-empty-note{grid-column:1/-1;color:var(--muted);font-size:12px;border:1px dashed var(--border);border-radius:13px;padding:16px;margin:0;line-height:1.5}
+.forge-recipes{display:grid;gap:8px}
+.forge-recipe{display:grid;grid-template-columns:67px minmax(0,1fr) auto;align-items:center;gap:12px;padding:12px;border:1px solid var(--border);border-radius:15px;background:var(--surface)}
+.forge-recipe-art{display:grid;place-items:center;width:65px;height:65px;border-radius:11px;background:linear-gradient(140deg,#3b3035,#22242b);border:1px solid #5c4d4b}
+.forge-recipe-art svg{width:56px;height:56px;image-rendering:pixelated}
+.forge-recipe-copy{min-width:0}
+.forge-recipe-copy strong{display:block;font-size:13px;color:var(--text)}
+.forge-recipe-copy p{font-size:11px;color:var(--muted);line-height:1.35;margin:4px 0}
+.forge-recipe-copy small{font-size:11px;font-weight:750;color:var(--forge-brass);line-height:1.4}
+.forge-recipe .action{min-height:44px;padding:8px 12px}
+.forge-recipe .action:disabled{opacity:.38;cursor:not-allowed}
+:root[data-atlas-theme="arctic"] .forge-screen{--forge-brass:#745028;--forge-shadow:rgba(50,65,90,.12)}
+:root[data-atlas-theme="arctic"] .forge-material-symbol{filter:saturate(.7)}
+@media(max-width:390px){.atlas-journey .quest-tabs button{font-size:9px}.atlas-journey .quest-tabs button span{font-size:17px}.forge-materials{gap:4px}.forge-material{padding:9px 3px}.forge-material strong{font-size:9px}.forge-material small{font-size:9px}.forge-recipe{grid-template-columns:52px minmax(0,1fr);gap:10px}.forge-recipe-art{width:52px;height:52px}.forge-recipe-art svg{width:43px;height:43px}.forge-recipe .action{grid-column:2;justify-self:start}}
+@media(prefers-reduced-motion:reduce){.forge-room-tile{transition:none}}
+
 </style>
 </head>
 <body>
@@ -1356,13 +1413,40 @@ function atlasContrastSafe(hex,against){
  }
  return target===0?'#000000':'#ffffff';
 }
-const gameDefaults=()=>({enabled:true,awards:[],rewards:[],claims:[]});
+/* FORGE materials come from the original one-time award ledger; they never need a second grant transaction. */
+const GAME_MATERIALS=['timber','iron','fibre','essence'];
+const GAME_DROPS={task:{timber:2,iron:1},habit:{fibre:2,essence:1},milestone:{timber:4,iron:2,fibre:2}};
+const GAME_RECIPES=[
+ {id:'stool',name:'Foundry stool',description:'A place to rest between adventures.',cost:{timber:2,iron:1}},
+ {id:'plant',name:'Evergreen planter',description:'A little life for your living space.',cost:{fibre:2,essence:1}},
+ {id:'shelf',name:'Workshop shelf',description:'Display the things you have built.',cost:{timber:4,iron:2}},
+ {id:'lamp',name:'Ember lantern',description:'Warm light for a late-night project.',cost:{iron:2,essence:2}},
+ {id:'rug',name:'Woven rug',description:'Make the workshop feel like home.',cost:{fibre:4,essence:1}},
+ {id:'bed',name:'Timber bed',description:'The first proper upgrade to your room.',cost:{timber:6,iron:2,fibre:4}}
+];
+const gameDefaults=()=>({enabled:true,awards:[],rewards:[],claims:[],crafted:[]});
+function gameSupply(awards,crafted){
+ const total={timber:0,iron:0,fibre:0,essence:0};
+ for(const award of awards)for(const [material,amount] of Object.entries(GAME_DROPS[award.kind]||{}))total[material]+=amount;
+ for(const item of crafted){const recipe=GAME_RECIPES.find(r=>r.id===item.recipeId);if(recipe)for(const [material,amount] of Object.entries(recipe.cost))total[material]-=amount;}
+ return total;
+}
 function gameNormalize(raw){
  const value=raw&&typeof raw==='object'&&!Array.isArray(raw)?raw:{};
  const awards=Array.isArray(value.awards)?value.awards.slice(0,10000).filter(x=>x&&typeof x.key==='string'&&x.key.length<=260&&['task','habit','milestone'].includes(x.kind)&&Number.isInteger(x.xp)&&x.xp>=0&&x.xp<=100&&Number.isInteger(x.coins)&&x.coins>=0&&x.coins<=50&&Number.isFinite(x.at)).map(x=>({key:x.key,kind:x.kind,xp:x.xp,coins:x.coins,at:x.at})):[];
  const rewards=Array.isArray(value.rewards)?value.rewards.slice(0,100).filter(x=>x&&typeof x.id==='string'&&x.id.length<=240&&typeof x.title==='string'&&x.title.trim()&&x.title.length<=120&&Number.isInteger(x.cost)&&x.cost>=1&&x.cost<=10000).map(x=>({id:x.id,title:x.title,cost:x.cost})):[];
  const claims=Array.isArray(value.claims)?value.claims.slice(0,10000).filter(x=>x&&typeof x.id==='string'&&x.id.length<=240&&typeof x.title==='string'&&x.title.length<=120&&Number.isInteger(x.cost)&&x.cost>=1&&x.cost<=10000&&Number.isFinite(x.at)).map(x=>({id:x.id,title:x.title,cost:x.cost,at:x.at})):[];
- return {enabled:value.enabled!==false,awards:awards.filter((x,i)=>awards.findIndex(y=>y.key===x.key)===i),rewards:rewards.filter((x,i)=>rewards.findIndex(y=>y.id===x.id)===i),claims:claims.filter((x,i)=>claims.findIndex(y=>y.id===x.id)===i)};
+ const uniqueAwards=awards.filter((x,i)=>awards.findIndex(y=>y.key===x.key)===i);
+ const crafted=[],usedIds=new Set(),usedSlots=new Set(),remaining=gameSupply(uniqueAwards,[]);
+ for(const item of Array.isArray(value.crafted)?value.crafted.slice(0,300):[]){
+  if(!item||typeof item!=='object'||typeof item.id!=='string'||!item.id||item.id.length>240||usedIds.has(item.id)||!GAME_RECIPES.some(r=>r.id===item.recipeId)||!Number.isSafeInteger(item.at)||item.at<0||typeof item.slot!=='string'||!/^([1-9])?$/.test(item.slot)||(item.slot&&usedSlots.has(item.slot)))continue;
+  const recipe=GAME_RECIPES.find(r=>r.id===item.recipeId);
+  if(Object.entries(recipe.cost).some(([material,count])=>remaining[material]<count))continue;
+  for(const [material,count] of Object.entries(recipe.cost))remaining[material]-=count;
+  usedIds.add(item.id);if(item.slot)usedSlots.add(item.slot);
+  crafted.push({id:item.id,recipeId:item.recipeId,at:item.at,slot:item.slot});
+ }
+ return {enabled:value.enabled!==false,awards:uniqueAwards,rewards:rewards.filter((x,i)=>rewards.findIndex(y=>y.id===x.id)===i),claims:claims.filter((x,i)=>claims.findIndex(y=>y.id===x.id)===i),crafted};
 }
 const defaults=()=>({version:4,tasks:[],projects:[],notes:[],calendarEvents:[],money:[],goals:[],transactions:[],timeEntries:[],habits:[],habitLogs:[],goalHistory:[],balanceHistory:[],balance:null,widgets:[],theme:'midnight',displayName:'',appearance:atlasAppearanceDefaults(),game:gameDefaults()});
 const $=id=>document.getElementById(id);
@@ -2063,6 +2147,26 @@ const GAME_REWARDS=[
  {id:'treat',title:'A little treat',cost:90,icon:'🎁'}
 ];
 let gameTab='habits';
+let gameSelectedCraft='';
+function gameMaterials(){return gameSupply(data.game.awards,data.game.crafted)}
+function gameCraft(recipeId){
+ if(!data.game.enabled||data.game.crafted.length>=300)return false;
+ const recipe=GAME_RECIPES.find(r=>r.id===recipeId);if(!recipe)return false;
+ const stock=gameMaterials();
+ if(Object.entries(recipe.cost).some(([material,count])=>stock[material]<count))return false;
+ data.game.crafted.push({id:id(),recipeId:recipe.id,at:Date.now(),slot:''});
+ return true;
+}
+function gamePlace(itemId,slot){
+ if(!data.game.enabled||!/^([1-9])$/.test(String(slot))||data.game.crafted.some(item=>item.slot===slot&&item.id!==itemId))return false;
+ const item=data.game.crafted.find(item=>item.id===itemId);if(!item||item.slot===slot)return false;
+ item.slot=slot;return true;
+}
+function gameUnplace(itemId){
+ if(!data.game.enabled)return false;
+ const item=data.game.crafted.find(item=>item.id===itemId);if(!item||!item.slot)return false;
+ item.slot='';return true;
+}
 function gameTotals(){
  const xp=data.game.awards.reduce((total,a)=>total+a.xp,0);
  const earned=data.game.awards.reduce((total,a)=>total+a.coins,0);
@@ -2082,10 +2186,32 @@ function gameAward(kind,key){
  return true;
 }
 function gameAvatar(){return `<svg viewBox="0 0 16 19" shape-rendering="crispEdges" role="img" aria-label="Pixel adventurer"><rect x="4" y="2" width="8" height="5" fill="#25202a"/><rect x="3" y="3" width="10" height="3" fill="#25202a"/><rect x="5" y="5" width="6" height="6" fill="#d8a078"/><rect x="4" y="7" width="8" height="3" fill="#d8a078"/><rect x="5" y="7" width="2" height="2" fill="#19151f"/><rect x="9" y="7" width="2" height="2" fill="#19151f"/><rect x="7" y="10" width="2" height="1" fill="#a66f58"/><rect x="4" y="11" width="8" height="5" fill="#a34a56"/><rect x="3" y="12" width="2" height="4" fill="#d8a078"/><rect x="11" y="12" width="2" height="4" fill="#d8a078"/><rect x="6" y="11" width="4" height="3" fill="#e6cfa4"/><rect x="5" y="16" width="3" height="2" fill="#35323d"/><rect x="9" y="16" width="3" height="2" fill="#35323d"/><rect x="4" y="18" width="4" height="1" fill="#16151c"/><rect x="9" y="18" width="4" height="1" fill="#16151c"/></svg>`;}
+/* Small original pixel-style furniture illustrations, kept inline so a saved room works offline. */
+function gameFurnitureSprite(type){
+ const parts={
+  stool:'<rect x="5" y="9" width="14" height="4" fill="#bf9563"/><rect x="7" y="13" width="3" height="8" fill="#73503d"/><rect x="15" y="13" width="3" height="8" fill="#73503d"/><rect x="6" y="8" width="12" height="2" fill="#efc28d"/><rect x="8" y="17" width="9" height="2" fill="#986944"/>',
+  plant:'<rect x="8" y="13" width="9" height="7" fill="#b46b52"/><rect x="7" y="12" width="11" height="3" fill="#e4a17b"/><rect x="11" y="5" width="3" height="9" fill="#466e56"/><rect x="5" y="7" width="7" height="4" fill="#76a67a"/><rect x="14" y="5" width="6" height="5" fill="#588d66"/><rect x="10" y="2" width="4" height="5" fill="#9bc594"/>',
+  shelf:'<rect x="4" y="3" width="3" height="19" fill="#956b4b"/><rect x="18" y="3" width="3" height="19" fill="#956b4b"/><rect x="5" y="8" width="15" height="3" fill="#d6a77b"/><rect x="5" y="17" width="15" height="3" fill="#d6a77b"/><rect x="8" y="3" width="4" height="5" fill="#8c4555"/><rect x="13" y="5" width="3" height="3" fill="#78a2a8"/><rect x="8" y="12" width="5" height="5" fill="#6b946e"/><rect x="15" y="13" width="3" height="4" fill="#b48056"/>',
+  lamp:'<rect x="10" y="3" width="4" height="3" fill="#8d7464"/><rect x="7" y="6" width="10" height="12" fill="#524251"/><rect x="9" y="7" width="6" height="10" fill="#f9c46e"/><rect x="10" y="9" width="4" height="7" fill="#f7a853"/><rect x="7" y="17" width="10" height="3" fill="#8d7464"/><rect x="5" y="20" width="14" height="2" fill="#c8a37b"/>',
+  rug:'<rect x="3" y="8" width="18" height="10" fill="#7d4955"/><rect x="5" y="10" width="14" height="6" fill="#b06f70"/><rect x="9" y="10" width="6" height="6" fill="#d6af87"/><rect x="11" y="12" width="2" height="2" fill="#815056"/><rect x="2" y="9" width="2" height="2" fill="#d4ba9a"/><rect x="2" y="14" width="2" height="2" fill="#d4ba9a"/><rect x="20" y="9" width="2" height="2" fill="#d4ba9a"/><rect x="20" y="14" width="2" height="2" fill="#d4ba9a"/>',
+  bed:'<rect x="3" y="7" width="18" height="12" fill="#875d4d"/><rect x="5" y="9" width="14" height="8" fill="#ba7d7f"/><rect x="5" y="9" width="6" height="5" fill="#eee0c9"/><rect x="12" y="9" width="7" height="8" fill="#9b5c68"/><rect x="3" y="17" width="18" height="3" fill="#bc9469"/><rect x="4" y="20" width="3" height="2" fill="#73503d"/><rect x="17" y="20" width="3" height="2" fill="#73503d"/>'
+ };
+ return `<svg class="forge-sprite" viewBox="0 0 24 24" shape-rendering="crispEdges" aria-hidden="true" focusable="false">${parts[type]||''}</svg>`;
+}
+function gameWorkshop(){
+ const stock=gameMaterials(),placed=new Map(data.game.crafted.filter(item=>item.slot).map(item=>[item.slot,item]));
+ const loose=data.game.crafted.filter(item=>!item.slot);
+ const picked=loose.find(item=>item.id===gameSelectedCraft);
+ const materials=GAME_MATERIALS.map(m=>`<div class="forge-material"><span class="forge-material-symbol ${m}" aria-hidden="true">${{timber:'▥',iron:'⬟',fibre:'⌁',essence:'✧'}[m]}</span><span><strong>${m.toUpperCase()}</strong><small>${stock[m]} available</small></span></div>`).join('');
+ const tiles=Array.from({length:9},(_,i)=>{const slot=String(i+1),item=placed.get(slot),recipe=GAME_RECIPES.find(r=>r.id===item?.recipeId);return `<button class="forge-room-tile ${item?'occupied':''} ${picked?'forge-target':''}" type="button" data-action="game-slot" data-slot="${slot}" aria-label="${item?'Pick up '+esc(recipe.name):picked?'Place '+esc(GAME_RECIPES.find(r=>r.id===picked.recipeId)?.name||'item')+' in space '+slot:'Empty room space '+slot}" title="${item?'Tap to pick up':picked?'Tap to place here':'Empty space'}">${item?gameFurnitureSprite(item.recipeId):'<span class="forge-tile-empty" aria-hidden="true">＋</span>'}</button>`}).join('');
+ const recipes=GAME_RECIPES.map(recipe=>{const affordable=Object.entries(recipe.cost).every(([m,n])=>stock[m]>=n);return `<div class="forge-recipe"><div class="forge-recipe-art">${gameFurnitureSprite(recipe.id)}</div><div class="forge-recipe-copy"><strong>${esc(recipe.name)}</strong><p>${esc(recipe.description)}</p><small>${Object.entries(recipe.cost).map(([m,n])=>`${n} ${m}`).join(' · ')}</small></div><button type="button" class="action small" data-action="game-craft" data-id="${recipe.id}" ${!affordable||data.game.crafted.length>=300?'disabled':''}>Craft</button></div>`}).join('');
+ const inventory=loose.length?loose.map(item=>{const recipe=GAME_RECIPES.find(r=>r.id===item.recipeId);return `<button type="button" class="forge-inventory-item ${picked?.id===item.id?'selected':''}" data-action="game-select" data-id="${esc(item.id)}" aria-pressed="${picked?.id===item.id}">${gameFurnitureSprite(item.recipeId)}<span>${esc(recipe.name)}<small>${picked?.id===item.id?'Selected — tap a room space':'Tap to place'}</small></span></button>`}).join(''):'<p class="forge-empty-note">Craft a piece of furniture and it will appear here.</p>';
+ return `<section class="forge-screen"><div class="forge-intro"><span class="quest-kicker">THE FIRST ROOM</span><h2>Your workshop</h2><p>Turn real effort into a place of your own. Earn materials in Tasks and Habits; make something here.</p></div><div class="forge-materials" aria-label="Crafting materials">${materials}</div><div class="forge-room-card"><div class="forge-room-header"><div><span class="quest-kicker">YOUR SPACE</span><h3>The Foundry</h3></div><span class="forge-room-count">${placed.size} / 9 furnished</span></div><div class="forge-room-wall"><span class="forge-window" aria-hidden="true">✦</span></div><div class="forge-room-grid" aria-label="Customisable room">${tiles}</div><p class="forge-room-hint">${picked?'Choose an empty space for your selected item.':placed.size?'Tap furniture to return it to your inventory.':'Your room is waiting for its first piece.'}</p></div><div class="forge-section-title"><h3>Inventory <span>${loose.length}</span></h3><small>Choose an item to place</small></div><div class="forge-inventory">${inventory}</div><div class="forge-section-title"><h3>Crafting bench</h3><small>${GAME_RECIPES.length} starter blueprints</small></div><div class="forge-recipes">${recipes}</div><p class="quest-help">Materials are fictional and generated once per real task or daily habit check-in. Older Journey rewards count too. Crafting and decoration stay saved in your ATLAS backups.</p></section>`;
+}
 function gameTaskRow(t){const old=t.done;return `<div class="quest-entry"><input type="checkbox" class="check" data-action="toggle-task" data-id="${esc(t.id)}" ${old?'checked':''} aria-label="${old?'Reopen':'Complete'} ${esc(t.title)}"><div class="quest-entry-info"><strong>${esc(t.title)}</strong><small>${old?'Complete · ':''}${t.repeat!=='none'?'↻ '+esc(t.repeat)+' · ':''}${t.due?esc(humanDate(t.due))+' · ':''}+20 XP / 5 coins on first completion</small></div><button type="button" class="micro" data-action="edit" data-type="task" data-id="${esc(t.id)}" aria-label="Edit ${esc(t.title)}">↗</button></div>`;}
 function gameScreen(){
  const stats=gameTotals(),today=calLondonToday(),week={start:calStartWeek(today),end:today};
- const tabs=[['habits','Habits','✦'],['dailies','Dailies','▦'],['todos','To-dos','✓'],['rewards','Rewards','◈']];
+ const tabs=[['habits','Habits','✦'],['dailies','Dailies','▦'],['todos','To-dos','✓'],['forge','Workshop','⚒'],['rewards','Rewards','◈']];
  const realActions=data.game.awards.filter(a=>a.kind!=='milestone').length;
  const progress=Math.min(5,realActions),objectiveDone=data.game.awards.some(a=>a.key==='milestone:first-five');
  const bar=Math.round(stats.levelXP/stats.levelNeeded*100);
@@ -2098,6 +2224,8 @@ function gameScreen(){
   const open=tasks.filter(t=>!t.done).sort(byPriority),finished=tasks.filter(t=>t.done).sort((a,b)=>(b.completedAt||0)-(a.completedAt||0)).slice(0,3);
   const shown=[...open.slice(0,60),...finished];
   contents=`<div class="quest-section-head"><div><h2>${daily?'Repeat & grow':'One quest at a time'}</h2><p>${daily?'Repeating tasks carry over when completed':'Finish a task · +20 XP, 5 coins'}</p></div><button class="action ghost small" data-action="${daily?'game-new-daily':'new-task'}">＋ ${daily?'Daily':'To-do'}</button></div>${shown.length?shown.map(gameTaskRow).join(''):`<div class="quest-empty"><span>${daily?'▦':'✓'}</span><strong>${daily?'Nothing on repeat yet.':'Your quest log is clear.'}</strong><p>${daily?'Add a daily or weekly task and build consistency.':'Add something that needs doing — the rest will follow.'}</p><button class="action small" data-action="${daily?'game-new-daily':'new-task'}">Add ${daily?'a recurring task':'a to-do'}</button></div>`}${open.length>60?`<button class="action ghost small" data-action="goto-today">See ${open.length-60} more in Tasks</button>`:''}`;
+ }else if(gameTab==='forge'){
+  contents=gameWorkshop();
  }else{
   const choices=[...GAME_REWARDS,...data.game.rewards.map(r=>({...r,icon:'★',custom:true}))];
   contents=`<div class="quest-section-head"><div><h2>Your rewards</h2><p>Spend coins on a treat you choose</p></div><button class="action ghost small" data-action="game-add-reward">＋ Reward</button></div><div class="quest-reward-grid">${choices.map(r=>`<div class="quest-reward"><div class="quest-reward-icon" aria-hidden="true">${r.icon}</div><strong>${esc(r.title)}</strong><div class="quest-reward-bottom"><span>◈ ${r.cost}</span><button data-action="game-claim" data-id="${esc(r.id)}" ${stats.coins<r.cost?'disabled':''}>Redeem</button></div>${r.custom?`<button type="button" class="quest-remove" data-action="game-remove-reward" data-id="${esc(r.id)}">Remove reward</button>`:''}</div>`).join('')}</div>${data.game.claims.length?`<div class="quest-history"><h2>Recently redeemed</h2><ul>${data.game.claims.slice(-5).reverse().map(c=>`<li>${esc(c.title)} · ${c.cost} coins · ${esc(calFormatDate(calWallParts(new Date(c.at)).date))}</li>`).join('')}</ul></div>`:''}<p class="quest-help">These are imaginary ATLAS coins, not money or purchases. You decide if and when to take a reward.</p>`;
@@ -2110,8 +2238,24 @@ function gameAddReward(){
 }
 function gameAction(element){
  const a=element.dataset.action,ref=element.dataset.id;
- if(a==='game-tab'){if(!['habits','dailies','todos','rewards'].includes(element.dataset.tab))return;gameTab=element.dataset.tab;return render()}
+ if(a==='game-tab'){if(!['habits','dailies','todos','forge','rewards'].includes(element.dataset.tab))return;gameTab=element.dataset.tab;return render()}
  if(a==='game-toggle'){data.game.enabled=!data.game.enabled;return commit(data.game.enabled?'Journey enabled':'Journey paused')}
+ if(a==='game-craft'){
+  if(!gameCraft(ref))return showToast('Not enough materials yet. Complete a task or habit to gather more.');
+  gameSelectedCraft=data.game.crafted[data.game.crafted.length-1].id;
+  return commit('Item crafted! Choose a room space to place it.');
+ }
+ if(a==='game-select'){
+  const item=data.game.crafted.find(item=>item.id===ref&&!item.slot);if(!item)return;
+  gameSelectedCraft=ref;return render();
+ }
+ if(a==='game-slot'){
+  const slot=element.dataset.slot,occupant=data.game.crafted.find(item=>item.slot===slot);
+  if(occupant){if(!gameUnplace(occupant.id))return;return commit('Furniture returned to inventory');}
+  if(!gameSelectedCraft)return showToast('Choose an item from your inventory first.');
+  if(!gamePlace(gameSelectedCraft,slot))return showToast('That space is not available.');
+  gameSelectedCraft='';return commit('Furniture placed in your room');
+ }
  if(a==='game-new-daily'){openModal('task');const select=$('f-repeat');if(select)select.value='daily';return}
  if(a==='game-add-reward')return gameAddReward();
  if(a==='game-remove-reward'){const reward=data.game.rewards.find(x=>x.id===ref);if(!reward||!confirm('Remove this reward? Past redemptions stay in your history.'))return;data.game.rewards=data.game.rewards.filter(x=>x.id!==ref);return commit('Reward removed')}
