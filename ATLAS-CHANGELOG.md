@@ -1,3 +1,11 @@
+ATLAS / FORGE — Hearthvale village (8 November 2026)
+Changes: optional 9×9 explorable pixel-style village with touch movement, clickable shortest-path travel and keyboard/D-pad controls. Five discoverable locations connect to the existing workshop, task quest board, habit check-ins, skill progress and crafting materials. The village changes visual stage as real tasks and habits accumulate. Position and discovered places persist in the same local `data.game` backup without a schema or server change.
+Safety: no XP, material or coin rewards for walking; no separate copies of tasks; existing save data normalises safely. Failed saves roll back world travel. Legacy craft placement and one-time reward rules are preserved.
+Verification: Node tests and separate 320px/393px/820px browser acceptance suite; browser suite runs in CI because this execution environment blocks Chromium sandbox sockets. Installed PWA cache advances to v38.
+Release: create isolated preview, wait for source and browser checks, then promote only verified source to production.
+
+---
+
 ATLAS — Rapid touch evolution (30 October 2026)
 Changes: horizontal taskbody swipes (right = complete, left = plan tomorrow with deadline unchanged), accessible long-press/right-click/ellipsis task menu, one-step Undo for quick task actions, persistent manual ordering of up to three Focus tasks by drag or menu, portrait Calendar gesture for week on date strip and day on agenda, and desktop timetable drag between weekdays with Undo. Keyboard/mouse controls remain and mobile timetable editor remains the touch move alternative.
 Safety: ignore system screen edges and predominantly vertical scroll gestures; preserve native vertical scrolling and reduced-motion settings. No destructive swipe, no invented cloud sync or background reminder service, no new network permissions, no schema migration. Backup captures focus ordering and timetable edits.

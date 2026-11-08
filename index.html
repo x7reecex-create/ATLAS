@@ -1367,9 +1367,54 @@ h1,h2,h3{font-family:var(--atlas-display-font);font-optical-sizing:auto;letter-s
 .forge-recipe-copy small{font-size:11px;font-weight:750;color:var(--forge-brass);line-height:1.4}
 .forge-recipe .action{min-height:44px;padding:8px 12px}
 .forge-recipe .action:disabled{opacity:.38;cursor:not-allowed}
+.forge-view-switch{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin:0 0 17px;padding:5px;background:var(--surface);border:1px solid var(--border);border-radius:15px}
+.forge-view-switch button{border:0;background:transparent;color:var(--muted);border-radius:10px;min-height:46px;font-size:12px;font-weight:800}
+.forge-view-switch button[aria-pressed="true"]{background:var(--surface2);color:var(--text);box-shadow:inset 0 0 0 1px var(--border)}
+.forge-world-stats{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px;font-size:11px;font-weight:800;color:var(--forge-brass);padding:0 3px 10px}
+.forge-world-card{max-width:500px;margin:0 auto;border:5px solid #362e35;border-radius:20px;overflow:hidden;background:#172d33;box-shadow:0 13px 34px rgba(0,0,0,.25)}
+.forge-world-sky{height:48px;padding:8px 16px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(#344965,#697a81);color:#f4d9a0;font-family:monospace;font-weight:900;letter-spacing:.07em;font-size:12px}
+.forge-world-sky span:first-child{font-size:25px;color:#fbdc88;text-shadow:0 0 12px #ffd58f}
+.forge-world-map{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));background:#577b50;border-top:4px solid #a1a08a;border-bottom:4px solid #342e36}
+.forge-world-tile{min-width:0;aspect-ratio:1;border:0;border-radius:0;position:relative;display:grid;place-items:center;padding:0;overflow:hidden;cursor:pointer;color:#f2e7cf;background:#71925c;box-shadow:inset -1px -1px rgba(34,60,35,.16);touch-action:manipulation}
+.forge-world-tile:nth-child(3n){background-color:#77985f}
+.forge-world-tile.meadow:before{content:' ';position:absolute;top:17%;left:22%;height:3px;width:3px;background:#b0bf71;box-shadow:14px 18px #4c7449,5px 22px #90b272}
+.forge-world-tile.road{background:#ab946a;box-shadow:inset 2px 2px #bfa87e,inset -2px -2px #887451}
+.forge-world-tile.landmark{background:#8ca269;box-shadow:inset 0 0 0 2px rgba(232,215,161,.23)}
+.forge-world-tile.forest{background:#3c6148;cursor:default}
+.forge-world-tile:focus-visible{outline:3px solid #fff2c3;outline-offset:-3px;z-index:2}
+.forge-world-tile[disabled]{opacity:1}
+.forge-world-grass{color:#bfd78b;font-size:19px;align-self:end}
+.forge-world-paving{width:28%;height:10%;background:#d0b58a;box-shadow:9px 7px #877454,-9px -10px #c5ad80}
+.forge-world-tree{width:60%;height:49%;position:relative;margin-top:-18%;background:#477b56;box-shadow:inset -5px -5px #2c5945,3px 5px #284c3c;border:3px solid #28503c;border-radius:4px}
+.forge-world-tree:before{content:'';position:absolute;left:29%;bottom:-38%;width:40%;height:35%;background:#74583b}
+.forge-world-building{width:74%;height:63%;display:grid;place-items:center;border:3px solid #534357;border-bottom:6px solid #473c44;background:#9f6c66;color:#fff1c8;font-size:clamp(12px,3vw,21px);font-weight:900;box-shadow:0 -6px #76565b,3px 5px #324b43;text-shadow:1px 2px #483a42}
+.forge-world-tile.discovered .forge-world-building{background:#b48866}
+.forge-world-map.stage-1 .forge-world-tile.landmark .forge-world-building{border-color:#90705a}
+.forge-world-map.stage-2 .forge-world-tile.landmark .forge-world-building{background:#b99472;box-shadow:0 -6px #8b635b,3px 5px #324b43,0 0 9px rgba(249,215,133,.45)}
+.forge-world-map.stage-3 .forge-world-tile.landmark .forge-world-building{background:#d2a878;border-color:#bc894c;color:#442c33}
+.forge-world-avatar{position:absolute;inset:-18% 12% -3%;z-index:1;display:grid;place-items:center;filter:drop-shadow(0 3px 1px #263629)}
+.forge-world-avatar svg{height:95%;width:80%;max-height:62px;image-rendering:pixelated}
+.forge-world-tile.player{box-shadow:inset 0 0 0 3px #eed59a}
+.forge-world-controls{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;background:#28373b;color:#ddceb0}
+.forge-world-controls>span{font-size:11px;font-weight:900;letter-spacing:.1em}
+.forge-world-controls small{font-size:10px;line-height:1.5;max-width:105px}
+.forge-dpad{display:grid;grid-template-columns:repeat(3,45px);grid-template-rows:repeat(2,45px);gap:3px}
+.forge-dpad button{background:#536263;border:1px solid #889386;border-bottom:3px solid #1e2e33;border-radius:9px;color:#fff0d0;font-size:25px;font-weight:800;touch-action:manipulation}
+.forge-dpad button:active{transform:translateY(2px);border-bottom-width:1px}
+.forge-dpad button:nth-child(1){grid-column:2;grid-row:1}.forge-dpad button:nth-child(2){grid-column:1;grid-row:2}.forge-dpad button:nth-child(3){grid-column:2;grid-row:2}.forge-dpad button:nth-child(4){grid-column:3;grid-row:2}
+.forge-location-card{margin:13px auto 0;padding:18px;max-width:500px;background:var(--surface);border:1px solid var(--border);border-radius:17px}
+.forge-location-card h3{margin-top:5px;font-size:21px}
+.forge-location-card p{margin:9px 0 13px;color:var(--muted);font-size:12px;line-height:1.55}
+.forge-location-card .forge-place-fact{color:var(--forge-brass);font-weight:800}
+.forge-board-list{display:grid;gap:7px;margin:13px 0}
+.forge-board-list label{display:flex;align-items:center;gap:11px;padding:10px;border:1px solid var(--border);border-radius:11px;min-width:0}
+.forge-board-list label span{font-size:12px;font-weight:750;overflow-wrap:anywhere}
+.forge-board-list label small{display:block;color:var(--muted);font-size:10px;margin-top:4px}
+.forge-board-list .check{flex:none;width:36px;height:36px}
 :root[data-atlas-theme="arctic"] .forge-screen{--forge-brass:#745028;--forge-shadow:rgba(50,65,90,.12)}
 :root[data-atlas-theme="arctic"] .forge-material-symbol{filter:saturate(.7)}
 @media(max-width:390px){.atlas-journey .quest-tabs button{font-size:9px}.atlas-journey .quest-tabs button span{font-size:17px}.forge-materials{gap:4px}.forge-material{padding:9px 3px}.forge-material strong{font-size:9px}.forge-material small{font-size:9px}.forge-recipe{grid-template-columns:52px minmax(0,1fr);gap:10px}.forge-recipe-art{width:52px;height:52px}.forge-recipe-art svg{width:43px;height:43px}.forge-recipe .action{grid-column:2;justify-self:start}}
+@media(max-width:380px){.forge-world-controls{gap:6px;padding:9px}.forge-world-controls small{max-width:72px}.forge-dpad{grid-template-columns:repeat(3,44px);grid-template-rows:repeat(2,44px);gap:2px}.forge-world-building{border-width:2px;border-bottom-width:4px}.forge-world-card{border-width:3px}}
 @media(prefers-reduced-motion:reduce){.forge-room-tile{transition:none}}
 
 </style>
@@ -1456,7 +1501,34 @@ const GAME_RECIPES=[
  {id:'rug',name:'Woven rug',description:'Make the workshop feel like home.',cost:{fibre:4,essence:1}},
  {id:'bed',name:'Timber bed',description:'The first proper upgrade to your room.',cost:{timber:6,iron:2,fibre:4}}
 ];
-const gameDefaults=()=>({enabled:true,awards:[],rewards:[],claims:[],crafted:[]});
+/* The village is a finite, hand-built map. Exploration never mints XP or materials. */
+const GAME_WORLD_MAP=[
+ 'tt.....tt',
+ 't...G...t',
+ '...p.p...',
+ '..ppppp..',
+ '..p.F.p..',
+ '..ppppp..',
+ '...p.p...',
+ '.Q..A..C.',
+ 'tt.....tt'
+];
+const GAME_LANDMARKS={
+ F:{name:'The Foundry',icon:'⚒',detail:'A workshop you can furnish with the materials earned from real-life effort.'},
+ G:{name:'Whisperwood Grove',icon:'♣',detail:'The trees are quiet. Your habits bring fibre and essence into the workshop.'},
+ Q:{name:'The Quest Board',icon:'✦',detail:'Your open ATLAS tasks appear here as quests. Completing them changes your real task list.'},
+ A:{name:'The Archive',icon:'▤',detail:'A record of the skills you have built, one completed action at a time.'},
+ C:{name:'Ember Camp',icon:'◆',detail:'A peaceful place to check on today’s habits. There are no streak penalties.'}
+};
+const gameWorldTile=(x,y)=>GAME_WORLD_MAP[y]?.[x]||null;
+const gameWorldWalkable=(x,y)=>Number.isInteger(x)&&Number.isInteger(y)&&!!gameWorldTile(x,y)&&gameWorldTile(x,y)!=='t';
+const gameWorldDefaults=()=>({x:4,y:5,visited:[]});
+function gameWorldNormalize(raw){
+ const v=raw&&typeof raw==='object'&&!Array.isArray(raw)?raw:{};
+ return {x:gameWorldWalkable(v.x,v.y)?v.x:4,y:gameWorldWalkable(v.x,v.y)?v.y:5,
+  visited:Array.isArray(v.visited)?[...new Set(v.visited.filter(key=>typeof key==='string'&&Object.hasOwn(GAME_LANDMARKS,key)))]:[]};
+}
+const gameDefaults=()=>({enabled:true,awards:[],rewards:[],claims:[],crafted:[],world:gameWorldDefaults()});
 function gameSupply(awards,crafted){
  const total={timber:0,iron:0,fibre:0,essence:0};
  for(const award of awards)for(const [material,amount] of Object.entries(GAME_DROPS[award.kind]||{}))total[material]+=amount;
@@ -1478,7 +1550,7 @@ function gameNormalize(raw){
   usedIds.add(item.id);if(item.slot)usedSlots.add(item.slot);
   crafted.push({id:item.id,recipeId:item.recipeId,at:item.at,slot:item.slot});
  }
- return {enabled:value.enabled!==false,awards:uniqueAwards,rewards:rewards.filter((x,i)=>rewards.findIndex(y=>y.id===x.id)===i),claims:claims.filter((x,i)=>claims.findIndex(y=>y.id===x.id)===i),crafted};
+ return {enabled:value.enabled!==false,awards:uniqueAwards,rewards:rewards.filter((x,i)=>rewards.findIndex(y=>y.id===x.id)===i),claims:claims.filter((x,i)=>claims.findIndex(y=>y.id===x.id)===i),crafted,world:gameWorldNormalize(value.world)};
 }
 const defaults=()=>({version:4,tasks:[],projects:[],notes:[],calendarEvents:[],money:[],goals:[],transactions:[],timeEntries:[],habits:[],habitLogs:[],goalHistory:[],balanceHistory:[],balance:null,widgets:[],theme:'midnight',displayName:'',appearance:atlasAppearanceDefaults(),game:gameDefaults()});
 const $=id=>document.getElementById(id);
@@ -2180,6 +2252,7 @@ const GAME_REWARDS=[
 ];
 let gameTab='habits';
 let gameSelectedCraft='';
+let gameForgeView='world';
 function gameMaterials(){return gameSupply(data.game.awards,data.game.crafted)}
 function gameCraft(recipeId){
  if(!data.game.enabled||data.game.crafted.length>=300)return false;
@@ -2260,6 +2333,65 @@ function gameFurnitureSprite(type){
  };
  return `<svg class="forge-sprite" viewBox="0 0 24 24" shape-rendering="crispEdges" aria-hidden="true" focusable="false">${parts[type]||''}</svg>`;
 }
+function gameWorldRoute(startX,startY,endX,endY){
+ if(!gameWorldWalkable(startX,startY)||!gameWorldWalkable(endX,endY))return [];
+ const frontier=[[startX,startY]],previous=new Map([[`${startX},${startY}`,null]]);
+ for(let i=0;i<frontier.length;i++){
+  const [x,y]=frontier[i];if(x===endX&&y===endY)break;
+  for(const [dx,dy] of [[0,-1],[1,0],[0,1],[-1,0]]){
+   const nx=x+dx,ny=y+dy,key=`${nx},${ny}`;
+   if(!gameWorldWalkable(nx,ny)||previous.has(key))continue;
+   previous.set(key,`${x},${y}`);frontier.push([nx,ny]);
+  }
+ }
+ const destination=`${endX},${endY}`;if(!previous.has(destination))return [];
+ const path=[];for(let key=destination;key!==null;key=previous.get(key))path.unshift(key.split(',').map(Number));
+ return path;
+}
+function gameWorldTravel(x,y){
+ if(!data.game.enabled)return false;
+ const original=data.game.world,world=gameWorldNormalize(original),path=gameWorldRoute(world.x,world.y,x,y);
+ if(path.length<2)return false;
+ const visitedBefore=world.visited.length;
+ world.x=x;world.y=y;
+ for(const [px,py] of path){const landmark=gameWorldTile(px,py);if(GAME_LANDMARKS[landmark]&&!world.visited.includes(landmark))world.visited.push(landmark)}
+ data.game.world=world;
+ if(!commit(world.visited.length>visitedBefore?'Place discovered':'')){
+  data.game.world=original;return null;
+ }
+ return true;
+}
+function gameWorldTileArt(tile){
+ if(tile==='t')return '<span class="forge-world-tree" aria-hidden="true"></span>';
+ if(GAME_LANDMARKS[tile])return `<span class="forge-world-building" aria-hidden="true">${GAME_LANDMARKS[tile].icon}</span>`;
+ if(tile==='p')return '<span class="forge-world-paving" aria-hidden="true"></span>';
+ return '<span class="forge-world-grass" aria-hidden="true">·</span>';
+}
+function gameWorldScreen(){
+ const world=gameWorldNormalize(data.game.world),here=gameWorldTile(world.x,world.y),place=GAME_LANDMARKS[here];
+ const actions=data.game.awards.filter(a=>a.kind!=='milestone').length;
+ const stage=actions>=30?3:actions>=12?2:actions>=5?1:0;
+ const stageNames=['Quiet beginnings','Finding its feet','A growing settlement','A thriving village'];
+ const tiles=GAME_WORLD_MAP.map((line,y)=>[...line].map((tile,x)=>{
+  const player=world.x===x&&world.y===y,blocked=tile==='t',location=GAME_LANDMARKS[tile];
+  const name=location?.name|| (tile==='p'?'Village path':blocked?'Trees':'Meadow');
+  return `<button type="button" class="forge-world-tile ${blocked?'forest':tile==='p'?'road':location?'landmark':'meadow'} ${player?'player':''} ${location&&world.visited.includes(tile)?'discovered':''}" data-action="game-world-travel" data-x="${x}" data-y="${y}" aria-label="${esc(name)}${player?', your position':''}" ${blocked?'disabled':''} ${player?'aria-current="true"':''}>${gameWorldTileArt(tile)}${player?`<span class="forge-world-avatar">${gameAvatar()}</span>`:''}</button>`;
+ }).join('')).join('');
+ const tasks=(data.tasks||[]).filter(t=>!t.done).slice(0,3);
+ const habits=(data.habits||[]),today=calLondonToday(),checked=(data.habitLogs||[]).filter(h=>h.date===today).length;
+ const totals=gameSkillTotals(),best=GAME_SKILLS.map(s=>({...s,...totals[s.id]})).sort((a,b)=>b.xp-a.xp)[0];
+ let detail='Walk to a landmark to discover what is there. Arrow buttons move one square; tapping a destination finds a safe path.';
+ let action='';
+ if(place){
+  detail=place.detail;
+  if(here==='F')action=`<p class="forge-place-fact">${data.game.crafted.length} pieces crafted · ${data.game.crafted.filter(i=>i.slot).length} placed</p><button type="button" class="action small" data-action="game-forge-view" data-view="workshop">Enter workshop →</button>`;
+  if(here==='Q')action=`<div class="forge-board-list">${tasks.length?tasks.map(t=>{const earned=data.game.awards.find(a=>a.key==='task:'+t.id),reward=earned||gameTaskReward(t),skill=earned?(earned.skill||'focus'):gameTaskSkill(t);return `<label><input type="checkbox" class="check" data-action="toggle-task" data-id="${esc(t.id)}" aria-label="Complete ${esc(t.title)}"><span>${esc(t.title)}<small>${earned?'Already earned':'Earn'} ${reward.xp} XP · ${esc(GAME_SKILLS.find(s=>s.id===skill)?.name||'Focus')}</small></span></label>`}).join(''):'<p>Nothing pending. Your quest board is clear.</p>'}</div><button type="button" class="action ghost small" data-action="game-tab" data-tab="todos">Full quest log →</button>`;
+  if(here==='G')action='<p class="forge-place-fact">Each daily habit check-in earns 2 fibre and 1 essence, once per habit per day.</p><button type="button" class="action ghost small" data-action="game-tab" data-tab="habits">View habits →</button>';
+  if(here==='A')action=`<p class="forge-place-fact">Strongest skill: ${esc(best.name)} · level ${best.level}</p><button type="button" class="action ghost small" data-action="game-tab" data-tab="skills">View skills →</button>`;
+  if(here==='C')action=`<p class="forge-place-fact">${checked} of ${habits.length} habits checked today</p><button type="button" class="action ghost small" data-action="game-tab" data-tab="habits">Today's habits →</button>`;
+ }
+ return `<section class="forge-screen"><div class="forge-intro"><span class="quest-kicker">THE WORLD OUTSIDE</span><h2>Hearthvale</h2><p>A tiny village that grows with your real-life progress. Explore it freely — there is no energy cost, punishment or XP farming.</p></div><div class="forge-world-stats"><span>✦ ${stageNames[stage]}</span><span>${world.visited.length} / ${Object.keys(GAME_LANDMARKS).length} places found</span></div><div class="forge-world-card"><div class="forge-world-sky" aria-hidden="true"><span>☀</span><span>HEARTHVALE · CHAPTER ${Math.max(1,Math.floor(actions/5)+1)}</span></div><div class="forge-world-map stage-${stage}" role="group" aria-label="Hearthvale village. Tap a reachable tile to travel there.">${tiles}</div><div class="forge-world-controls"><span>WALK</span><div class="forge-dpad" role="group" aria-label="Move your character"><button type="button" data-action="game-world-step" data-dx="0" data-dy="-1" aria-label="Walk north">↑</button><button type="button" data-action="game-world-step" data-dx="-1" data-dy="0" aria-label="Walk west">←</button><button type="button" data-action="game-world-step" data-dx="0" data-dy="1" aria-label="Walk south">↓</button><button type="button" data-action="game-world-step" data-dx="1" data-dy="0" aria-label="Walk east">→</button></div><small>Tap a tile or use arrows / WASD</small></div></div><div class="forge-location-card" aria-live="polite"><div><span class="quest-kicker">${place?'LOCATION DISCOVERED':'CURRENT LOCATION'}</span><h3>${place?`${place.icon} ${esc(place.name)}`:'The Crossroads'}</h3><p>${esc(detail)}</p></div>${action}</div><p class="quest-help">The village is saved in your private ATLAS workspace and backups. Real tasks and habits are still the only source of XP, coins and crafting materials.</p></section>`;
+}
 function gameWorkshop(){
  const stock=gameMaterials(),placed=new Map(data.game.crafted.filter(item=>item.slot).map(item=>[item.slot,item]));
  const loose=data.game.crafted.filter(item=>!item.slot);
@@ -2280,7 +2412,7 @@ function gameSkillsScreen(){
 function gameTaskRow(t){const old=t.done,earned=data.game.awards.find(a=>a.key==='task:'+t.id),reward=earned||gameTaskReward(t),skill=GAME_SKILLS.find(s=>s.id===(earned?(earned.skill||'focus'):gameTaskSkill(t)));return `<div class="quest-entry"><input type="checkbox" class="check" data-action="toggle-task" data-id="${esc(t.id)}" ${old?'checked':''} aria-label="${old?'Reopen':'Complete'} ${esc(t.title)}"><div class="quest-entry-info"><strong>${esc(t.title)}</strong><small>${old?'Complete · ':''}${t.repeat!=='none'?'↻ '+esc(t.repeat)+' · ':''}${t.due?esc(humanDate(t.due))+' · ':''}${esc(skill?.name||'Focus')} · ${earned?'Earned':'Est.'} +${reward.xp} XP / ${reward.coins} coins</small></div><button type="button" class="micro" data-action="edit" data-type="task" data-id="${esc(t.id)}" aria-label="Edit ${esc(t.title)}">↗</button></div>`;}
 function gameScreen(){
  const stats=gameTotals(),today=calLondonToday(),week={start:calStartWeek(today),end:today};
- const tabs=[['habits','Habits','✦'],['dailies','Dailies','▦'],['todos','To-dos','✓'],['skills','Skills','◇'],['forge','Workshop','⚒'],['rewards','Rewards','◈']];
+ const tabs=[['habits','Habits','✦'],['dailies','Dailies','▦'],['todos','To-dos','✓'],['skills','Skills','◇'],['forge','Forge','⚒'],['rewards','Rewards','◈']];
  const realActions=data.game.awards.filter(a=>a.kind!=='milestone').length;
  const progress=Math.min(5,realActions),objectiveDone=data.game.awards.some(a=>a.key==='milestone:first-five');
  const bar=Math.round(stats.levelXP/stats.levelNeeded*100);
@@ -2296,7 +2428,7 @@ function gameScreen(){
  }else if(gameTab==='skills'){
   contents=gameSkillsScreen();
  }else if(gameTab==='forge'){
-  contents=gameWorkshop();
+  contents=`<div class="forge-view-switch" role="group" aria-label="Forge view"><button type="button" data-action="game-forge-view" data-view="world" aria-pressed="${gameForgeView==='world'}">♣ Explore village</button><button type="button" data-action="game-forge-view" data-view="workshop" aria-pressed="${gameForgeView==='workshop'}">⚒ My workshop</button></div>${gameForgeView==='world'?gameWorldScreen():gameWorkshop()}`;
  }else{
   const choices=[...GAME_REWARDS,...data.game.rewards.map(r=>({...r,icon:'★',custom:true}))];
   contents=`<div class="quest-section-head"><div><h2>Your rewards</h2><p>Spend coins on a treat you choose</p></div><button class="action ghost small" data-action="game-add-reward">＋ Reward</button></div><div class="quest-reward-grid">${choices.map(r=>`<div class="quest-reward"><div class="quest-reward-icon" aria-hidden="true">${r.icon}</div><strong>${esc(r.title)}</strong><div class="quest-reward-bottom"><span>◈ ${r.cost}</span><button data-action="game-claim" data-id="${esc(r.id)}" ${stats.coins<r.cost?'disabled':''}>Redeem</button></div>${r.custom?`<button type="button" class="quest-remove" data-action="game-remove-reward" data-id="${esc(r.id)}">Remove reward</button>`:''}</div>`).join('')}</div>${data.game.claims.length?`<div class="quest-history"><h2>Recently redeemed</h2><ul>${data.game.claims.slice(-5).reverse().map(c=>`<li>${esc(c.title)} · ${c.cost} coins · ${esc(calFormatDate(calWallParts(new Date(c.at)).date))}</li>`).join('')}</ul></div>`:''}<p class="quest-help">These are imaginary ATLAS coins, not money or purchases. You decide if and when to take a reward.</p>`;
@@ -2310,6 +2442,18 @@ function gameAddReward(){
 function gameAction(element){
  const a=element.dataset.action,ref=element.dataset.id;
  if(a==='game-tab'){if(!['habits','dailies','todos','skills','forge','rewards'].includes(element.dataset.tab))return;gameTab=element.dataset.tab;return render()}
+ if(a==='game-forge-view'){if(!['world','workshop'].includes(element.dataset.view))return;gameForgeView=element.dataset.view;return render()}
+ if(a==='game-world-step'){
+  const dx=Number(element.dataset.dx),dy=Number(element.dataset.dy);
+  if(!Number.isInteger(dx)||!Number.isInteger(dy)||Math.abs(dx)+Math.abs(dy)!==1)return;
+  const current=gameWorldNormalize(data.game.world);
+  return gameWorldTravel(current.x+dx,current.y+dy);
+ }
+ if(a==='game-world-travel'){
+  const x=Number(element.dataset.x),y=Number(element.dataset.y);
+  if(!Number.isInteger(x)||!Number.isInteger(y))return;
+  return gameWorldTravel(x,y);
+ }
  if(a==='game-toggle'){data.game.enabled=!data.game.enabled;return commit(data.game.enabled?'Journey enabled':'Journey paused')}
  if(a==='game-craft'){
   const result=gameTransact(()=>{
@@ -3001,7 +3145,7 @@ if(e.target.id==='capture'){e.preventDefault();const title=String(new FormData(e
 if(e.target.id==='edit-form'){e.preventDefault();try{const obj=Object.fromEntries(new FormData(e.target));saveEditor(obj)}catch(err){let target=$('form-error');if(target){target.textContent=err.message;target.style.display='block'}}return}});
 document.addEventListener('input',e=>{if(e.target.id==='atlas-library-filter'){atlasFilterLibrary();return}if(e.target.id==='cal-search'){const pos=e.target.selectionStart;calSearch=e.target.value;$('cal-board').innerHTML=calView==='day'?calDay():calView==='week'?calWeek():calView==='month'?calMonth():calAgenda();e.target.setSelectionRange(pos,pos);return}
 if(e.target.id==='search-input'){const pos=e.target.selectionStart;searchText=e.target.value;const content=$('content');content.innerHTML=searchScreen();const field=$('search-input');field.focus();field.setSelectionRange(pos,pos)}});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){if($('modal-root').childElementCount)closeModal();else if(page==='search')navigate('home');return}if($('modal-root').childElementCount)return;if((e.metaKey||e.ctrlKey)&&!e.altKey&&e.key.toLowerCase()==='k'){e.preventDefault();if(page!=='search'){searchText='';navigate('search')}$('search-input')?.focus();return}const inField=e.target.closest('input,textarea,select,[contenteditable]');if(!inField&&e.key==='/'&&!e.ctrlKey&&!e.metaKey){e.preventDefault();searchText='';navigate('search');$('search-input')?.focus()}if(!inField&&(e.key==='n'||e.key==='N')&&!e.ctrlKey&&!e.metaKey){e.preventDefault();openModal('quick')}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){if($('modal-root').childElementCount)closeModal();else if(page==='search')navigate('home');return}if($('modal-root').childElementCount)return;if((e.metaKey||e.ctrlKey)&&!e.altKey&&e.key.toLowerCase()==='k'){e.preventDefault();if(page!=='search'){searchText='';navigate('search')}$('search-input')?.focus();return}const inField=e.target.closest('input,textarea,select,[contenteditable]');if(!inField&&page==='gameScreen'&&gameTab==='forge'&&gameForgeView==='world'&&!e.ctrlKey&&!e.metaKey&&!e.altKey){const step=({ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0],w:[0,-1],s:[0,1],a:[-1,0],d:[1,0]})[e.key];if(step){e.preventDefault();const world=gameWorldNormalize(data.game.world);gameWorldTravel(world.x+step[0],world.y+step[1]);return}}if(!inField&&e.key==='/'&&!e.ctrlKey&&!e.metaKey){e.preventDefault();searchText='';navigate('search');$('search-input')?.focus()}if(!inField&&(e.key==='n'||e.key==='N')&&!e.ctrlKey&&!e.metaKey){e.preventDefault();openModal('quick')}});
 window.addEventListener('storage',e=>{if(e.key===KEY){storageWarning='Workspace changed in another tab. Export unsaved work and reload to use the newer copy.';const bar=$('syncbar');if(bar){bar.textContent=storageWarning;bar.setAttribute('role','alert');}}});
 // ATLAS Link. Supabase publishable key is public; all records are protected by owner-only RLS.
 const BRIDGE_API='https://metquqdynxwkplojlhwq.supabase.co',BRIDGE_KEY='sb_publishable_vhnT2VX5lKt0uZsBazToHg_HfyJl2PQ';

@@ -14,7 +14,8 @@ function harness(gameState={enabled:true,awards:[],claims:[],rewards:[],crafted:
   gameCraft:typeof gameCraft==='function'?gameCraft:null,
   gamePlace:typeof gamePlace==='function'?gamePlace:null,
   gameUnplace:typeof gameUnplace==='function'?gameUnplace:null,
-  gameScreen,gameAction,setTab(tab){gameTab=tab}
+  gameWorldRoute,gameWorldTravel,gameWorldScreen,gameScreen,gameAction,
+  setTab(tab){gameTab=tab},setForgeView(view){gameForgeView=view}
  };`)(data,()=>{},()=>`item-${++next}`,v=>String(v),()=>'2026-11-08',()=> '2026-11-02',v=>{
   if(failNextCommit){failNextCommit=false;return false;}
   savedGame=JSON.stringify(data.game);messages.push(v);renderCount++;return true;
@@ -98,7 +99,7 @@ test('old Journey data normalises to an empty workshop and crafted records survi
 });
 
 test('Workshop exposes a visible materials list, usable recipes, inventory and nine room spaces',()=>{
- const {gameScreen,setTab}=harness();setTab('forge');
+ const {gameScreen,setTab,setForgeView}=harness();setTab('forge');setForgeView('workshop');
  const view=gameScreen();
  assert.match(view,/Workshop/);
  assert.match(view,/Foundry stool/);
@@ -109,7 +110,7 @@ test('Workshop exposes a visible materials list, usable recipes, inventory and n
 });
 
 test('Workshop buttons craft, choose an item, place it in a chosen room space and pick it up',()=>{
- const {data,gameAward,gameAction,setTab,gameScreen}=harness();setTab('forge');
+ const {data,gameAward,gameAction,setTab,setForgeView,gameScreen}=harness();setTab('forge');setForgeView('workshop');
  gameAward('task','task:one');
  gameAction({dataset:{action:'game-craft',id:'stool'}});
  assert.equal(data.game.crafted.length,1);
@@ -154,4 +155,52 @@ test('failed place and pickup saves restore room slots and permit exactly one re
  assert.equal(JSON.parse(h.getSavedGame()).crafted[0].slot,'');
  assert.equal(h.data.game.crafted.length,1);
  assert.equal(item.id,h.data.game.crafted[0].id);
+});
+
+test('Forge opens a walkable village with real landmarks and a workshop entrance',()=>{
+ const h=harness();h.setTab('forge');h.setForgeView('world');
+ const markup=h.gameScreen();
+ assert.match(markup,/Hearthvale/);
+ assert.match(markup,/data-action="game-world-travel"/);
+ assert.match(markup,/data-action="game-world-step"/);
+ assert.match(markup,/5 places found/);
+ assert.equal((markup.match(/data-action="game-world-travel"/g)||[]).length,81);
+ h.gameAction({dataset:{action:'game-world-travel',x:'4',y:'4'}});
+ assert.deepEqual(h.data.game.world,{x:4,y:4,visited:['F']});
+ assert.match(h.gameWorldScreen(),/Enter workshop/);
+ h.gameAction({dataset:{action:'game-forge-view',view:'workshop'}});
+ assert.match(h.gameScreen(),/Foundry stool/);
+});
+
+test('village routes stay on walkable tiles and reject blocked or invalid travel',()=>{
+ const h=harness();
+ assert.deepEqual(h.gameWorldRoute(4,5,4,4),[[4,5],[4,4]]);
+ assert.deepEqual(h.gameWorldRoute(4,5,0,0),[]);
+ assert.deepEqual(h.gameWorldRoute(4,5,1,7).at(-1),[1,7]);
+ assert.equal(h.gameWorldTravel(0,0),false);
+ assert.equal(h.gameWorldTravel(-1,4),false);
+ assert.equal(h.data.game.world,undefined);
+ assert.equal(h.gameWorldTravel(1,7),true);
+ assert.equal(h.data.game.world.visited.includes('Q'),true);
+ assert.equal(h.gameWorldTravel(1,7),false,'revisiting the same tile must not create a save');
+});
+
+test('village discovery is backed up and imported safely without double grants',()=>{
+ const h=harness();h.gameAward('task','task:existing');
+ h.gameWorldTravel(4,1);h.gameWorldTravel(7,7);
+ const restored=h.gameNormalize(JSON.parse(JSON.stringify(h.data.game)));
+ assert.deepEqual(restored.world,h.data.game.world);
+ assert.equal(restored.awards.length,1,'walking should never grant XP');
+ const tampered=h.gameNormalize({...restored,world:{x:0,y:0,visited:['F','F','Z','Q']}});
+ assert.deepEqual(tampered.world,{x:4,y:5,visited:['F','Q']});
+});
+
+test('failed village save rolls back the position and discovery; retry persists once',()=>{
+ const h=harness();
+ h.failNextSave();h.gameAction({dataset:{action:'game-world-travel',x:'4',y:'4'}});
+ assert.equal(h.data.game.world,undefined);
+ assert.equal(h.getSavedGame(),null);
+ h.gameAction({dataset:{action:'game-world-travel',x:'4',y:'4'}});
+ assert.deepEqual(h.data.game.world,{x:4,y:4,visited:['F']});
+ assert.deepEqual(JSON.parse(h.getSavedGame()).world,h.data.game.world);
 });
