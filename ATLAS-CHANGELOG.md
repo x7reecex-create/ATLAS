@@ -1,3 +1,10 @@
+ATLAS / FORGE — Blueprint Progression integration (8 November 2026)
+Changes: eight independently skill-gated original pixel-art furniture blueprints, four room finishes (Foundry, Moss, Midnight, Brass), skill-level requirements in crafting cards, upcoming blueprint previews, and scaled timber/iron yields for demanding real tasks. The system is integrated with the existing 16-place Living Valley and new three-room settlement (Foundry, Greenhouse, Observatory), including five deed-gated furniture blueprints. The shared activity ledger drives progression without duplicate task entry.
+Safety: old saves gain the Foundry finish and retain legacy room slots. Restored items must have earned the relevant skill, deed-count, exploration blueprint and room-slot unlocks. Selected finish, crafting, placement and discoveries remain rollback-safe on local storage failures. All assets are original inline artwork; there are no new services, dependencies, payments, migrations or auth changes. Offline shell cache v41.
+Verification: 118 dependency-free source tests passed before integrating the new live quest board. The combined three-room preview passed real tasks → skill unlocks → Greenhouse unlock → room finish → furniture placement → reload checks. Publication and the final post-merge test run must be verified separately.
+
+---
+
 ATLAS / FORGE — Quest board and tighter game layout (8 November 2026)
 Changes: a live quest board on the Living Valley screen lists up to three open COMMAND tasks by priority, showing their correct one-time skill rewards. Completing a quest updates the original task rather than a duplicate. The World and Workshop views use a compact XP header so the playable content is nearer the top of the screen.
 Safety: all existing valley exploration, settlement rooms, trail tokens and crafted items remain intact. No new account, database or cloud configuration. Offline shell v39.

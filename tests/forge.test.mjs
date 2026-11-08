@@ -8,18 +8,19 @@ const game=html.slice(html.indexOf('/* Journey derives'),html.indexOf('function 
 
 function harness(gameState={enabled:true,awards:[],claims:[],rewards:[],crafted:[]}){
  const data={game:gameState};let next=0;
- const messages=[];let failNextCommit=false,renderCount=0,savedGame=null;
+ const messages=[],toasts=[];let failNextCommit=false,renderCount=0,savedGame=null;
  const api=new Function('data','showToast','id','esc','calLondonToday','calStartWeek','commit','render',normalizer+'\n'+game+`\nreturn {
   gameAward,gameNormalize,gameMaterials:typeof gameMaterials==='function'?gameMaterials:null,
   gameCraft:typeof gameCraft==='function'?gameCraft:null,
+  gameSkillTotals,gameFurnitureSprite,
   gamePlace:typeof gamePlace==='function'?gamePlace:null,
   gameUnplace:typeof gameUnplace==='function'?gameUnplace:null,
   gameScreen,gameAction,setTab(tab){gameTab=tab}
- };`)(data,()=>{},()=>`item-${++next}`,v=>String(v),()=>'2026-11-08',()=> '2026-11-02',v=>{
+ };`)(data,message=>toasts.push(message),()=>`item-${++next}`,v=>String(v),()=>'2026-11-08',()=> '2026-11-02',v=>{
   if(failNextCommit){failNextCommit=false;return false;}
   savedGame=JSON.stringify(data.game);messages.push(v);renderCount++;return true;
  },()=>{renderCount++;});
- return {data,messages,...api,failNextSave(){failNextCommit=true},getSavedGame(){return savedGame},getRenderCount(){return renderCount}};
+ return {data,messages,toasts,...api,failNextSave(){failNextCommit=true},getSavedGame(){return savedGame},getRenderCount(){return renderCount}};
 }
 
 test('one real task earns materials once, then crafts and places a stool',()=>{
@@ -39,6 +40,122 @@ test('one real task earns materials once, then crafts and places a stool',()=>{
  assert.equal(item.slot,'4');
  assert.equal(gameUnplace(item.id),true);
  assert.equal(item.slot,'');
+});
+
+test('demanding one-time tasks award additional crafting material without reducing legacy supply',()=>{
+ const h=harness();
+ h.gameAward('task','task:ordinary',{xp:20,coins:5,skill:'focus'});
+ assert.deepEqual(h.gameMaterials(),{timber:2,iron:1,fibre:0,essence:0});
+ h.gameAward('task','task:demanding',{xp:70,coins:18,skill:'craft'});
+ assert.deepEqual(h.gameMaterials(),{timber:5,iron:2,fibre:0,essence:0});
+ h.gameAward('task','task:major',{xp:100,coins:25,skill:'craft'});
+ assert.deepEqual(h.gameMaterials(),{timber:9,iron:4,fibre:0,essence:0});
+ assert.equal(h.gameAward('task','task:major',{xp:100,coins:25,skill:'craft'}),false);
+ assert.equal(h.gameMaterials().timber,9);
+});
+
+test('Workbench blueprint requires Craftsmanship 2; stock alone cannot bypass its gate',()=>{
+ const h=harness();
+ for(let n=1;n<=4;n++)h.gameAward('task','task:stock-'+n,{xp:20,coins:5,skill:'focus'});
+ assert.deepEqual({timber:h.gameMaterials().timber,iron:h.gameMaterials().iron},{timber:8,iron:4});
+ assert.equal(h.gameSkillTotals().craft.level,1);
+ assert.equal(h.gameCraft('workbench'),false);
+ h.gameAward('task','task:craft-49',{xp:49,coins:12,skill:'craft'});
+ assert.equal(h.gameSkillTotals().craft.level,1);
+ assert.equal(h.gameCraft('workbench'),false);
+ h.gameAward('task','task:craft-1',{xp:1,coins:1,skill:'craft'});
+ assert.equal(h.gameSkillTotals().craft.level,2);
+ assert.equal(h.gameCraft('workbench'),true);
+ assert.equal(h.data.game.crafted.at(-1).recipeId,'workbench');
+});
+
+test('imported crafted items cannot bypass earned skill requirements, but valid unlocks survive restoration',()=>{
+ const h=harness();
+ const awards=[1,2,3,4].map(n=>({key:'task:stock-'+n,kind:'task',xp:20,coins:5,at:n,skill:'focus'}));
+ const item={id:'old-bench',recipeId:'workbench',at:5,slot:'2'};
+ assert.deepEqual(h.gameNormalize({awards,crafted:[item]}).crafted,[]);
+ awards.push({key:'task:craft-gain',kind:'task',xp:50,coins:13,at:5,skill:'craft'});
+ const restored=h.gameNormalize({awards,crafted:[item]});
+ assert.deepEqual(restored.crafted,[{id:'old-bench',recipeId:'workbench',at:5,slot:'2'}]);
+ assert.deepEqual(h.gameNormalize({awards:awards.slice(0,4),crafted:[item]}).crafted,[]);
+});
+
+test('Workshop shows the next skill blueprint and locked requirements, then enables the unlock at level 2',()=>{
+ const h=harness();h.setTab('forge');
+ const locked=h.gameScreen();
+ assert.match(locked,/Ironwood workbench/);
+ assert.match(locked,/Craftsmanship · Lvl 2/);
+ assert.match(locked,/Craftsmanship · Lvl 2 · You’re Lvl 1/);
+ assert.match(locked,/data-action="game-craft" data-id="workbench" disabled/);
+ assert.match(locked,/Next blueprints/);
+ h.gameAward('task','task:carpentry',{xp:50,coins:13,skill:'craft'});
+ assert.match(h.gameScreen(),/Need 1 timber · 2 iron/);
+ for(let n=0;n<3;n++)h.gameAward('task','task:materials-'+n,{xp:20,coins:5,skill:'focus'});
+ const unlocked=h.gameScreen();
+ assert.doesNotMatch(unlocked,/data-action="game-craft" data-id="workbench" disabled/);
+ assert.match(unlocked,/Available · Craftsmanship · Lvl 2/);
+});
+
+test('Workshop keeps exploration blueprints separate from skill gates and reflects discoveries',()=>{
+ const h=harness();h.setTab('forge');
+ const initial=h.gameScreen();
+ assert.match(initial,/Explore Copper Quarry to unlock/);
+ assert.match(initial,/data-action="game-craft" data-id="anvil" disabled/);
+ assert.match(initial,/6 \/ 22 unlocked/);
+ for(let n=0;n<3;n++)h.gameAward('task','task:trail-'+n,{xp:20,coins:5,skill:'focus'});
+ for(const id of ['1','2','6'])h.gameAction({dataset:{action:'game-explore',id}});
+ assert.deepEqual(h.data.game.explored,['1','2','6']);
+ const explored=h.gameScreen();
+ assert.match(explored,/Discovered at Copper Quarry/);
+ assert.doesNotMatch(explored,/data-action="game-craft" data-id="anvil" disabled/);
+ assert.match(explored,/7 \/ 22 unlocked/);
+});
+
+test('tapping the already-selected room finish is a silent no-op',()=>{
+ const h=harness({enabled:true,awards:[],claims:[],rewards:[],crafted:[],roomStyle:'foundry'});
+ h.gameAction({dataset:{action:'game-style',style:'foundry'}});
+ assert.deepEqual(h.toasts,[]);
+ assert.deepEqual(h.messages,[]);
+ assert.equal(h.data.game.roomStyle,'foundry');
+});
+
+test('newly unlocked furniture has distinct nonempty pixel artwork',()=>{
+ const h=harness();
+ for(const item of ['workbench','bookcase','trainingmat','hearth','drawingdesk','strongbox','readingchair','clock']){
+  const art=h.gameFurnitureSprite(item);
+  assert.match(art,/<rect /,`${item} has artwork`);
+  assert.ok((art.match(/<rect /g)||[]).length>=4,`${item} has detailed artwork`);
+ }
+});
+
+test('new room finishes preserve old backups, reject unknown values and remain selectable only when unlocked',()=>{
+ const h=harness();h.setTab('forge');
+ assert.equal(h.gameNormalize({}).roomStyle,'foundry');
+ assert.equal(h.gameNormalize({roomStyle:'moss'}).roomStyle,'foundry');
+ assert.equal(h.gameNormalize({roomStyle:'moss',awards:[{key:'task:home-project',kind:'task',xp:50,coins:13,at:1,skill:'home'}]}).roomStyle,'moss');
+ assert.equal(h.gameNormalize({roomStyle:'unsafe-injection'}).roomStyle,'foundry');
+ assert.match(h.gameScreen(),/data-action="game-style" data-style="moss"[^>]*disabled/);
+ h.gameAction({dataset:{action:'game-style',style:'moss'}});
+ assert.equal(h.data.game.roomStyle,undefined);
+ h.gameAward('task','task:make-home',{xp:50,coins:13,skill:'home'});
+ h.gameAction({dataset:{action:'game-style',style:'moss'}});
+ assert.equal(h.data.game.roomStyle,'moss');
+ assert.equal(JSON.parse(h.getSavedGame()).roomStyle,'moss');
+ assert.match(h.gameScreen(),/data-room-style="moss"/);
+ assert.match(h.gameScreen(),/data-action="game-style" data-style="moss"[^>]*aria-pressed="true"/);
+});
+
+test('failed room finish save rolls back without losing furniture and allows retry',()=>{
+ const h=harness();
+ h.gameAward('task','task:homemaking',{xp:50,coins:13,skill:'home'});
+ h.gameCraft('stool');
+ const before=JSON.stringify(h.data.game),saved=h.getSavedGame();
+ h.failNextSave();h.gameAction({dataset:{action:'game-style',style:'moss'}});
+ assert.equal(JSON.stringify(h.data.game),before);
+ assert.equal(h.getSavedGame(),saved);
+ h.gameAction({dataset:{action:'game-style',style:'moss'}});
+ assert.equal(h.data.game.roomStyle,'moss');
+ assert.equal(h.data.game.crafted.length,1);
 });
 
 test('different actions supply different materials, making a habit-grown plant craftable',()=>{
@@ -201,4 +318,13 @@ test('locked blueprints cannot be crafted and restored room slots preserve legac
  ],crafted:[{id:'garden',recipeId:'plant',at:11,slot:'grove:2'},{id:'duplicate',recipeId:'plant',at:12,slot:'grove:2'},{id:'bad',recipeId:'plant',at:13,slot:'fake:8'}]});
  assert.deepEqual(withFibre.crafted.map(c=>c.id),['garden']);
  assert.equal(withFibre.crafted[0].slot,'grove:2');
+});
+
+test('restoring a save cannot place inventory in a room before its deed unlock',()=>{
+ const h=harness();
+ const awards=[1,2].map(n=>({kind:'habit',key:'habit:'+n,xp:10,coins:3,at:n}));
+ const item={id:'restored-plant',recipeId:'plant',at:5,slot:'grove:2'};
+ assert.deepEqual(h.gameNormalize({awards,crafted:[item]}).crafted,[]);
+ const unlocked=[...awards,...[1,2,3].map(n=>({kind:'task',key:'task:'+n,xp:20,coins:5,at:n+2,skill:'focus'}))];
+ assert.deepEqual(h.gameNormalize({awards:unlocked,crafted:[item]}).crafted,[item]);
 });
