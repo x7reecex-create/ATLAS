@@ -30,7 +30,8 @@ try {
   await page.locator('#capture button[type="submit"]').click();
   await page.locator('#nav button[data-page="gameScreen"]').click();
   await page.locator('[data-action="game-tab"][data-tab="forge"]').click();
-  await page.locator('.forge-board-list input[data-action="toggle-task"]').check();
+  // Completing the task immediately rerenders the board, removing the checkbox.
+  await page.locator('.forge-board-list input[data-action="toggle-task"]').click();
   const state=await page.evaluate(()=>{const data=JSON.parse(localStorage.getItem('atlas-preview:v1'));return {task:data.tasks[0].done,awards:data.game.awards.length,world:data.game.world}});
   assert.equal(state.task,true);
   assert.equal(state.awards,1);

@@ -1370,6 +1370,16 @@ h1,h2,h3{font-family:var(--atlas-display-font);font-optical-sizing:auto;letter-s
 .forge-view-switch{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin:0 0 17px;padding:5px;background:var(--surface);border:1px solid var(--border);border-radius:15px}
 .forge-view-switch button{border:0;background:transparent;color:var(--muted);border-radius:10px;min-height:46px;font-size:12px;font-weight:800}
 .forge-view-switch button[aria-pressed="true"]{background:var(--surface2);color:var(--text);box-shadow:inset 0 0 0 1px var(--border)}
+/* Give the actual game the first screen of space; the full progress card remains on other Journey tabs. */
+.atlas-journey:has(.forge-screen)>h1{font-size:clamp(26px,5vw,31px);margin-top:5px}
+.atlas-journey:has(.forge-screen)>.sub{margin-bottom:12px}
+.atlas-journey:has(.forge-screen) .quest-hero{padding:10px 14px;border-radius:14px;box-shadow:none}
+.atlas-journey:has(.forge-screen) .quest-profile{display:none}
+.atlas-journey:has(.forge-screen) .quest-resource{margin-top:0}
+.atlas-journey:has(.forge-screen) .quest-hero-footer{margin-top:6px}
+.atlas-journey:has(.forge-screen) .quest-track{height:6px;margin-top:5px}
+.atlas-journey:has(.forge-screen) .quest-objective{display:none}
+.atlas-journey:has(.forge-screen) .quest-tabs{margin:9px 0 12px}
 .forge-world-stats{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px;font-size:11px;font-weight:800;color:var(--forge-brass);padding:0 3px 10px}
 .forge-world-card{max-width:500px;margin:0 auto;border:5px solid #362e35;border-radius:20px;overflow:hidden;background:#172d33;box-shadow:0 13px 34px rgba(0,0,0,.25)}
 .forge-world-sky{height:48px;padding:8px 16px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(#344965,#697a81);color:#f4d9a0;font-family:monospace;font-weight:900;letter-spacing:.07em;font-size:12px}
