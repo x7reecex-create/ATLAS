@@ -83,7 +83,7 @@ try{
   assert.equal(await page.locator('#atlas-library-empty').isVisible(),true);
   await page.locator('[data-action="library-clear"]').click();
   assert.equal(await filter.inputValue(),'');
-  assert.equal(await page.locator('[data-library-item]:visible').count(),12);
+  assert.equal(await page.locator('[data-library-item]:visible').count(),13);
   await filter.fill('notes');
   await page.locator('[data-library-item]:visible').click();
   assert.equal(await page.locator('#nav [aria-current="page"]').getAttribute('data-page'),'library');
