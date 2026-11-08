@@ -148,6 +148,26 @@ test('surplus of one material cannot hide missing material or round an unfinishe
  assert.deepEqual(p.missing,{iron:0,essence:2});
 });
 
+test('landmark goals require discovery even with enough materials, then clear after crafting',()=>{
+ const h=harness();h.setTab('forge');
+ h.gameAction({dataset:{action:'game-track',id:'anvil'}});
+ for(let i=0;i<3;i++)h.gameAward('task','task:'+i);
+ for(const id of ['1','2'])h.gameAction({dataset:{action:'game-explore',id}});
+ assert.equal(h.gameGoalProgress().percent,100);
+ assert.equal(h.gameGoalProgress().ready,false,'materials alone cannot unlock a blueprint');
+ assert.match(h.gameScreen(),/Explore Copper Quarry to unlock this blueprint/);
+ assert.match(h.gameScreen(),/Explore the world/);
+ assert.equal(h.gameCraft('anvil'),false);
+ const before=JSON.stringify(h.data.game);
+ h.failNextSave();h.gameAction({dataset:{action:'game-explore',id:'6'}});
+ assert.equal(JSON.stringify(h.data.game),before,'failed exploration preserves goal, path and stock');
+ h.gameAction({dataset:{action:'game-explore',id:'6'}});
+ assert.equal(h.gameGoalProgress().ready,true);
+ h.gameAction({dataset:{action:'game-craft',id:'anvil'}});
+ assert.equal(h.data.game.craftGoal,'');assert.equal(h.data.game.crafted[0].recipeId,'anvil');
+ assert.deepEqual(h.data.game.explored,['1','2','6']);
+});
+
 test('different actions supply different materials, making a habit-grown plant craftable',()=>{
  const {data,gameAward,gameMaterials,gameCraft}=harness();
  assert.equal(gameAward('habit','habit:water:2026-11-08'),true);

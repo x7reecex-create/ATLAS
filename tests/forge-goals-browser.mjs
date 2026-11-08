@@ -94,6 +94,16 @@ try{
   const large=await page.evaluate(()=>({width:document.documentElement.clientWidth,scroll:document.documentElement.scrollWidth}));
   assert.ok(large.scroll<=large.width+2,'no enlarged text overflow '+width);
   if(process.env.ATLAS_SCREENSHOT_DIR&&width===393)await page.screenshot({path:process.env.ATLAS_SCREENSHOT_DIR+'/forge-goal-workshop.png',fullPage:true});
+  await page.getByRole('button',{name:'Track Quarry anvil',exact:true}).click();
+  assert.match(await page.locator('.forge-goal-status').innerText(),/Blueprint locked/);
+  await page.getByRole('button',{name:'Explore the world',exact:true}).click();
+  for(const tile of ['1','2','6'])await page.locator(`.forge-world-tile[data-id="${tile}"]`).click();
+  assert.match(await page.locator('.forge-goal-status').innerText(),/Ready to craft/);
+  await page.locator('.forge-goal summary').click();
+  await page.getByRole('button',{name:'Craft Quarry anvil',exact:true}).click();
+  await page.getByRole('button',{name:'Place Quarry anvil in space 6',exact:true}).click();
+  assert.equal((await state(page)).game.crafted.length,2);
+  assert.equal((await state(page)).game.craftGoal,'');
   assert.deepEqual(errors,[],'no browser errors '+width);
   console.log('FORGE crafting goal flow passed at '+width+'×'+height);
   await context.close();
