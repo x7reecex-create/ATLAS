@@ -1433,6 +1433,23 @@ h1,h2,h3{font-family:var(--atlas-display-font);font-optical-sizing:auto;letter-s
 .forge-world-milestone>span{display:grid;place-items:center;width:35px;height:35px;border-radius:9px;background:var(--surface2);color:var(--muted)}
 .forge-world-milestone.found>span{color:#dab276;background:#564333}
 .forge-world-milestone strong{font-size:13px}.forge-world-milestone small{display:block;color:var(--muted);font-size:11px;margin-top:3px}
+.forge-quest-board{margin:20px 0;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:18px}
+.forge-quest-board h3{font-size:19px;letter-spacing:-.035em;margin:0}
+.forge-quest-board p{font-size:12px;color:var(--muted);line-height:1.5;margin:5px 0 13px}
+.forge-board-list{display:grid;gap:8px;margin:12px 0}
+.forge-board-list label{display:flex;align-items:center;gap:11px;min-width:0;padding:11px;background:var(--surface2);border:1px solid var(--border);border-radius:12px}
+.forge-board-list .check{width:36px;height:36px;flex:none;cursor:pointer}
+.forge-board-list span{min-width:0;font-size:13px;font-weight:750;overflow-wrap:anywhere}
+.forge-board-list small{display:block;font-size:10px;font-weight:500;color:var(--muted);margin-top:5px}
+.atlas-journey:has(.forge-world-screen,.forge-screen)>h1{font-size:clamp(26px,5vw,31px);margin-top:5px}
+.atlas-journey:has(.forge-world-screen,.forge-screen)>.sub{margin-bottom:12px}
+.atlas-journey:has(.forge-world-screen,.forge-screen) .quest-hero{padding:10px 14px;border-radius:14px;box-shadow:none}
+.atlas-journey:has(.forge-world-screen,.forge-screen) .quest-profile{display:none}
+.atlas-journey:has(.forge-world-screen,.forge-screen) .quest-resource{margin-top:0}
+.atlas-journey:has(.forge-world-screen,.forge-screen) .quest-hero-footer{margin-top:6px}
+.atlas-journey:has(.forge-world-screen,.forge-screen) .quest-track{height:6px;margin-top:5px}
+.atlas-journey:has(.forge-world-screen,.forge-screen) .quest-objective{display:none}
+.atlas-journey:has(.forge-world-screen,.forge-screen) .quest-tabs{margin:9px 0 12px}
 @keyframes forge-pulse{50%{border-color:#fff0c3;box-shadow:inset 0 0 12px #edcb8244}}
 :root[data-atlas-theme="arctic"] .forge-screen{--forge-brass:#745028;--forge-shadow:rgba(50,65,90,.12)}
 :root[data-atlas-theme="arctic"] .forge-world-screen{--forge-brass:#745028}
@@ -2399,6 +2416,19 @@ function gameFurnitureSprite(type){
  };
  return `<svg class="forge-sprite" viewBox="0 0 24 24" shape-rendering="crispEdges" aria-hidden="true" focusable="false">${parts[type]||''}</svg>`;
 }
+/* The board reads the existing COMMAND task list. It never creates a second quest record. */
+function gameQuestBoard(){
+ const open=(data.tasks||[]).filter(t=>!t.done).sort((a,b)=>
+  ({high:0,normal:1,low:2})[a.priority]-({high:0,normal:1,low:2})[b.priority]).slice(0,3);
+ const all=(data.tasks||[]).filter(t=>!t.done).length;
+ const rows=open.map(t=>{
+  const earned=data.game.awards.find(a=>a.key==='task:'+t.id),reward=earned||gameTaskReward(t);
+  const skill=earned?(earned.skill||'focus'):gameTaskSkill(t);
+  const label=GAME_SKILLS.find(s=>s.id===skill)?.name||'Focus';
+  return `<label><input type="checkbox" class="check" data-action="toggle-task" data-id="${esc(t.id)}" aria-label="Complete ${esc(t.title)}"><span>${esc(t.title)}<small>${earned?'Already earned':'Earn'} ${reward.xp} XP · ${esc(label)}</small></span></label>`;
+ }).join('');
+ return `<section class="forge-quest-board" aria-label="Live task quests"><h3>✦ Quest board <span class="forge-room-count">${all} open</span></h3><p>Your real ATLAS tasks are your quests. Tick one off here and it is completed in COMMAND too.</p><div class="forge-board-list">${rows||'<p>Your quest board is clear. Go make something happen.</p>'}</div><button type="button" class="action ghost small" data-action="game-tab" data-tab="todos">${all>3?'See all quests →':all?'Open quest log →':'Add a quest →'}</button></section>`;
+}
 function gameWorldScreen(){
  const explored=data.game.explored||[],known=new Set(['0',...explored]),credits=gameTravelCredits();
  const tiles=GAME_WORLD.map(tile=>{
@@ -2462,7 +2492,7 @@ function gameScreen(){
  }else if(gameTab==='skills'){
   contents=gameSkillsScreen();
  }else if(gameTab==='world'){
-  contents=gameWorldScreen();
+  contents=gameWorldScreen()+gameQuestBoard();
  }else if(gameTab==='forge'){
   contents=gameWorkshop();
  }else{

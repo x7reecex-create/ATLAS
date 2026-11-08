@@ -11,7 +11,7 @@ function harness(){
  let next=0,failSave=false,saved='';
  const messages=[];
  const api=new Function('data','showToast','id','esc','calLondonToday','calStartWeek','commit','render',normalizer+'\n'+game+`
-  return {gameAward,gameNormalize,gameWorldAdjacent,gameTravelCredits,gameExplore,gameMaterials,gameCraft,gameScreen,gameAction,setTab(tab){gameTab=tab}};
+  return {gameAward,gameNormalize,gameWorldAdjacent,gameTravelCredits,gameExplore,gameMaterials,gameCraft,gameQuestBoard,gameScreen,gameAction,setTab(tab){gameTab=tab}};
  `)(data,message=>messages.push(message),()=>`item-${++next}`,s=>String(s),()=>'2026-11-08',()=>'2026-11-02',message=>{
   if(failSave){failSave=false;return false;}
   saved=JSON.stringify(data.game);messages.push(message);return true;
@@ -104,4 +104,23 @@ test('paused FORGE cannot explore and the world map has accessible destinations'
  assert.match(view,/Trail tokens ready/);
  h.data.game.enabled=false;
  assert.equal(h.gameExplore('1'),false);
+});
+
+test('living valley displays live COMMAND quests and locked historical rewards',()=>{
+ const h=harness();
+ h.data.tasks=[
+  {id:'repair',title:'Fix the shelf',done:false,priority:'high',durationMins:100,forgeSkill:'craft'},
+  {id:'routine',title:'Read a book',done:false,priority:'normal',durationMins:30,forgeSkill:'knowledge'}
+ ];
+ h.setTab('world');
+ assert.match(h.gameScreen(),/Live task quests/);
+ assert.match(h.gameQuestBoard(),/Fix the shelf/);
+ assert.match(h.gameQuestBoard(),/Earn 60 XP · Craftsmanship/);
+ assert.match(h.gameQuestBoard(),/data-action="toggle-task" data-id="repair"/);
+ h.gameAward('task','task:repair',{xp:60,coins:15,skill:'craft'});
+ h.data.tasks[0].forgeSkill='finance';
+ assert.match(h.gameQuestBoard(),/Already earned 60 XP · Craftsmanship/);
+ assert.doesNotMatch(h.gameQuestBoard(),/Financial Stewardship/);
+ h.data.tasks[0].done=true;
+ assert.doesNotMatch(h.gameQuestBoard(),/Fix the shelf/);
 });
