@@ -50,6 +50,6 @@ test('Journey preserves import safety and stays separate from ATLAS Link',()=>{
  assert.match(html,/if\(d\.game!==undefined&&\(!object\(d\.game\)\|\|!sameValue\(d\.game,normalized\.game\)\)\)/);
  assert.match(html,/const views=\{home,today,calendar[^}]*gameScreen/);
  assert.match(html,/gameAward\('habit','habit:'\+habit\.id\+':'\+today\)/);
- assert.match(html,/gameAward\('task','task:'\+t\.id\)/);
+ assert.match(html,/gameAward\('task','task:'\+t\.id,gameTaskReward\(t\)\)/);
  assert.match(html,/\['gameScreen','✦','Journey'\]/);
 });
