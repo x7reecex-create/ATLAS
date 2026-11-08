@@ -14,7 +14,7 @@ function harness(gameState={enabled:true,awards:[],claims:[],rewards:[],crafted:
   gameCraft:typeof gameCraft==='function'?gameCraft:null,
   gamePlace:typeof gamePlace==='function'?gamePlace:null,
   gameUnplace:typeof gameUnplace==='function'?gameUnplace:null,
-  gameScreen,gameAction,setTab(tab){gameTab=tab}
+  gameScreen,gameAction,gameGoalProgress:typeof gameGoalProgress==='function'?gameGoalProgress:null,setTab(tab){gameTab=tab}
  };`)(data,()=>{},()=>`item-${++next}`,v=>String(v),()=>'2026-11-08',()=> '2026-11-02',v=>{
   if(failNextCommit){failNextCommit=false;return false;}
   savedGame=JSON.stringify(data.game);messages.push(v);renderCount++;return true;
@@ -39,6 +39,82 @@ test('one real task earns materials once, then crafts and places a stool',()=>{
  assert.equal(item.slot,'4');
  assert.equal(gameUnplace(item.id),true);
  assert.equal(item.slot,'');
+});
+
+test('crafting goal survives a backup and rejects unknown or malformed recipe IDs',()=>{
+ const h=harness();
+ assert.equal(h.gameNormalize({}).craftGoal,'');
+ for(const craftGoal of ['missing',{},null,42,'<script>'])assert.equal(h.gameNormalize({craftGoal}).craftGoal,'');
+ h.gameAction({dataset:{action:'game-track',id:'bed'}});
+ assert.equal(h.data.game.craftGoal,'bed');
+ assert.equal(h.gameNormalize(JSON.parse(h.getSavedGame())).craftGoal,'bed');
+ h.gameAction({dataset:{action:'game-track',id:'missing'}});
+ assert.equal(h.data.game.craftGoal,'bed');
+});
+
+test('goal progress caps each material and does not double-count one action supplying two resources',()=>{
+ const h=harness();
+ assert.equal(typeof h.gameGoalProgress,'function');
+ h.gameAction({dataset:{action:'game-track',id:'bed'}});
+ let p=h.gameGoalProgress();
+ assert.equal(p.collected,0);assert.equal(p.required,12);
+ assert.equal(p.tasks,3);assert.equal(p.habits,2);assert.equal(p.ready,false);
+ h.gameAward('task','task:a');h.gameAward('task','task:b');
+ h.gameAward('habit','habit:a');
+ p=h.gameGoalProgress();
+ assert.equal(p.collected,8);assert.equal(p.percent,66);
+ assert.equal(p.tasks,1);assert.equal(p.habits,1);
+ assert.deepEqual(p.missing,{timber:2,iron:0,fibre:2});
+ h.gameAward('task','task:c');h.gameAward('habit','habit:b');
+ p=h.gameGoalProgress();
+ assert.equal(p.ready,true);assert.equal(p.percent,100);assert.equal(p.collected,12);
+ assert.equal(p.tasks,0);assert.equal(p.habits,0);
+});
+
+test('goal tracking and clearing roll back after failed saves and cannot mutate while paused',()=>{
+ const h=harness();h.gameAction({dataset:{action:'game-track',id:'stool'}});
+ h.failNextSave();h.gameAction({dataset:{action:'game-track',id:'bed'}});
+ assert.equal(h.data.game.craftGoal,'stool');
+ assert.equal(JSON.parse(h.getSavedGame()).craftGoal,'stool');
+ h.failNextSave();h.gameAction({dataset:{action:'game-track',id:''}});
+ assert.equal(h.data.game.craftGoal,'stool');
+ h.data.game.enabled=false;
+ h.gameAction({dataset:{action:'game-track',id:'bed'}});
+ assert.equal(h.data.game.craftGoal,'stool');
+ h.data.game.enabled=true;
+ h.gameAction({dataset:{action:'game-track',id:''}});
+ assert.equal(h.data.game.craftGoal,'');assert.equal(h.gameGoalProgress(),null);
+});
+
+test('only successful target crafting clears a goal; other crafts recalculate its available stock',()=>{
+ const h=harness();
+ h.gameAction({dataset:{action:'game-track',id:'shelf'}});
+ h.gameAward('task','task:a');h.gameAward('task','task:b');
+ assert.equal(typeof h.gameGoalProgress,'function');
+ assert.equal(h.gameGoalProgress().ready,true);
+ h.gameAction({dataset:{action:'game-craft',id:'stool'}});
+ assert.equal(h.data.game.craftGoal,'shelf');
+ assert.equal(h.gameGoalProgress().tasks,1);
+ h.gameAward('task','task:c');
+ const before=JSON.stringify(h.data.game);
+ h.failNextSave();h.gameAction({dataset:{action:'game-craft',id:'shelf'}});
+ assert.equal(JSON.stringify(h.data.game),before);
+ h.gameAction({dataset:{action:'game-craft',id:'shelf'}});
+ assert.equal(h.data.game.craftGoal,'');
+ assert.equal(h.data.game.crafted.length,2);
+ h.gameAction({dataset:{action:'game-slot',slot:'6'}});
+ assert.equal(h.data.game.crafted[1].slot,'6');
+});
+
+test('surplus of one material cannot hide missing material or round an unfinished goal to 100 percent',()=>{
+ const h=harness();
+ assert.equal(typeof h.gameGoalProgress,'function');
+ h.gameAction({dataset:{action:'game-track',id:'lamp'}});
+ for(let i=0;i<4;i++)h.gameAward('task','task:'+i);
+ const p=h.gameGoalProgress();
+ assert.equal(p.ready,false);assert.equal(p.percent,50);
+ assert.equal(p.tasks,0);assert.equal(p.habits,2);
+ assert.deepEqual(p.missing,{iron:0,essence:2});
 });
 
 test('different actions supply different materials, making a habit-grown plant craftable',()=>{
