@@ -52,6 +52,22 @@ test('crafting goal survives a backup and rejects unknown or malformed recipe ID
  assert.equal(h.data.game.craftGoal,'bed');
 });
 
+test('import discards an invalid optional goal while keeping reward history validation strict',()=>{
+ const {gameNormalize}=harness();
+ const importer=html.slice(html.indexOf('const IMPORT_COLLECTIONS='),html.indexOf('function mergeImport('));
+ // The collections are empty: isolate the real import validator's game boundary.
+ const names=['insNormalizeTransaction','insNormalizeTime','insNormalizeHabit','insNormalizeCheck','insNormalizeGoalLog','insNormalizeBalance'];
+ const validate=new Function('clone','normalizeData',...names,importer+';return validateImport;')(
+  v=>JSON.parse(JSON.stringify(v)),v=>({...v,game:gameNormalize(v.game)}),...names.map(()=>v=>v));
+ const history={enabled:true,awards:[{key:'task:old',kind:'task',xp:20,coins:5,at:1}],rewards:[],claims:[],crafted:[]};
+ for(const craftGoal of ['missing',null,{},42,'bed']){
+  const restored=validate({app:'ATLAS',schema:4,data:{tasks:[],money:[],goals:[],game:{...history,craftGoal}}});
+  assert.equal(restored.game.craftGoal,craftGoal==='bed'?'bed':'');
+  assert.deepEqual(restored.game.awards,history.awards);
+ }
+ assert.throws(()=>validate({app:'ATLAS',schema:4,data:{tasks:[],money:[],goals:[],game:{...history,craftGoal:'missing',awards:[{...history.awards[0],xp:-5}]}}}),/progress or reward history is invalid/);
+});
+
 test('goal progress caps each material and does not double-count one action supplying two resources',()=>{
  const h=harness();
  assert.equal(typeof h.gameGoalProgress,'function');
@@ -84,6 +100,21 @@ test('goal tracking and clearing roll back after failed saves and cannot mutate 
  h.data.game.enabled=true;
  h.gameAction({dataset:{action:'game-track',id:''}});
  assert.equal(h.data.game.craftGoal,'');assert.equal(h.gameGoalProgress(),null);
+});
+
+test('first goal save failure preserves an old save exactly and a full inventory explains blocked crafting',()=>{
+ const h=harness(),old=JSON.stringify(h.data.game);
+ h.failNextSave();h.gameAction({dataset:{action:'game-track',id:'stool'}});
+ assert.equal(JSON.stringify(h.data.game),old);
+ for(let i=0;i<301;i++)h.gameAward('task','task:'+i);
+ for(let i=0;i<300;i++)assert.equal(h.gameCraft('stool'),true);
+ h.gameAction({dataset:{action:'game-track',id:'stool'}});
+ const full=JSON.stringify(h.data.game);
+ h.gameAction({dataset:{action:'game-craft',id:'stool'}});
+ assert.equal(JSON.stringify(h.data.game),full);
+ h.setTab('forge');
+ assert.match(h.gameScreen(),/Your inventory is full \(300 items\)/);
+ assert.match(h.gameScreen(),/data-id="stool" disabled>Craft Foundry stool/);
 });
 
 test('only successful target crafting clears a goal; other crafts recalculate its available stock',()=>{
