@@ -24,17 +24,21 @@ try {
   await page.locator('[data-action="game-forge-view"][data-view="world"]').click();
   await page.locator('.forge-world-tile[data-x="1"][data-y="7"]').click();
   assert.match(await page.locator('.forge-location-card').innerText(),/Quest Board/);
-  // Use the normal task record. The in-world board must update the same data, not a game copy.
-  await page.evaluate(()=>{createTask('Tidy the workbench');commit('Task created')});
+  // Create a real task through Home, then complete it from the in-world board.
+  await page.locator('#nav button[data-page="home"]').click();
+  await page.locator('#capture-text').fill('Tidy the workbench');
+  await page.locator('#capture button[type="submit"]').click();
+  await page.locator('#nav button[data-page="gameScreen"]').click();
+  await page.locator('[data-action="game-tab"][data-tab="forge"]').click();
   await page.locator('.forge-board-list input[data-action="toggle-task"]').check();
-  const state=await page.evaluate(()=>({task:data.tasks[0].done,awards:data.game.awards.length,world:data.game.world}));
+  const state=await page.evaluate(()=>{const data=JSON.parse(localStorage.getItem('atlas-preview:v1'));return {task:data.tasks[0].done,awards:data.game.awards.length,world:data.game.world}});
   assert.equal(state.task,true);
   assert.equal(state.awards,1);
   assert.ok(state.world.visited.includes('Q'));
   await page.reload();
   await page.locator('#nav button[data-page="gameScreen"]').click();
   await page.locator('[data-action="game-tab"][data-tab="forge"]').click();
-  const restored=await page.evaluate(()=>({task:data.tasks[0].done,awards:data.game.awards.length,world:data.game.world}));
+  const restored=await page.evaluate(()=>{const data=JSON.parse(localStorage.getItem('atlas-preview:v1'));return {task:data.tasks[0].done,awards:data.game.awards.length,world:data.game.world}});
   assert.deepEqual(restored,state,`${width}px exploration and task progress persist`);
   assert.deepEqual(errors,[],`${width}px no runtime errors`);
   await context.close();
