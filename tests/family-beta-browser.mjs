@@ -1,0 +1,64 @@
+import assert from 'node:assert/strict';
+import { chromium } from 'playwright';
+
+const base=process.env.ATLAS_BETA_URL||'http://127.0.0.1:8765/beta/';
+const browser=await chromium.launch({channel:'chrome',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
+try{
+  for(const viewport of [{width:390,height:844},{width:1365,height:900}]){
+    const context=await browser.newContext({viewport,acceptDownloads:true});
+    const page=await context.newPage();
+    const errors=[];
+    page.on('pageerror',e=>errors.push(String(e)));
+    page.on('dialog',d=>d.accept());
+    await page.goto(base,{waitUntil:'load'});
+    await page.locator('#firstName').fill('Alex');
+    await page.locator('#welcomeForm button[type="submit"]').click();
+    await page.locator('main').getByText('Hello, Alex.').waitFor();
+    await page.locator('[data-action="new-tasks"]').first().click();
+    await page.locator('#form-title').fill('Pay electricity');
+    await page.locator('#saveEditor').click();
+    assert.match(await page.locator('#view').innerText(),/Pay electricity/);
+    const nav=viewport.width<750?'#bottom':'#side';
+    await page.locator(nav+' [data-view="tasks"]').click();
+    await page.locator('[data-check="tasks"]').check();
+    assert.equal(await page.locator('[data-check="tasks"]').isChecked(),true);
+    await page.locator('[data-action="new-events"]').count()===0?await page.locator(nav+' [data-view="plan"]').click():null;
+    await page.locator('[data-action="new-events"]').first().click();
+    await page.locator('#form-title').fill('Family lunch');
+    await page.locator('#form-date').fill('2026-11-07');
+    await page.locator('#form-time').fill('12:00');
+    await page.locator('#saveEditor').click();
+    await page.locator(nav+' [data-view="notes"]').click();
+    await page.locator('[data-action="new-notes"]').click();
+    await page.locator('#form-title').fill('<img onerror=alert(1)>');
+    await page.locator('#form-body').fill('Remember milk & bread');
+    await page.locator('#saveEditor').click();
+    assert.equal(await page.locator('#view img').count(),0,'user-supplied HTML must be escaped');
+    await page.locator(nav+' [data-view="more"]').click();
+    await page.locator('[data-action="new-habits"]').click();
+    await page.locator('#form-title').fill('Read for ten minutes');
+    await page.locator('#saveEditor').click();
+    await page.locator('[data-check="habits"]').check();
+    const data=await page.evaluate(()=>JSON.parse(localStorage.getItem('atlas-family-beta:workspace:v1')));
+    assert.equal(data.tasks[0].done,true);
+    assert.equal(data.events[0].date,'2026-11-07');
+    assert.equal(data.notes.length,1);
+    assert.equal(data.habits[0].days.length,1);
+    const downloadPromise=page.waitForEvent('download');
+    await page.locator('[data-action="export"]').click();
+    const download=await downloadPromise;
+    assert.match(download.suggestedFilename(),/^atlas-beta-backup-/);
+    await page.reload();
+    await page.locator(nav+' [data-view="more"]').click();
+    assert.match(await page.locator('#view').innerText(),/Read for ten minutes/);
+    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2),true,'No horizontal overflow');
+    assert.deepEqual(errors,[]);
+    await context.close();
+  }
+  const isolated=await browser.newContext();
+  const newPage=await isolated.newPage();
+  await newPage.goto(base);
+  assert.equal(await newPage.locator('#firstName').count(),1,'New browser profile must start empty');
+  await isolated.close();
+  console.log('ATLAS family beta: two viewports, CRUD, persistence, download, XSS and fresh-profile isolation passed');
+}finally{await browser.close()}
