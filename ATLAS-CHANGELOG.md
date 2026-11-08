@@ -3,6 +3,11 @@ Changes: 16-place fog-of-war map; adjacent travel funded by one trail token per 
 Safety: no network calls, purchases, Supabase changes or separate activity ledger. Exploration is local-first, normalized from a contiguous route and bounded by previously earned actions. Repeated taps cannot harvest loot. Failed persistence rolls back discoveries and materials. Older saves and crafted furniture remain valid; offline shell cache v38.
 Verification: 106 source tests pass, including seven new world-unit tests. GitHub Actions now also runs a real Chromium task → map → crafting → reload journey on three viewports. Physical Safari and Android checks remain necessary.
 
+ATLAS / FORGE — settlement expansion (8 November 2026)
+Changes: expand the original single-room workshop into three unlockable spaces: Foundry (starter), Greenhouse (5 real deeds), and Observatory (15 real deeds). Add five original pixel-art furniture blueprints, unlock thresholds, crafting ingredient shortages, collection counts, room-switching controls, and three visible progress goals. Existing 1–9 room slots remain the Foundry; new rooms use namespaced slots in the existing crafted array, so no migration or additional permission is required.
+Safety: the one-time real-action award ledger remains authoritative, milestone bonuses cannot unlock rooms, locked items cannot be crafted or placed via manipulated buttons, and all crafting/placement transactions still roll back if saving fails. No private records, integrations, account access, or Supabase configuration changed.
+Verification: 101 dependency-free automated tests passed, including new room unlock and backup compatibility tests. Browser rendering, physical iOS/Samsung testing, and production deployment must be verified separately.
+
 ---
 
 ATLAS — Rapid touch evolution (30 October 2026)

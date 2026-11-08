@@ -1324,6 +1324,10 @@ h1,h2,h3{font-family:var(--atlas-display-font);font-optical-sizing:auto;letter-s
 .forge-intro .quest-kicker,.forge-room-header .quest-kicker{font-size:10px;letter-spacing:.15em;color:var(--forge-brass);font-weight:850}
 .forge-intro h2{margin-top:5px;font-size:26px;color:var(--text)}
 .forge-intro p{max-width:45ch;color:var(--muted);line-height:1.5;margin:9px 0 0;font-size:13px}
+.forge-progress-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:14px}
+.forge-progress-summary>div{min-width:0;padding:14px 9px;border:1px solid #685443;border-radius:13px;background:linear-gradient(150deg,#40342e,#25242b);display:flex;flex-direction:column;gap:3px;text-align:center;color:#f5dfbe}
+.forge-progress-summary strong{font-size:21px;font-weight:900;font-variant-numeric:tabular-nums}
+.forge-progress-summary span{font-size:10px;color:#d7be9e;letter-spacing:.02em}
 .forge-materials{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin:0 0 18px}
 .forge-material{min-width:0;padding:11px 8px;display:flex;align-items:center;flex-direction:column;gap:6px;text-align:center;border:1px solid var(--border);border-radius:12px;background:var(--surface)}
 .forge-material strong{display:block;letter-spacing:.05em;font-size:10px;font-weight:850;overflow-wrap:anywhere}
@@ -1332,13 +1336,28 @@ h1,h2,h3{font-family:var(--atlas-display-font);font-optical-sizing:auto;letter-s
 .forge-material-symbol.iron{color:#c1d0da;background:#3b4750;border-color:#627988}
 .forge-material-symbol.fibre{color:#bdd8a4;background:#334a39;border-color:#60755b}
 .forge-material-symbol.essence{color:#d9bffb;background:#493c65;border-color:#756093}
+.forge-room-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-bottom:11px}
+.forge-room-tab{min-width:0;min-height:77px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:9px 3px;border-radius:12px;background:var(--surface);color:var(--text);border:1px solid var(--border);cursor:pointer}
+.forge-room-tab.active{border-color:var(--forge-brass);box-shadow:inset 0 0 0 1px var(--forge-brass);background:color-mix(in srgb,var(--surface) 88%,var(--forge-brass))}
+.forge-room-tab.locked{opacity:.6;cursor:not-allowed}
+.forge-room-tab-icon{font-size:23px;line-height:1}
+.forge-room-tab strong{display:block;font-size:11px;line-height:1.25}
+.forge-room-tab small{display:block;font-size:9px;line-height:1.35;margin-top:4px;color:var(--muted)}
+.forge-room-tab:focus-visible{outline:3px solid var(--accent-text);outline-offset:2px}
 .forge-room-card{overflow:hidden;padding:0;background:var(--surface);border:1px solid var(--border);border-radius:20px;box-shadow:0 16px 40px var(--forge-shadow)}
 .forge-room-header{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:18px 18px 14px}
 .forge-room-header h3{font-size:20px;margin-top:3px}
+.forge-room-header p{font-size:11px;color:var(--muted);line-height:1.45;margin:4px 0 0}
 .forge-room-count{font-size:11px;font-weight:750;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
 .forge-room-wall{height:80px;position:relative;background:linear-gradient(0deg,rgba(20,14,19,.22) 0 5px,transparent 5px),repeating-linear-gradient(90deg,#423840 0 22px,#4b3d42 22px 24px);border-top:1px solid #67545b;border-bottom:7px solid #756052;display:grid;place-items:center}
 .forge-window{width:59px;height:51px;border:6px solid #a17e65;background:linear-gradient(160deg,#354a62,#64728a);display:grid;place-items:center;color:#f3d9a4;font-size:22px;box-shadow:0 5px 0 #3d3138,inset 0 0 0 2px #7d8997}
 .forge-room-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;padding:11px;max-width:480px;margin:auto;background:linear-gradient(45deg,rgba(0,0,0,.045) 25%,transparent 25%,transparent 75%,rgba(0,0,0,.045) 75%),linear-gradient(160deg,#947354,#665344);background-size:28px 28px,auto}
+.forge-theme-grove .forge-room-wall{background:repeating-linear-gradient(90deg,#3c5a47 0 24px,#4b6b52 24px 27px);border-color:#83a16c}
+.forge-theme-grove .forge-window{background:linear-gradient(160deg,#b2d7b7,#719c7a);color:#fff7bc}
+.forge-theme-grove .forge-room-grid{background:linear-gradient(45deg,rgba(220,235,167,.065) 25%,transparent 25%,transparent 75%,rgba(220,235,167,.065) 75%),linear-gradient(150deg,#637b52,#405d42);background-size:28px 28px,auto}
+.forge-theme-study .forge-room-wall{background:repeating-linear-gradient(90deg,#2d3855 0 23px,#3a4765 23px 26px);border-color:#586e95}
+.forge-theme-study .forge-window{background:linear-gradient(160deg,#142541,#4e638a);color:#e4d4ff}
+.forge-theme-study .forge-room-grid{background:linear-gradient(45deg,rgba(213,220,254,.07) 25%,transparent 25%,transparent 75%,rgba(213,220,254,.07) 75%),linear-gradient(140deg,#62607e,#3b415d);background-size:28px 28px,auto}
 .forge-room-tile{position:relative;min-width:0;aspect-ratio:1.12;min-height:73px;border:1px solid rgba(230,201,165,.26);border-radius:5px;display:grid;place-items:center;background:linear-gradient(135deg,rgba(255,230,185,.065),rgba(42,23,21,.1));color:#e8d3af;cursor:pointer;transition:background .15s,border-color .15s}
 .forge-room-tile.occupied{background:radial-gradient(circle at 50% 85%,rgba(23,11,11,.24),transparent 48%),rgba(255,224,181,.08)}
 .forge-room-tile.forge-target:not(.occupied){border:2px dashed #edd09b;background:rgba(211,173,111,.16)}
@@ -1346,6 +1365,13 @@ h1,h2,h3{font-family:var(--atlas-display-font);font-optical-sizing:auto;letter-s
 .forge-room-tile .forge-sprite{width:min(76%,72px);height:auto;filter:drop-shadow(0 5px 1px rgba(39,22,17,.28))}
 .forge-tile-empty{font-size:24px;font-weight:350;opacity:.23}
 .forge-room-hint{margin:0;padding:10px 15px 15px;font-size:12px;text-align:center;color:var(--muted);line-height:1.4}
+.forge-goals{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.forge-goal{min-width:0;border:1px solid var(--border);border-radius:13px;padding:11px;background:var(--surface)}
+.forge-goal-top{display:flex;justify-content:space-between;align-items:start;gap:5px;min-height:34px}
+.forge-goal strong{font-size:11px;line-height:1.3}
+.forge-goal-top>span{font-size:10px;white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--forge-brass)}
+.forge-goal .quest-track{height:6px;margin:7px 0}
+.forge-goal small{font-size:10px;color:var(--muted);line-height:1.35;display:block}
 .forge-section-title{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:23px 2px 12px}
 .forge-section-title h3{font-size:19px}
 .forge-section-title h3 span{color:var(--muted);font-size:12px;vertical-align:middle;padding-left:3px}
@@ -1365,6 +1391,9 @@ h1,h2,h3{font-family:var(--atlas-display-font);font-optical-sizing:auto;letter-s
 .forge-recipe-copy strong{display:block;font-size:13px;color:var(--text)}
 .forge-recipe-copy p{font-size:11px;color:var(--muted);line-height:1.35;margin:4px 0}
 .forge-recipe-copy small{font-size:11px;font-weight:750;color:var(--forge-brass);line-height:1.4}
+.forge-recipe-state{display:block;color:var(--muted);font-size:10px;line-height:1.5;margin-top:4px}
+.forge-recipe-locked .forge-recipe-art{opacity:.55;filter:grayscale(.65)}
+.forge-owned{color:var(--forge-sage);font-size:11px;margin-left:4px}
 .forge-recipe .action{min-height:44px;padding:8px 12px}
 .forge-recipe .action:disabled{opacity:.38;cursor:not-allowed}
 .forge-recipe-locked .forge-recipe-art{filter:grayscale(1);opacity:.55}
@@ -1408,6 +1437,7 @@ h1,h2,h3{font-family:var(--atlas-display-font);font-optical-sizing:auto;letter-s
 :root[data-atlas-theme="arctic"] .forge-screen{--forge-brass:#745028;--forge-shadow:rgba(50,65,90,.12)}
 :root[data-atlas-theme="arctic"] .forge-world-screen{--forge-brass:#745028}
 :root[data-atlas-theme="arctic"] .forge-material-symbol{filter:saturate(.7)}
+@media(max-width:540px){.forge-goals{grid-template-columns:1fr}.forge-goal-top{min-height:0}.forge-room-tab strong{font-size:10px}.forge-room-header{padding:14px}}
 @media(max-width:390px){.atlas-journey .quest-tabs button{font-size:9px}.atlas-journey .quest-tabs button span{font-size:17px}.forge-materials{gap:4px}.forge-material{padding:9px 3px}.forge-material strong{font-size:9px}.forge-material small{font-size:9px}.forge-recipe{grid-template-columns:52px minmax(0,1fr);gap:10px}.forge-recipe-art{width:52px;height:52px}.forge-recipe-art svg{width:43px;height:43px}.forge-recipe .action{grid-column:2;justify-self:start}}
 @media(min-width:620px){.atlas-journey .quest-tabs{grid-template-columns:repeat(7,minmax(0,1fr))}}
 @media(max-width:390px){.forge-map-frame{padding:7px}.forge-world-map{gap:3px}.forge-world-tile{min-height:65px;padding:5px 2px}.forge-world-tile .forge-world-icon{font-size:22px}.forge-world-name{font-size:8px;margin-top:5px}.forge-world-stats strong{font-size:21px}}
@@ -1498,7 +1528,12 @@ const GAME_RECIPES=[
  {id:'bed',name:'Timber bed',description:'The first proper upgrade to your room.',cost:{timber:6,iron:2,fibre:4}},
  {id:'anvil',name:'Quarry anvil',description:'A sturdy workstation from the mountain.',cost:{timber:3,iron:4},requires:'6'},
  {id:'relic',name:'Ancient relic',description:'A curious find to display in your room.',cost:{timber:2,iron:1,essence:4},requires:'11'},
- {id:'telescope',name:'Starwatch scope',description:'Bring a little of the night sky indoors.',cost:{timber:4,iron:3,essence:5},requires:'15'}
+ {id:'telescope',name:'Starwatch scope',description:'Bring a little of the night sky indoors.',cost:{timber:4,iron:3,essence:5},requires:'15'},
+ {id:'books',name:'Field library',description:'A record of everything you have learned.',cost:{timber:4,fibre:3,essence:2},unlockActions:5},
+ {id:'flowers',name:'Moonflower bed',description:'A flowering corner for the greenhouse.',cost:{timber:2,fibre:6,essence:3},unlockActions:5},
+ {id:'desk',name:'Cartographer desk',description:'Plan your next big journey.',cost:{timber:7,iron:3,essence:2},unlockActions:10},
+ {id:'fountain',name:'Spring fountain',description:'A quiet place to recharge.',cost:{iron:4,fibre:2,essence:4},unlockActions:15},
+ {id:'stars',name:'Star projector',description:'A whole sky inside your room.',cost:{iron:6,essence:6},unlockActions:20}
 ];
 /* A fixed world makes discovery and loot reproducible from the save, even offline. */
 const GAME_WORLD=[
@@ -1519,7 +1554,17 @@ const GAME_WORLD=[
  {id:'14',name:'Moonlit Pond',biome:'water',symbol:'≈',description:'The surface reflects a second sky.',loot:{fibre:2,essence:1}},
  {id:'15',name:'The Observatory',biome:'ruins',symbol:'✶',description:'The final tower offers a view of the stars.',loot:{essence:4}}
 ];
-const gameRecipeUnlocked=(recipe,explored)=>!recipe.requires||explored.includes(recipe.requires);
+// Existing 1–9 slots stay mapped to the Foundry; additional rooms use prefixed slots.
+const GAME_ROOMS=[
+ {id:'foundry',name:'The Foundry',symbol:'⚒',description:'A home for your first creations.',unlockActions:0},
+ {id:'grove',name:'The Greenhouse',symbol:'❀',description:'A living room that grows with your efforts.',unlockActions:5},
+ {id:'study',name:'The Observatory',symbol:'✦',description:'A quiet retreat above the workshop.',unlockActions:15}
+];
+const gameRealActions=awards=>awards.filter(a=>a.kind!=='milestone').length;
+const gameSlotRoom=slot=>/^[1-9]$/.test(slot)?'foundry':/^(grove|study):[1-9]$/.test(slot)?slot.split(':')[0]:'';
+const gameRoomSlot=(room,n)=>room==='foundry'?String(n):`${room}:${n}`;
+const gameRoomUnlocked=(room,awards)=>GAME_ROOMS.some(r=>r.id===room&&gameRealActions(awards)>=r.unlockActions);
+const gameRecipeUnlocked=(recipe,awards,explored=[])=>gameRealActions(awards)>=(recipe.unlockActions||0)&&(!recipe.requires||explored.includes(recipe.requires));
 function gameWorldAdjacent(tileId,explored){
  const n=Number(tileId);
  if(!Number.isInteger(n)||n<1||n>15)return false;
@@ -1545,9 +1590,9 @@ function gameNormalize(raw){
  }
  const crafted=[],usedIds=new Set(),usedSlots=new Set(),remaining=gameSupply(uniqueAwards,[],explored);
  for(const item of Array.isArray(value.crafted)?value.crafted.slice(0,300):[]){
-  if(!item||typeof item!=='object'||typeof item.id!=='string'||!item.id||item.id.length>240||usedIds.has(item.id)||!GAME_RECIPES.some(r=>r.id===item.recipeId)||!Number.isSafeInteger(item.at)||item.at<0||typeof item.slot!=='string'||!/^([1-9])?$/.test(item.slot)||(item.slot&&usedSlots.has(item.slot)))continue;
+  if(!item||typeof item!=='object'||typeof item.id!=='string'||!item.id||item.id.length>240||usedIds.has(item.id)||!GAME_RECIPES.some(r=>r.id===item.recipeId)||!Number.isSafeInteger(item.at)||item.at<0||typeof item.slot!=='string'||(item.slot&&!gameSlotRoom(item.slot))||(item.slot&&usedSlots.has(item.slot)))continue;
   const recipe=GAME_RECIPES.find(r=>r.id===item.recipeId);
-  if(!gameRecipeUnlocked(recipe,explored))continue;
+  if(!gameRecipeUnlocked(recipe,uniqueAwards,explored))continue;
   if(Object.entries(recipe.cost).some(([material,count])=>remaining[material]<count))continue;
   for(const [material,count] of Object.entries(recipe.cost))remaining[material]-=count;
   usedIds.add(item.id);if(item.slot)usedSlots.add(item.slot);
@@ -2255,6 +2300,7 @@ const GAME_REWARDS=[
 ];
 let gameTab='habits';
 let gameSelectedCraft='';
+let gameRoom='foundry';
 function gameMaterials(){return gameSupply(data.game.awards,data.game.crafted,data.game.explored||[])}
 function gameTravelCredits(){return Math.max(0,data.game.awards.filter(a=>a.kind!=='milestone').length-(data.game.explored||[]).length)}
 function gameExplore(tileId){
@@ -2266,14 +2312,15 @@ function gameExplore(tileId){
 }
 function gameCraft(recipeId){
  if(!data.game.enabled||data.game.crafted.length>=300)return false;
- const recipe=GAME_RECIPES.find(r=>r.id===recipeId);if(!recipe||!gameRecipeUnlocked(recipe,data.game.explored||[]))return false;
+ const recipe=GAME_RECIPES.find(r=>r.id===recipeId);if(!recipe||!gameRecipeUnlocked(recipe,data.game.awards,data.game.explored||[]))return false;
  const stock=gameMaterials();
  if(Object.entries(recipe.cost).some(([material,count])=>stock[material]<count))return false;
  data.game.crafted.push({id:id(),recipeId:recipe.id,at:Date.now(),slot:''});
  return true;
 }
 function gamePlace(itemId,slot){
- if(!data.game.enabled||!/^([1-9])$/.test(String(slot))||data.game.crafted.some(item=>item.slot===slot&&item.id!==itemId))return false;
+ const room=gameSlotRoom(String(slot));
+ if(!data.game.enabled||!room||!gameRoomUnlocked(room,data.game.awards)||data.game.crafted.some(item=>item.slot===slot&&item.id!==itemId))return false;
  const item=data.game.crafted.find(item=>item.id===itemId);if(!item||item.slot===slot)return false;
  item.slot=slot;return true;
 }
@@ -2343,19 +2390,14 @@ function gameFurnitureSprite(type){
   bed:'<rect x="3" y="7" width="18" height="12" fill="#875d4d"/><rect x="5" y="9" width="14" height="8" fill="#ba7d7f"/><rect x="5" y="9" width="6" height="5" fill="#eee0c9"/><rect x="12" y="9" width="7" height="8" fill="#9b5c68"/><rect x="3" y="17" width="18" height="3" fill="#bc9469"/><rect x="4" y="20" width="3" height="2" fill="#73503d"/><rect x="17" y="20" width="3" height="2" fill="#73503d"/>',
   anvil:'<rect x="3" y="9" width="18" height="4" fill="#a2b4c0"/><rect x="5" y="13" width="14" height="3" fill="#647781"/><rect x="9" y="16" width="6" height="5" fill="#53606e"/><rect x="6" y="21" width="12" height="2" fill="#394853"/><rect x="2" y="9" width="4" height="2" fill="#d5dfe0"/>',
   relic:'<rect x="7" y="18" width="10" height="4" fill="#92715b"/><rect x="10" y="13" width="4" height="5" fill="#d9be92"/><rect x="8" y="6" width="8" height="8" fill="#6daeb1"/><rect x="10" y="3" width="4" height="3" fill="#b5e6d5"/><rect x="10" y="8" width="4" height="4" fill="#e3e5b8"/>',
-  telescope:'<rect x="7" y="7" width="14" height="5" fill="#c7a475"/><rect x="3" y="6" width="5" height="7" fill="#687c89"/><rect x="12" y="11" width="3" height="6" fill="#9f7a5a"/><rect x="9" y="17" width="3" height="5" fill="#73523e"/><rect x="15" y="17" width="3" height="5" fill="#73523e"/>'
+  telescope:'<rect x="7" y="7" width="14" height="5" fill="#c7a475"/><rect x="3" y="6" width="5" height="7" fill="#687c89"/><rect x="12" y="11" width="3" height="6" fill="#9f7a5a"/><rect x="9" y="17" width="3" height="5" fill="#73523e"/><rect x="15" y="17" width="3" height="5" fill="#73523e"/>',
+  books:'<rect x="3" y="18" width="18" height="3" fill="#a87c58"/><rect x="5" y="7" width="4" height="11" fill="#a9545f"/><rect x="10" y="5" width="4" height="13" fill="#7e9c8b"/><rect x="15" y="8" width="4" height="10" fill="#b79a6c"/><rect x="6" y="9" width="2" height="2" fill="#e9c99a"/><rect x="11" y="7" width="2" height="2" fill="#e9c99a"/><rect x="16" y="10" width="2" height="2" fill="#e9c99a"/>',
+  flowers:'<rect x="3" y="15" width="18" height="5" fill="#9a634f"/><rect x="5" y="12" width="14" height="4" fill="#4a6e4c"/><rect x="7" y="7" width="2" height="6" fill="#69906e"/><rect x="15" y="5" width="2" height="8" fill="#69906e"/><rect x="5" y="5" width="6" height="5" fill="#d5a7d8"/><rect x="13" y="3" width="6" height="5" fill="#e8c3e3"/><rect x="7" y="7" width="2" height="2" fill="#e5db7b"/><rect x="15" y="5" width="2" height="2" fill="#e5db7b"/>',
+  desk:'<rect x="3" y="10" width="18" height="4" fill="#c89c72"/><rect x="5" y="14" width="3" height="8" fill="#79513d"/><rect x="17" y="14" width="3" height="8" fill="#79513d"/><rect x="6" y="6" width="10" height="4" fill="#e4d5ae"/><rect x="8" y="7" width="6" height="2" fill="#9a9c88"/><rect x="17" y="5" width="2" height="5" fill="#8473a0"/><rect x="15" y="4" width="4" height="2" fill="#d7b779"/>',
+  fountain:'<rect x="3" y="16" width="18" height="5" fill="#8a929d"/><rect x="5" y="14" width="14" height="4" fill="#76afbd"/><rect x="10" y="7" width="4" height="10" fill="#aab8c1"/><rect x="8" y="5" width="8" height="3" fill="#d4d9d3"/><rect x="11" y="2" width="2" height="4" fill="#9cd7e2"/><rect x="6" y="10" width="2" height="5" fill="#9cd7e2"/><rect x="16" y="10" width="2" height="5" fill="#9cd7e2"/>',
+  stars:'<rect x="7" y="18" width="10" height="3" fill="#8c768a"/><rect x="10" y="12" width="4" height="6" fill="#978ca3"/><rect x="6" y="7" width="12" height="7" fill="#4b4e79"/><rect x="8" y="5" width="8" height="3" fill="#73739b"/><rect x="10" y="2" width="4" height="4" fill="#d7c1ec"/><rect x="3" y="5" width="2" height="2" fill="#e3d0a4"/><rect x="19" y="3" width="2" height="2" fill="#e3d0a4"/><rect x="20" y="11" width="2" height="2" fill="#e3d0a4"/>'
  };
  return `<svg class="forge-sprite" viewBox="0 0 24 24" shape-rendering="crispEdges" aria-hidden="true" focusable="false">${parts[type]||''}</svg>`;
-}
-function gameWorkshop(){
- const stock=gameMaterials(),placed=new Map(data.game.crafted.filter(item=>item.slot).map(item=>[item.slot,item]));
- const loose=data.game.crafted.filter(item=>!item.slot);
- const picked=loose.find(item=>item.id===gameSelectedCraft);
- const materials=GAME_MATERIALS.map(m=>`<div class="forge-material"><span class="forge-material-symbol ${m}" aria-hidden="true">${{timber:'▥',iron:'⬟',fibre:'⌁',essence:'✧'}[m]}</span><span><strong>${m.toUpperCase()}</strong><small>${stock[m]} available</small></span></div>`).join('');
- const tiles=Array.from({length:9},(_,i)=>{const slot=String(i+1),item=placed.get(slot),recipe=GAME_RECIPES.find(r=>r.id===item?.recipeId);return `<button class="forge-room-tile ${item?'occupied':''} ${picked?'forge-target':''}" type="button" data-action="game-slot" data-slot="${slot}" aria-label="${item?'Pick up '+esc(recipe.name):picked?'Place '+esc(GAME_RECIPES.find(r=>r.id===picked.recipeId)?.name||'item')+' in space '+slot:'Empty room space '+slot}" title="${item?'Tap to pick up':picked?'Tap to place here':'Empty space'}">${item?gameFurnitureSprite(item.recipeId):'<span class="forge-tile-empty" aria-hidden="true">＋</span>'}</button>`}).join('');
- const recipes=GAME_RECIPES.map(recipe=>{const affordable=Object.entries(recipe.cost).every(([m,n])=>stock[m]>=n),unlocked=gameRecipeUnlocked(recipe,data.game.explored||[]),landmark=GAME_WORLD.find(t=>t.id===recipe.requires);return `<div class="forge-recipe ${unlocked?'':'forge-recipe-locked'}"><div class="forge-recipe-art">${gameFurnitureSprite(recipe.id)}</div><div class="forge-recipe-copy"><strong>${esc(recipe.name)}</strong><p>${esc(recipe.description)}</p><small>${unlocked?Object.entries(recipe.cost).map(([m,n])=>`${n} ${m}`).join(' · '):'Explore '+esc(landmark?.name||'the world')+' to unlock'}</small></div><button type="button" class="action small" data-action="game-craft" data-id="${recipe.id}" ${!affordable||!unlocked||data.game.crafted.length>=300?'disabled':''}>${unlocked?'Craft':'Locked'}</button></div>`}).join('');
- const inventory=loose.length?loose.map(item=>{const recipe=GAME_RECIPES.find(r=>r.id===item.recipeId);return `<button type="button" class="forge-inventory-item ${picked?.id===item.id?'selected':''}" data-action="game-select" data-id="${esc(item.id)}" aria-pressed="${picked?.id===item.id}">${gameFurnitureSprite(item.recipeId)}<span>${esc(recipe.name)}<small>${picked?.id===item.id?'Selected — tap a room space':'Tap to place'}</small></span></button>`}).join(''):'<p class="forge-empty-note">Craft a piece of furniture and it will appear here.</p>';
- return `<section class="forge-screen"><div class="forge-intro"><span class="quest-kicker">THE FOUNDRY</span><h2>Your workshop</h2><p>Craft, collect and furnish a home of your own. Explore the world to find materials and unlock rare designs.</p></div><div class="forge-materials" aria-label="Crafting materials">${materials}</div><div class="forge-room-card"><div class="forge-room-header"><div><span class="quest-kicker">YOUR SPACE</span><h3>The Foundry</h3></div><span class="forge-room-count">${placed.size} / 9 furnished</span></div><div class="forge-room-wall"><span class="forge-window" aria-hidden="true">✦</span></div><div class="forge-room-grid" aria-label="Customisable room">${tiles}</div><p class="forge-room-hint">${picked?'Choose an empty space for your selected item.':placed.size?'Tap furniture to return it to your inventory.':'Your room is waiting for its first piece.'}</p></div><div class="forge-section-title"><h3>Inventory <span>${loose.length}</span></h3><small>Choose an item to place</small></div><div class="forge-inventory">${inventory}</div><div class="forge-section-title"><h3>Crafting bench</h3><small>${GAME_RECIPES.length} blueprints · ${GAME_RECIPES.filter(r=>gameRecipeUnlocked(r,data.game.explored||[])).length} unlocked</small></div><div class="forge-recipes">${recipes}</div><p class="quest-help">Materials are fictional and earned through distinct real-life actions or first-time discoveries. Furniture and map progress are included in your ATLAS backup.</p></section>`;
 }
 function gameWorldScreen(){
  const explored=data.game.explored||[],known=new Set(['0',...explored]),credits=gameTravelCredits();
@@ -2369,6 +2411,30 @@ function gameWorldScreen(){
  const loot=Object.entries(latest.loot).map(([name,n])=>`+${n} ${name}`).join(' · ');
  const unlocks=GAME_RECIPES.filter(r=>r.requires&&explored.includes(r.requires));
  return `<section class="forge-world-screen"><div class="forge-intro"><span class="quest-kicker">BEYOND THE FOUNDRY</span><h2>The living valley</h2><p>Each distinct completed task or daily habit earns one trail token. Spend it to reveal a neighbouring location, collect supplies and find blueprints.</p></div><div class="forge-world-stats"><div><strong>${explored.length+1}<small> / 16</small></strong><span>Places discovered</span></div><div><strong>${credits}</strong><span>Trail tokens ready</span></div><div><strong>${unlocks.length}<small> / 3</small></strong><span>Rare blueprints</span></div></div><div class="forge-map-frame"><div class="forge-map-heading"><span>THE VALLEY</span><span>North ↑</span></div><div class="forge-world-map" role="group" aria-label="Explore the valley, four by four map">${tiles}</div><p class="forge-map-hint">${credits?'Tap a glowing question mark next to explored land. Each place can be discovered only once.':'Earn your next trail token by completing a task or checking in to a habit.'}</p></div><div class="forge-world-discovery"><div class="forge-discovery-emblem" aria-hidden="true">${latest.symbol}</div><div><small>${explored.length?'LATEST DISCOVERY':'YOUR STARTING POINT'}</small><h3>${esc(latest.name)}</h3><p>${esc(latest.description)}</p>${loot?`<strong>Found ${esc(loot)}</strong>`:'<span>Your adventure begins here.</span>'}</div></div><div class="forge-section-title"><h3>Legendary finds</h3><small>Explore to unlock</small></div><div class="forge-world-milestones">${GAME_RECIPES.filter(r=>r.requires).map(r=>{const found=explored.includes(r.requires),location=GAME_WORLD.find(t=>t.id===r.requires);return `<div class="forge-world-milestone ${found?'found':''}"><span aria-hidden="true">${found?'✦':'◇'}</span><div><strong>${esc(r.name)}</strong><small>${found?'Blueprint unlocked':'Search '+esc(location.name)}</small></div></div>`}).join('')}</div><p class="quest-help">No timers, streak penalties or purchases. Old one-time task and habit awards count towards your available trail tokens. Every discovery and reward persists in your local backup.</p></section>`;
+}
+function gameWorkshop(){
+ const stock=gameMaterials(),actions=gameRealActions(data.game.awards);
+ if(!gameRoomUnlocked(gameRoom,data.game.awards))gameRoom='foundry';
+ const room=GAME_ROOMS.find(r=>r.id===gameRoom);
+ const placed=new Map(data.game.crafted.filter(item=>item.slot).map(item=>[item.slot,item]));
+ const loose=data.game.crafted.filter(item=>!item.slot),picked=loose.find(item=>item.id===gameSelectedCraft);
+ const roomCount=Array.from({length:9},(_,i)=>placed.has(gameRoomSlot(room.id,i+1))).filter(Boolean).length;
+ const builtTypes=new Set(data.game.crafted.map(item=>item.recipeId)).size;
+ const nextRoom=GAME_ROOMS.find(r=>actions<r.unlockActions);
+ const materials=GAME_MATERIALS.map(m=>`<div class="forge-material"><span class="forge-material-symbol ${m}" aria-hidden="true">${{timber:'▥',iron:'⬟',fibre:'⌁',essence:'✧'}[m]}</span><span><strong>${m.toUpperCase()}</strong><small>${stock[m]} available</small></span></div>`).join('');
+ const rooms=GAME_ROOMS.map(r=>{const open=gameRoomUnlocked(r.id,data.game.awards),count=data.game.crafted.filter(item=>gameSlotRoom(item.slot)===r.id).length;return `<button type="button" class="forge-room-tab ${room.id===r.id?'active':''} ${open?'':'locked'}" role="tab" aria-selected="${room.id===r.id}" data-action="game-room" data-room="${r.id}" ${open?'':'disabled'}><span class="forge-room-tab-icon" aria-hidden="true">${r.symbol}</span><span><strong>${esc(r.name)}</strong><small>${open?count+' / 9 placed':'Unlock at '+r.unlockActions+' deeds'}</small></span></button>`}).join('');
+ const tiles=Array.from({length:9},(_,i)=>{const slot=gameRoomSlot(room.id,i+1),item=placed.get(slot),recipe=GAME_RECIPES.find(r=>r.id===item?.recipeId);return `<button class="forge-room-tile ${item?'occupied':''} ${picked&&!item?'forge-target':''}" type="button" data-action="game-slot" data-slot="${slot}" aria-label="${item?'Pick up '+esc(recipe.name):picked?'Place '+esc(GAME_RECIPES.find(r=>r.id===picked.recipeId)?.name||'item')+' in space '+(i+1):'Empty room space '+(i+1)}" title="${item?'Tap to pick up':picked?'Tap to place here':'Empty space'}">${item?gameFurnitureSprite(item.recipeId):'<span class="forge-tile-empty" aria-hidden="true">＋</span>'}</button>`}).join('');
+ const recipes=GAME_RECIPES.map(recipe=>{
+  const unlocked=gameRecipeUnlocked(recipe,data.game.awards,data.game.explored||[]),affordable=Object.entries(recipe.cost).every(([m,n])=>stock[m]>=n);
+  const needs=Object.entries(recipe.cost).filter(([m,n])=>stock[m]<n).map(([m,n])=>`${n-stock[m]} ${m}`);
+  const owned=data.game.crafted.filter(item=>item.recipeId===recipe.id).length;
+  const unlockHint=recipe.requires?'Explore '+(GAME_WORLD.find(t=>t.id===recipe.requires)?.name||'the valley'):`Complete ${recipe.unlockActions} real deeds`;
+  return `<div class="forge-recipe ${unlocked?'':'forge-recipe-locked'}"><div class="forge-recipe-art">${gameFurnitureSprite(recipe.id)}</div><div class="forge-recipe-copy"><strong>${esc(recipe.name)}${owned?` <span class="forge-owned">×${owned}</span>`:''}</strong><p>${esc(recipe.description)}</p><small>${Object.entries(recipe.cost).map(([m,n])=>`${n} ${m}`).join(' · ')}</small>${!unlocked?`<span class="forge-recipe-state">🔒 ${esc(unlockHint)}</span>`:!affordable?`<span class="forge-recipe-state">Need ${needs.join(' · ')}</span>`:''}</div><button type="button" class="action small" data-action="game-craft" data-id="${recipe.id}" ${!unlocked||!affordable||data.game.crafted.length>=300?'disabled':''}>${unlocked?'Craft':'Locked'}</button></div>`;
+ }).join('');
+ const inventory=loose.length?loose.map(item=>{const recipe=GAME_RECIPES.find(r=>r.id===item.recipeId);return `<button type="button" class="forge-inventory-item ${picked?.id===item.id?'selected':''}" data-action="game-select" data-id="${esc(item.id)}" aria-pressed="${picked?.id===item.id}">${gameFurnitureSprite(item.recipeId)}<span>${esc(recipe.name)}<small>${picked?.id===item.id?'Selected — tap a room space':'Tap to place'}</small></span></button>`}).join(''):'<p class="forge-empty-note">Craft a piece of furniture and it will appear here.</p>';
+ const objectives=[{title:nextRoom?'Unlock '+nextRoom.name:'All rooms unlocked',current:nextRoom?actions:15,target:nextRoom?.unlockActions||15,detail:nextRoom?'Complete real tasks or daily habit check-ins':'Your settlement has all three rooms'},{title:'Furnish your room',current:roomCount,target:9,detail:'Choose what belongs in '+room.name},{title:'Discover the collection',current:builtTypes,target:GAME_RECIPES.length,detail:'Craft each blueprint at least once'}];
+ const goals=objectives.map(o=>`<div class="forge-goal"><div class="forge-goal-top"><strong>${esc(o.title)}</strong><span>${Math.min(o.current,o.target)} / ${o.target}</span></div><div class="quest-track" role="progressbar" aria-label="${esc(o.title)}" aria-valuenow="${Math.min(o.current,o.target)}" aria-valuemin="0" aria-valuemax="${o.target}"><span style="width:${Math.min(100,Math.round(o.current/o.target*100))}%"></span></div><small>${esc(o.detail)}</small></div>`).join('');
+ return `<section class="forge-screen"><div class="forge-intro"><span class="quest-kicker">ATLAS / FORGE · YOUR SETTLEMENT</span><h2>Build a world from real wins.</h2><p>Every finished task and daily habit check-in brings materials. Explore the valley for supplies, then craft and decorate rooms that open as you grow.</p></div><div class="forge-progress-summary"><div><strong>${actions}</strong><span>real deeds</span></div><div><strong>${data.game.crafted.length}</strong><span>crafted pieces</span></div><div><strong>${GAME_ROOMS.filter(r=>actions>=r.unlockActions).length} / ${GAME_ROOMS.length}</strong><span>rooms unlocked</span></div></div><div class="forge-materials" aria-label="Crafting materials">${materials}</div><div class="forge-section-title"><h3>Your settlement</h3><small>Choose a room</small></div><div class="forge-room-tabs" role="tablist" aria-label="Workshop rooms">${rooms}</div><div class="forge-room-card forge-theme-${room.id}"><div class="forge-room-header"><div><span class="quest-kicker">YOUR SPACE</span><h3>${esc(room.name)}</h3><p>${esc(room.description)}</p></div><span class="forge-room-count">${roomCount} / 9 furnished</span></div><div class="forge-room-wall"><span class="forge-window" aria-hidden="true">${room.id==='grove'?'☼':room.id==='study'?'☾':'✦'}</span></div><div class="forge-room-grid" aria-label="Customisable ${esc(room.name)} room">${tiles}</div><p class="forge-room-hint" role="status">${picked?'Choose an empty space for your selected item.':roomCount?'Tap furniture to return it to your inventory.':'Your room is waiting for its first piece.'}</p></div><div class="forge-section-title"><h3>Next milestones</h3><small>Every deed counts once</small></div><div class="forge-goals">${goals}</div><div class="forge-section-title"><h3>Inventory <span>${loose.length}</span></h3><small>Choose an item to place</small></div><div class="forge-inventory">${inventory}</div><div class="forge-section-title"><h3>Crafting bench</h3><small>${GAME_RECIPES.length} blueprints</small></div><div class="forge-recipes">${recipes}</div><p class="quest-help">Tasks yield timber and iron, habits yield fibre and essence, and first-time valley discoveries yield extra supplies. Materials are fictional, earned once, and never cost real money. Your rooms, map and collection stay in ATLAS backups.</p></section>`;
 }
 function gameSkillsScreen(){
  const progress=gameSkillTotals();
@@ -2412,6 +2478,11 @@ function gameAddReward(){
 function gameAction(element){
  const a=element.dataset.action,ref=element.dataset.id;
  if(a==='game-tab'){if(!['habits','dailies','todos','skills','world','forge','rewards'].includes(element.dataset.tab))return;gameTab=element.dataset.tab;return render()}
+ if(a==='game-room'){
+  const room=element.dataset.room;
+  if(!gameRoomUnlocked(room,data.game.awards))return false;
+  gameRoom=room;return render();
+ }
  if(a==='game-toggle'){data.game.enabled=!data.game.enabled;return commit(data.game.enabled?'Journey enabled':'Journey paused')}
  if(a==='game-explore'){
   const result=gameTransact(()=>gameExplore(ref),'New location discovered! Materials added to your pack.');

@@ -155,3 +155,50 @@ test('failed place and pickup saves restore room slots and permit exactly one re
  assert.equal(h.data.game.crafted.length,1);
  assert.equal(item.id,h.data.game.crafted[0].id);
 });
+
+test('settlement rooms unlock from real deeds and can be switched and furnished',()=>{
+ const h=harness();h.setTab('forge');
+ assert.match(h.gameScreen(),/The Greenhouse/);
+ assert.match(h.gameScreen(),/Unlock at 5 deeds/);
+ assert.equal(h.gamePlace('missing','grove:1'),false);
+ assert.equal(h.gameAction({dataset:{action:'game-room',room:'grove'}}),false);
+ for(let n=0;n<5;n++)h.gameAward('task',`task:${n}`);
+ assert.equal(h.data.game.awards.length,6,'first-five milestone must not count as a deed');
+ assert.match(h.gameScreen(),/Unlock at 15 deeds/);
+ h.gameAward('habit','habit:a:2026-11-08');
+ h.gameAward('habit','habit:b:2026-11-08');
+ assert.equal(h.gameCraft('books'),true);
+ const piece=h.data.game.crafted[0];
+ h.gameAction({dataset:{action:'game-room',room:'grove'}});
+ assert.match(h.gameScreen(),/Customisable The Greenhouse room/);
+ h.gameAction({dataset:{action:'game-select',id:piece.id}});
+ h.gameAction({dataset:{action:'game-slot',slot:'grove:8'}});
+ assert.equal(piece.slot,'grove:8');
+ assert.match(h.gameScreen(),/data-slot="grove:8"/);
+ assert.equal(h.gamePlace(piece.id,'study:1'),false,'unlocked crafts cannot bypass a locked room');
+ for(let n=5;n<13;n++)h.gameAward('task',`task:${n}`);
+ h.gameAction({dataset:{action:'game-room',room:'study'}});
+ assert.match(h.gameScreen(),/Customisable The Observatory room/);
+ assert.match(h.gameScreen(),/3 \/ 3/);
+});
+
+test('locked blueprints cannot be crafted and restored room slots preserve legacy layouts',()=>{
+ const h=harness();h.setTab('forge');
+ for(let n=0;n<4;n++)h.gameAward('task',`task:${n}`);
+ assert.equal(h.gameCraft('desk'),false);
+ assert.match(h.gameScreen(),/Build a world from real wins/);
+ const legacy=h.gameNormalize({awards:h.data.game.awards,crafted:[{id:'old',recipeId:'stool',at:10,slot:'4'}]});
+ assert.equal(legacy.crafted[0].slot,'4');
+ const newer=h.gameNormalize({awards:h.data.game.awards,crafted:[
+  {id:'garden',recipeId:'plant',at:11,slot:'grove:2'},
+  {id:'duplicate',recipeId:'plant',at:12,slot:'grove:2'},
+  {id:'injected',recipeId:'plant',at:13,slot:'unknown:9'}
+ ]});
+ assert.deepEqual(newer.crafted.map(c=>c.id),[],'unearned crafting materials must not be manufactured by imports');
+ const withFibre=h.gameNormalize({awards:[...h.data.game.awards,
+  {kind:'habit',key:'habit:1',xp:10,coins:3,at:3},
+  {kind:'habit',key:'habit:2',xp:10,coins:3,at:4}
+ ],crafted:[{id:'garden',recipeId:'plant',at:11,slot:'grove:2'},{id:'duplicate',recipeId:'plant',at:12,slot:'grove:2'},{id:'bad',recipeId:'plant',at:13,slot:'fake:8'}]});
+ assert.deepEqual(withFibre.crafted.map(c=>c.id),['garden']);
+ assert.equal(withFibre.crafted[0].slot,'grove:2');
+});
