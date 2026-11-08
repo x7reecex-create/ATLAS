@@ -14,12 +14,12 @@ try{
   await page.getByRole('tab',{name:'Workshop',exact:true}).click();
   await page.getByRole('button',{name:'Track Ember lantern',exact:true}).click();
   assert.equal((await state(page)).game.craftGoal,'lamp');
-  assert.match(await page.locator('.forge-goal').innerText(),/2 new tasks \+ 2 new habit check-ins/);
+  assert.match(await page.locator('.forge-crafting-goal').innerText(),/real tasks or check in to habits/);
   await page.reload();
   await page.locator('#nav [data-page="gameScreen"]').click();
-  assert.match(await page.locator('.forge-goal h2').innerText(),/Ember lantern/);
-  await page.locator('.forge-goal summary').click();
-  await page.getByRole('button',{name:/Find a task/}).click();
+  assert.match(await page.locator('.forge-crafting-goal h2').innerText(),/Ember lantern/);
+  await page.locator('.forge-crafting-goal summary').click();
+  await page.getByRole('button',{name:/Find a real task/}).click();
   assert.equal(await page.getByRole('tab',{name:'To-dos',exact:true}).getAttribute('aria-selected'),'true');
   for(let i=1;i<=2;i++){
    await page.locator('[data-action="new-task"]').first().click();
@@ -31,7 +31,7 @@ try{
   await page.getByRole('checkbox',{name:'Reopen Goal test task 2',exact:true}).click();
   await page.getByRole('checkbox',{name:'Complete Goal test task 2',exact:true}).click();
   assert.equal((await state(page)).game.awards.length,2,'reopened task earns no extra goal materials');
-  await page.locator('.forge-goal summary').click();
+  await page.locator('.forge-crafting-goal summary').click();
   await page.getByRole('button',{name:/Check in to a habit/}).click();
   for(let i=1;i<=2;i++){
    await page.locator('[data-action="ins-new"][data-kind="habit"]').first().click();
@@ -40,13 +40,7 @@ try{
    await page.getByRole('button',{name:'Check in to Goal test habit '+i,exact:true}).click();
   }
   assert.match(await page.locator('.forge-goal-status').innerText(),/Ready to craft/);
-  if(width===393){
-   const shot=(await page.locator('.forge-goal').screenshot({type:'jpeg',quality:70})).toString('base64');
-   console.log('FORGE_IMAGE_START');
-   for(let i=0;i<shot.length;i+=10000)console.log('FORGE_IMAGE_CHUNK '+shot.slice(i,i+10000));
-   console.log('FORGE_IMAGE_END');
-  }
-  await page.locator('.forge-goal summary').click();
+  await page.locator('.forge-crafting-goal summary').click();
   await page.getByRole('button',{name:'Craft Ember lantern',exact:true}).click();
   let saved=await state(page);
   assert.equal(saved.game.craftGoal,'');assert.equal(saved.game.crafted.length,1);assert.equal(saved.game.crafted[0].recipeId,'lamp');
@@ -67,10 +61,10 @@ try{
   });
   await page.getByRole('button',{name:'Track Woven rug',exact:true}).click();
   assert.equal((await state(page)).game.craftGoal,'bed','failed goal save preserves previous storage');
-  assert.equal(await page.locator('.forge-goal h2').innerText(),'Timber bed','failed goal save preserves previous screen');
+  assert.equal(await page.locator('.forge-crafting-goal h2').innerText(),'Timber bed','failed goal save preserves previous screen');
   await page.getByRole('button',{name:'Track Woven rug',exact:true}).click();
   assert.equal((await state(page)).game.craftGoal,'rug');
-  await page.locator('.forge-goal').getByRole('button',{name:'Stop tracking Woven rug',exact:true}).click();
+  await page.locator('.forge-crafting-goal').getByRole('button',{name:'Stop tracking Woven rug',exact:true}).click();
   assert.equal((await state(page)).game.craftGoal,'');
   await page.getByRole('button',{name:'Track Timber bed',exact:true}).click();
   await page.reload();await page.locator('#nav [data-page="gameScreen"]').click();
@@ -81,7 +75,7 @@ try{
    localStorage.setItem('atlas-preview:v1',JSON.stringify(d));
   });
   await page.reload();await page.locator('#nav [data-page="gameScreen"]').click();
-  assert.equal(await page.locator('.forge-goal').count(),0,'unknown goal does not block loading');
+  assert.equal(await page.locator('.forge-crafting-goal').count(),0,'unknown goal does not block loading');
   await page.getByRole('tab',{name:'Workshop',exact:true}).click();
   await page.getByRole('button',{name:'Track Timber bed',exact:true}).focus();
   await page.keyboard.press('Enter');
@@ -99,7 +93,7 @@ try{
   await page.getByRole('button',{name:'Explore the world',exact:true}).click();
   for(const tile of ['1','2','6'])await page.locator(`.forge-world-tile[data-id="${tile}"]`).click();
   assert.match(await page.locator('.forge-goal-status').innerText(),/Ready to craft/);
-  await page.locator('.forge-goal summary').click();
+  await page.locator('.forge-crafting-goal summary').click();
   await page.getByRole('button',{name:'Craft Quarry anvil',exact:true}).click();
   await page.getByRole('button',{name:'Place Quarry anvil in space 6',exact:true}).click();
   assert.equal((await state(page)).game.crafted.length,2);

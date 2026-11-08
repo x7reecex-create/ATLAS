@@ -19,6 +19,8 @@ jobs:
           node tests/browser-smoke.mjs
       - name: FORGE world (small mobile, iPhone and desktop)
         run: node tests/forge-world-browser.mjs
+      - name: FORGE reward persistence (small mobile, iPhone and desktop)
+        run: node tests/forge-rewards-browser.mjs
       - name: Everyday experience (six viewports and visual evidence)
         run: node tests/everyday-browser.mjs
       - name: FORGE crafting goals (six viewports, persistence and placement)
