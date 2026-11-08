@@ -1,3 +1,12 @@
+ATLAS / FORGE — Reward redemption persistence (8 November 2026)
+Baseline: main 1d7556b828905b5547694bb544b25dcbb754faa5; production dpl_2ZnLY3ayCT1ceZA4ebQr1EAR3uHM (READY, matching source metadata). The latest main CI run 42509374754 passed. Open PRs were inspected; no active run or competing reward-redemption fix was found.
+Problem reproduced: after confirming a reward, a failed save left a phantom claim in memory and reduced the coin balance. A later successful save could persist that unintended deduction.
+Change: redeem rewards through the existing rollback transaction and include claims in its snapshot. Failed writes retain prior coins and claims; retry spends once. Offline shell v42. No data schema, account or service changes.
+Verification so far: regression failed on the baseline for the expected phantom claim, then all 120 Node tests passed with the fix. Added CI browser coverage at 320, 393 and 1366px for real task awards, quota failure, a fresh rendered balance, cancellation, keyboard retry, reload and overflow. Local Chromium launch was blocked by the runtime (socket Operation not permitted); browser/preview/release evidence must be recorded before publication.
+Next: complete CI and preview verification, then release if all gates pass. After this fix, review other Journey mutations for failed-save rollback and resume the pending crafting-goal PR without losing newer settlement/blueprint work.
+
+---
+
 ATLAS / FORGE — Blueprint Progression integration (8 November 2026)
 Changes: eight independently skill-gated original pixel-art furniture blueprints, four room finishes (Foundry, Moss, Midnight, Brass), skill-level requirements in crafting cards, upcoming blueprint previews, and scaled timber/iron yields for demanding real tasks. The system is integrated with the existing 16-place Living Valley and new three-room settlement (Foundry, Greenhouse, Observatory), including five deed-gated furniture blueprints. The shared activity ledger drives progression without duplicate task entry.
 Safety: old saves gain the Foundry finish and retain legacy room slots. Restored items must have earned the relevant skill, deed-count, exploration blueprint and room-slot unlocks. Selected finish, crafting, placement and discoveries remain rollback-safe on local storage failures. All assets are original inline artwork; there are no new services, dependencies, payments, migrations or auth changes. Offline shell cache v41.

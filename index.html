@@ -2402,9 +2402,11 @@ function gameUnplace(itemId){
 // Keep the existing screen in place so the user's next tap retries the same action.
 function gameTransact(change,message){
  const before=data.game.crafted.map(item=>({...item})),hadExplored=Object.hasOwn(data.game,'explored'),exploredBefore=[...(data.game.explored||[])],selectedBefore=gameSelectedCraft,styleBefore=data.game.roomStyle;
+ const claimsBefore=data.game.claims.map(claim=>({...claim}));
  if(!change())return false;
  if(!commit(message)){
   data.game.crafted=before;
+  data.game.claims=claimsBefore;
   if(hadExplored)data.game.explored=exploredBefore;else delete data.game.explored;
   gameSelectedCraft=selectedBefore;
   data.game.roomStyle=styleBefore;
@@ -2625,7 +2627,7 @@ function gameAction(element){
   if(balance<reward.cost)return showToast('Earn a few more coins first.');
   if(data.game.claims.length>=10000)return showToast('Reward history is full. Export a backup.');
   if(!confirm(`Redeem “${reward.title}” for ${reward.cost} ATLAS coins?`))return;
-  data.game.claims.push({id:id(),title:reward.title,cost:reward.cost,at:Date.now()});return commit('Reward redeemed — enjoy it!');
+  return gameTransact(()=>{data.game.claims.push({id:id(),title:reward.title,cost:reward.cost,at:Date.now()});return true;},'Reward redeemed — enjoy it!');
  }
 }
 

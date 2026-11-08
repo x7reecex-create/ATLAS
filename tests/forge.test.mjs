@@ -9,19 +9,40 @@ const game=html.slice(html.indexOf('/* Journey derives'),html.indexOf('function 
 function harness(gameState={enabled:true,awards:[],claims:[],rewards:[],crafted:[]}){
  const data={game:gameState};let next=0;
  const messages=[],toasts=[];let failNextCommit=false,renderCount=0,savedGame=null;
- const api=new Function('data','showToast','id','esc','calLondonToday','calStartWeek','commit','render',normalizer+'\n'+game+`\nreturn {
+ const api=new Function('data','showToast','id','esc','calLondonToday','calStartWeek','commit','render','confirm',normalizer+'\n'+game+`\nreturn {
   gameAward,gameNormalize,gameMaterials:typeof gameMaterials==='function'?gameMaterials:null,
   gameCraft:typeof gameCraft==='function'?gameCraft:null,
-  gameSkillTotals,gameFurnitureSprite,
+  gameSkillTotals,gameFurnitureSprite,gameTotals,
   gamePlace:typeof gamePlace==='function'?gamePlace:null,
   gameUnplace:typeof gameUnplace==='function'?gameUnplace:null,
   gameScreen,gameAction,setTab(tab){gameTab=tab}
  };`)(data,message=>toasts.push(message),()=>`item-${++next}`,v=>String(v),()=>'2026-11-08',()=> '2026-11-02',v=>{
   if(failNextCommit){failNextCommit=false;return false;}
   savedGame=JSON.stringify(data.game);messages.push(v);renderCount++;return true;
- },()=>{renderCount++;});
+ },()=>{renderCount++;},()=>true);
  return {data,messages,toasts,...api,failNextSave(){failNextCommit=true},getSavedGame(){return savedGame},getRenderCount(){return renderCount}};
 }
+
+test('failed reward redemption restores coins and prior claims, then retry spends only once',()=>{
+ const h=harness();
+ for(let n=0;n<5;n++)h.gameAward('task','task:reward-'+n);
+ const claim=()=>h.gameAction({dataset:{action:'game-claim',id:'break'}});
+ claim();
+ const before=JSON.stringify(h.data.game),saved=h.getSavedGame();
+ assert.equal(h.gameTotals().coins,35);
+ h.failNextSave();
+ claim();
+ assert.equal(JSON.stringify(h.data.game),before,'failed save must not retain a phantom redemption');
+ assert.equal(h.gameTotals().coins,35,'failed save must not spend coins');
+ assert.equal(h.getSavedGame(),saved);
+ assert.equal(h.messages.length,1,'failed redemption must not announce success');
+ claim();
+ assert.equal(h.data.game.claims.length,2);
+ assert.equal(h.gameTotals().coins,15);
+ assert.equal(h.gameNormalize(JSON.parse(h.getSavedGame())).claims.length,2);
+ claim();
+ assert.equal(h.data.game.claims.length,2,'insufficient balance must not add a claim');
+});
 
 test('one real task earns materials once, then crafts and places a stool',()=>{
  const {data,gameAward,gameMaterials,gameCraft,gamePlace,gameUnplace}=harness();
