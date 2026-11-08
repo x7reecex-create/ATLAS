@@ -8,15 +8,18 @@ const game=html.slice(html.indexOf('/* Journey derives'),html.indexOf('function 
 
 function harness(gameState={enabled:true,awards:[],claims:[],rewards:[],crafted:[]}){
  const data={game:gameState};let next=0;
- const messages=[];
+ const messages=[];let failNextCommit=false,renderCount=0,savedGame=null;
  const api=new Function('data','showToast','id','esc','calLondonToday','calStartWeek','commit','render',normalizer+'\n'+game+`\nreturn {
   gameAward,gameNormalize,gameMaterials:typeof gameMaterials==='function'?gameMaterials:null,
   gameCraft:typeof gameCraft==='function'?gameCraft:null,
   gamePlace:typeof gamePlace==='function'?gamePlace:null,
   gameUnplace:typeof gameUnplace==='function'?gameUnplace:null,
   gameScreen,gameAction,setTab(tab){gameTab=tab}
- };`)(data,()=>{},()=>`item-${++next}`,v=>String(v),()=>'2026-11-08',()=> '2026-11-02',v=>messages.push(v),()=>{});
- return {data,messages,...api};
+ };`)(data,()=>{},()=>`item-${++next}`,v=>String(v),()=>'2026-11-08',()=> '2026-11-02',v=>{
+  if(failNextCommit){failNextCommit=false;return false;}
+  savedGame=JSON.stringify(data.game);messages.push(v);renderCount++;return true;
+ },()=>{renderCount++;});
+ return {data,messages,...api,failNextSave(){failNextCommit=true},getSavedGame(){return savedGame},getRenderCount(){return renderCount}};
 }
 
 test('one real task earns materials once, then crafts and places a stool',()=>{
@@ -118,4 +121,37 @@ test('Workshop buttons craft, choose an item, place it in a chosen room space an
  assert.match(gameScreen(),/data-action="game-slot" data-slot="7"/);
  gameAction({dataset:{action:'game-slot',slot:'7'}});
  assert.equal(piece.slot,'');
+});
+
+test('failed craft save rolls back materials and selection; retry spends once',()=>{
+ const h=harness();h.gameAward('task','task:a');h.gameAward('task','task:b');
+ const before=JSON.stringify(h.data.game),materials=h.gameMaterials();
+ h.failNextSave();h.gameAction({dataset:{action:'game-craft',id:'stool'}});
+ assert.equal(JSON.stringify(h.data.game),before,'failed persistence must leave no crafted item');
+ assert.deepEqual(h.gameMaterials(),materials,'failed persistence cannot consume materials');
+ assert.equal(h.getSavedGame(),null);
+ h.gameAction({dataset:{action:'game-craft',id:'stool'}});
+ assert.equal(h.data.game.crafted.length,1);
+ assert.deepEqual(h.gameMaterials(),{timber:2,iron:1,fibre:0,essence:0});
+ assert.equal(JSON.parse(h.getSavedGame()).crafted.length,1);
+});
+
+test('failed place and pickup saves restore room slots and permit exactly one retry',()=>{
+ const h=harness();h.gameAward('task','task:a');
+ h.gameAction({dataset:{action:'game-craft',id:'stool'}});
+ const item=h.data.game.crafted[0];
+ h.failNextSave();h.gameAction({dataset:{action:'game-slot',slot:'3'}});
+ assert.equal(h.data.game.crafted[0].slot,'');
+ assert.equal(JSON.parse(h.getSavedGame()).crafted[0].slot,'');
+ h.gameAction({dataset:{action:'game-slot',slot:'3'}});
+ assert.equal(h.data.game.crafted[0].slot,'3');
+ assert.equal(JSON.parse(h.getSavedGame()).crafted[0].slot,'3');
+ h.failNextSave();h.gameAction({dataset:{action:'game-slot',slot:'3'}});
+ assert.equal(h.data.game.crafted[0].slot,'3');
+ assert.equal(JSON.parse(h.getSavedGame()).crafted[0].slot,'3');
+ h.gameAction({dataset:{action:'game-slot',slot:'3'}});
+ assert.equal(h.data.game.crafted[0].slot,'');
+ assert.equal(JSON.parse(h.getSavedGame()).crafted[0].slot,'');
+ assert.equal(h.data.game.crafted.length,1);
+ assert.equal(item.id,h.data.game.crafted[0].id);
 });

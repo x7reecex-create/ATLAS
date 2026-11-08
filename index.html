@@ -1882,7 +1882,7 @@ function persistWorkspace(next,{checkpoint=false,recoverUnreadable=false}={}){
   storageBaseline=encoded;data=next;storageWarning='';storageLoadError='';
 }
 function save(){try{persistWorkspace(data);return true}catch(err){storageWarning=storageLoadError||'Changes are not saved. Export a backup and resolve storage or reload conflicts before closing ATLAS.';const bar=$('syncbar');if(bar){bar.textContent=storageWarning;bar.setAttribute('role','alert');}showToast(storageWarning);return false}}
-function commit(message){if(!save())return;render();if(message)showToast(message)}
+function commit(message){if(!save())return false;render();if(message)showToast(message);return true}
 function restoreRecovery(){
   const saved=localStorage.getItem(RECOVERY_KEY);if(!saved)throw Error('No recovery checkpoint is available on this device.');
   const parsed=JSON.parse(saved);if(parsed.app==='ATLAS-PRESERVED')throw Error('This checkpoint contains unreadable original storage. Export the checkpoint for repair, or restore a valid backup.');const prior=validateImport(parsed);persistWorkspace(prior,{checkpoint:true,recoverUnreadable:true});page='home';projectOpen=null;render();showToast('Previous local workspace restored.');
@@ -2167,6 +2167,18 @@ function gameUnplace(itemId){
  const item=data.game.crafted.find(item=>item.id===itemId);if(!item||!item.slot)return false;
  item.slot='';return true;
 }
+// A storage failure must not leave unpersisted purchases or placements in memory.
+// Keep the existing screen in place so the user's next tap retries the same action.
+function gameTransact(change,message){
+ const before=data.game.crafted.map(item=>({...item})),selectedBefore=gameSelectedCraft;
+ if(!change())return false;
+ if(!commit(message)){
+  data.game.crafted=before;
+  gameSelectedCraft=selectedBefore;
+  return null;
+ }
+ return true;
+}
 function gameTotals(){
  const xp=data.game.awards.reduce((total,a)=>total+a.xp,0);
  const earned=data.game.awards.reduce((total,a)=>total+a.coins,0);
@@ -2241,9 +2253,13 @@ function gameAction(element){
  if(a==='game-tab'){if(!['habits','dailies','todos','forge','rewards'].includes(element.dataset.tab))return;gameTab=element.dataset.tab;return render()}
  if(a==='game-toggle'){data.game.enabled=!data.game.enabled;return commit(data.game.enabled?'Journey enabled':'Journey paused')}
  if(a==='game-craft'){
-  if(!gameCraft(ref))return showToast('Not enough materials yet. Complete a task or habit to gather more.');
-  gameSelectedCraft=data.game.crafted[data.game.crafted.length-1].id;
-  return commit('Item crafted! Choose a room space to place it.');
+  const result=gameTransact(()=>{
+   if(!gameCraft(ref))return false;
+   gameSelectedCraft=data.game.crafted[data.game.crafted.length-1].id;
+   return true;
+  },'Item crafted! Choose a room space to place it.');
+  if(result===false)showToast('Not enough materials yet. Complete a task or habit to gather more.');
+  return result;
  }
  if(a==='game-select'){
   const item=data.game.crafted.find(item=>item.id===ref&&!item.slot);if(!item)return;
@@ -2251,10 +2267,14 @@ function gameAction(element){
  }
  if(a==='game-slot'){
   const slot=element.dataset.slot,occupant=data.game.crafted.find(item=>item.slot===slot);
-  if(occupant){if(!gameUnplace(occupant.id))return;return commit('Furniture returned to inventory');}
+  if(occupant)return gameTransact(()=>gameUnplace(occupant.id),'Furniture returned to inventory');
   if(!gameSelectedCraft)return showToast('Choose an item from your inventory first.');
-  if(!gamePlace(gameSelectedCraft,slot))return showToast('That space is not available.');
-  gameSelectedCraft='';return commit('Furniture placed in your room');
+  const result=gameTransact(()=>{
+   if(!gamePlace(gameSelectedCraft,slot))return false;
+   gameSelectedCraft='';return true;
+  },'Furniture placed in your room');
+  if(result===false)showToast('That space is not available.');
+  return result;
  }
  if(a==='game-new-daily'){openModal('task');const select=$('f-repeat');if(select)select.value='daily';return}
  if(a==='game-add-reward')return gameAddReward();
