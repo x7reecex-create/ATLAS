@@ -15,7 +15,7 @@ try{
   await page.locator('[data-action="game-tab"][data-tab="world"]').click();
   assert.match(await page.locator('.forge-world-stats').innerText(),/0\s*Trail tokens ready/);
   assert.equal(await page.locator('.forge-world-tile.frontier:enabled').count(),0);
-  await page.locator('[data-action="game-tab"][data-tab="todos"]').click();
+  await page.getByRole('tab',{name:'To-dos'}).click();
   for(let i=1;i<=3;i++){
    await page.locator('[data-action="new-task"]').first().click();
    await page.locator('#f-title').fill('Forge fieldwork '+i);
@@ -35,10 +35,21 @@ try{
   assert.match(await page.locator('.forge-inventory').innerText(),/Quarry anvil/);
   await page.locator('.forge-room-tile[data-slot="4"]').click();
   assert.match(await page.locator('.forge-room-count').innerText(),/1 \/ 9/);
+  // The in-world board must complete the original COMMAND task, not a duplicate.
+  await page.getByRole('tab',{name:'To-dos'}).click();
+  await page.locator('[data-action="new-task"]').first().click();
+  await page.locator('#f-title').fill('Village noticeboard');
+  await page.locator('#edit-form button[type="submit"]').click();
+  await page.locator('[data-action="game-tab"][data-tab="world"]').click();
+  assert.match(await page.locator('.forge-quest-board').innerText(),/Village noticeboard/);
+  await page.locator('.forge-board-list input[data-action="toggle-task"]').click();
+  await page.getByRole('tab',{name:'To-dos'}).click();
+  assert.equal(await page.getByRole('checkbox',{name:'Reopen Village noticeboard'}).isChecked(),true);
   await page.reload();
   await page.locator('#nav [data-page="gameScreen"]').click();
   await page.locator('[data-action="game-tab"][data-tab="world"]').click();
   assert.equal(await page.locator('.forge-world-tile.discovered').count(),4,'home plus three discoveries restored');
+  assert.match(await page.locator('.forge-quest-board').innerText(),/Your quest board is clear/);
   await page.locator('[data-action="game-tab"][data-tab="forge"]').click();
   assert.match(await page.locator('.forge-room-count').innerText(),/1 \/ 9/);
   const geometry=await page.evaluate(()=>({viewport:document.documentElement.clientWidth,scroll:document.documentElement.scrollWidth}));

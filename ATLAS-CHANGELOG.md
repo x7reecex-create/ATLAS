@@ -1,3 +1,10 @@
+ATLAS / FORGE — Quest board and tighter game layout (8 November 2026)
+Changes: a live quest board on the Living Valley screen lists up to three open COMMAND tasks by priority, showing their correct one-time skill rewards. Completing a quest updates the original task rather than a duplicate. The World and Workshop views use a compact XP header so the playable content is nearer the top of the screen.
+Safety: all existing valley exploration, settlement rooms, trail tokens and crafted items remain intact. No new account, database or cloud configuration. Offline shell v39.
+Verification: unit and real-browser checks for task completion and persistence, plus existing six-viewport checks. Promote only after CI and preview verification.
+
+---
+
 ATLAS / FORGE — Living Valley expansion (8 November 2026)
 Changes: 16-place fog-of-war map; adjacent travel funded by one trail token per distinct completed task or daily habit check-in; one-time fixed location loot; three landmark-locked furniture blueprints (Quarry anvil, Ancient relic, Starwatch scope); inventory and workshop integration; accessible compact map for phone and desktop.
 Safety: no network calls, purchases, Supabase changes or separate activity ledger. Exploration is local-first, normalized from a contiguous route and bounded by previously earned actions. Repeated taps cannot harvest loot. Failed persistence rolls back discoveries and materials. Older saves and crafted furniture remain valid; offline shell cache v38.
