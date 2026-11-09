@@ -5,21 +5,22 @@ import {readFileSync} from 'node:fs';
 const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
 const normalizer=html.slice(html.indexOf('const GAME_MATERIALS='),html.indexOf('const defaults='));
 const game=html.slice(html.indexOf('/* Journey derives'),html.indexOf('function home(){'));
+const habitCheck=html.slice(html.indexOf('function insToggleHabitCheck('),html.indexOf('function insAction('));
 
 function harness(gameState={enabled:true,awards:[],claims:[],rewards:[],crafted:[]}){
  const data={game:gameState};let next=0;
  const messages=[],toasts=[];let failNextCommit=false,renderCount=0,savedGame=null;
- const api=new Function('data','showToast','id','esc','calLondonToday','calStartWeek','commit','render','confirm',normalizer+'\n'+game+`\nreturn {
+ const api=new Function('data','showToast','id','esc','calLondonToday','calStartWeek','commit','render','confirm','insToday','byId',normalizer+'\n'+game+'\n'+habitCheck+`\nreturn {
   gameAward,gameNormalize,gameMaterials:typeof gameMaterials==='function'?gameMaterials:null,
   gameCraft:typeof gameCraft==='function'?gameCraft:null,
   gameSkillTotals,gameFurnitureSprite,gameTotals,
   gamePlace:typeof gamePlace==='function'?gamePlace:null,
   gameUnplace:typeof gameUnplace==='function'?gameUnplace:null,
-  gameScreen,gameAction,gameGoalProgress:typeof gameGoalProgress==='function'?gameGoalProgress:null,setTab(tab){gameTab=tab}
+  gameScreen,gameAction,gameTransact,insToggleHabitCheck,gameGoalProgress:typeof gameGoalProgress==='function'?gameGoalProgress:null,setTab(tab){gameTab=tab}
  };`)(data,message=>toasts.push(message),()=>`item-${++next}`,v=>String(v),()=>'2026-11-08',()=> '2026-11-02',v=>{
   if(failNextCommit){failNextCommit=false;return false;}
   savedGame=JSON.stringify(data.game);messages.push(v);renderCount++;return true;
- },()=>{renderCount++;},()=>true);
+ },()=>{renderCount++;},()=>true,()=>'2026-11-09',(items,ref)=>items.find(x=>x.id===ref));
  return {data,messages,toasts,...api,failNextSave(){failNextCommit=true},getSavedGame(){return savedGame},getRenderCount(){return renderCount}};
 }
 
@@ -42,6 +43,63 @@ test('failed reward redemption restores coins and prior claims, then retry spend
  assert.equal(h.gameNormalize(JSON.parse(h.getSavedGame())).claims.length,2);
  claim();
  assert.equal(h.data.game.claims.length,2,'insufficient balance must not add a claim');
+});
+
+test('failed custom reward removal keeps the saved reward until a successful retry',()=>{
+ const h=harness({enabled:true,awards:[],claims:[],rewards:[{id:'tea',title:'Cup of tea',cost:10}],crafted:[]});
+ h.setTab('rewards');
+ const remove=()=>h.gameAction({dataset:{action:'game-remove-reward',id:'tea'}});
+ const before=JSON.stringify(h.data.game);
+ h.failNextSave();remove();
+ assert.equal(JSON.stringify(h.data.game),before,'failed save must restore the custom reward');
+ assert.match(h.gameScreen(),/Cup of tea/);
+ assert.equal(h.messages.length,0);
+ remove();
+ assert.equal(h.data.game.rewards.length,0);
+ assert.equal(JSON.parse(h.getSavedGame()).rewards.length,0);
+});
+
+test('failed Journey pause or resume does not leave an unsaved mode',()=>{
+ const h=harness();
+ const toggle=()=>h.gameAction({dataset:{action:'game-toggle'}});
+ h.failNextSave();toggle();
+ assert.equal(h.data.game.enabled,true);
+ assert.equal(h.messages.length,0);
+ toggle();assert.equal(h.data.game.enabled,false);
+ h.failNextSave();toggle();assert.equal(h.data.game.enabled,false);
+ toggle();assert.equal(h.data.game.enabled,true);
+});
+
+test('failed custom reward addition rolls back the game transaction',()=>{
+ const h=harness();
+ const add=()=>h.gameTransact(()=>{h.data.game.rewards.push({id:'tea',title:'Cup of tea',cost:10});return true},'Custom reward added');
+ h.failNextSave();add();
+ assert.deepEqual(h.data.game.rewards,[]);
+ assert.equal(h.messages.length,0);
+ add();
+ assert.equal(h.data.game.rewards.length,1);
+ assert.equal(JSON.parse(h.getSavedGame()).rewards.length,1);
+});
+
+test('failed habit check-in or undo cannot create phantom progress or duplicate rewards',()=>{
+ const h=harness();h.data.habits=[{id:'read',title:'Read'}];h.data.habitLogs=[];
+ const toggle=()=>h.insToggleHabitCheck('read');
+ h.failNextSave();assert.equal(toggle(),false);
+ assert.deepEqual(h.data.habitLogs,[]);
+ assert.deepEqual(h.data.game.awards,[]);
+ assert.equal(h.gameTotals().xp,0);
+ assert.equal(toggle(),true);
+ assert.equal(h.data.habitLogs.length,1);
+ assert.equal(h.data.game.awards.length,1);
+ const earned=h.gameTotals().xp;
+ h.failNextSave();assert.equal(toggle(),false);
+ assert.equal(h.data.habitLogs.length,1,'failed undo keeps the saved check-in');
+ assert.equal(h.gameTotals().xp,earned);
+ assert.equal(toggle(),true);
+ assert.equal(h.data.habitLogs.length,0);
+ assert.equal(toggle(),true);
+ assert.equal(h.data.habitLogs.length,1);
+ assert.equal(h.gameTotals().xp,earned,'re-checking the same habit today earns nothing again');
 });
 
 test('one real task earns materials once, then crafts and places a stool',()=>{
