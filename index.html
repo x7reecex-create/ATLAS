@@ -2070,12 +2070,25 @@ function insDrill(metric,start,end){const r={start,end},t=metric==='transactions
  let rows=t.map(x=>{const date=x.date||insLondonDate(x.completedAt)||insLondonDate(x.createdAt);const amount=metric==='transactions'?insMoney(x.amount):metric==='time'?insMinute(x.minutes):metric==='balance'?insMoney(x.value):metric==='tasks'?(x.done?'Completed':'Open'):'';const label=x.title||data.habits.find(h=>h.id===x.habitId)?.title||'Recorded value';return `<div class="ins-record"><div><b>${esc(label)}</b><small>${esc(date)} · ${esc(x.category||x.kind||'Record')}</small></div><strong>${esc(amount)}</strong></div>`}).join('');
  $('modal-root').innerHTML=`<div class="modalback" data-action="modal-bg"><div class="sheet" role="dialog" aria-modal="true" aria-label="Graph records"><div class="titlebar"><h2>Source records</h2><button class="iconbtn" data-action="modal-close" aria-label="Close">×</button></div><p class="fine">${esc(start)} to ${esc(end)} · ${t.length} matching item(s)</p>${rows||insNoData('No individual entries recorded in this bucket.')}</div></div>`;
 }
+function insToggleHabitCheck(habitId){
+ const habit=byId(data.habits,habitId),today=insToday();if(!habit)return false;
+ const log=data.habitLogs.find(x=>x.habitId===habit.id&&x.date===today);
+ const logsBefore=[...data.habitLogs],awardCount=data.game.awards.length;
+ if(log)data.habitLogs=data.habitLogs.filter(x=>x.id!==log.id);
+ else{data.habitLogs.push({id:id(),habitId:habit.id,date:today,createdAt:Date.now()});gameAward('habit','habit:'+habit.id+':'+today)}
+ if(!commit(log?'Check-in removed':'Habit checked in')){
+  data.habitLogs=logsBefore;
+  data.game.awards.length=awardCount;
+  return false;
+ }
+ return true;
+}
 function insAction(element){const a=element.dataset.action;
  if(a==='ins-tab'){insTab=element.dataset.tab;return render()}
  if(a==='ins-period'){insPeriod=element.dataset.period;if(insPeriod==='custom'&&!insCustomStart){insCustomEnd=insToday();insCustomStart=dateAdd(insToday(),-29)}return render()}
  if(a==='ins-new')return insNew(element.dataset.kind);
  if(a==='ins-drill')return insDrill(element.dataset.metric,element.dataset.start,element.dataset.end);
- if(a==='ins-habit-check'){const habit=byId(data.habits,element.dataset.id),today=insToday();if(!habit)return;const log=data.habitLogs.find(x=>x.habitId===habit.id&&x.date===today);if(log)data.habitLogs=data.habitLogs.filter(x=>x.id!==log.id);else{data.habitLogs.push({id:id(),habitId:habit.id,date:today,createdAt:Date.now()});gameAward('habit','habit:'+habit.id+':'+today)}return commit(log?'Check-in removed':'Habit checked in')}
+ if(a==='ins-habit-check')return insToggleHabitCheck(element.dataset.id);
  if(a==='ins-delete'){const list={transaction:'transactions',time:'timeEntries',habit:'habits'}[element.dataset.kind];const item=list&&byId(data[list],element.dataset.id);if(!item)return;if(!confirm(`Delete “${item.title}”? This cannot be undone without restoring a backup.`))return;data[list]=data[list].filter(x=>x.id!==item.id);if(list==='habits')data.habitLogs=data.habitLogs.filter(x=>x.habitId!==item.id);return commit('Record deleted')}
 }
 
@@ -2424,11 +2437,13 @@ function gameUnplace(itemId){
 // Keep the existing screen in place so the user's next tap retries the same action.
 function gameTransact(change,message){
  const before=data.game.crafted.map(item=>({...item})),hadExplored=Object.hasOwn(data.game,'explored'),exploredBefore=[...(data.game.explored||[])],selectedBefore=gameSelectedCraft,styleBefore=data.game.roomStyle,goalBefore=data.game.craftGoal;
- const claimsBefore=data.game.claims.map(claim=>({...claim}));
+ const claimsBefore=data.game.claims.map(claim=>({...claim})),rewardsBefore=data.game.rewards.map(reward=>({...reward})),enabledBefore=data.game.enabled;
  if(!change())return false;
  if(!commit(message)){
   data.game.crafted=before;
   data.game.claims=claimsBefore;
+  data.game.rewards=rewardsBefore;
+  data.game.enabled=enabledBefore;
   if(hadExplored)data.game.explored=exploredBefore;else delete data.game.explored;
   gameSelectedCraft=selectedBefore;
   if(goalBefore===undefined)delete data.game.craftGoal;else data.game.craftGoal=goalBefore;
@@ -2624,7 +2639,10 @@ function gameAction(element){
   if(!gameRoomUnlocked(room,data.game.awards))return false;
   gameRoom=room;return render();
  }
- if(a==='game-toggle'){data.game.enabled=!data.game.enabled;return commit(data.game.enabled?'Journey enabled':'Journey paused')}
+ if(a==='game-toggle'){
+  const enabled=!data.game.enabled;
+  return gameTransact(()=>{data.game.enabled=enabled;return true},enabled?'Journey enabled':'Journey paused');
+ }
  if(a==='game-track'){
   if(!data.game.enabled||typeof ref!=='string'||(ref&&!GAME_RECIPES.some(r=>r.id===ref))||data.game.craftGoal===ref)return false;
   return gameTransact(()=>{data.game.craftGoal=ref;return true},ref?'Crafting goal tracked':'Crafting goal cleared');
@@ -2668,7 +2686,11 @@ function gameAction(element){
  }
  if(a==='game-new-daily'){openModal('task');const select=$('f-repeat');if(select)select.value='daily';return}
  if(a==='game-add-reward')return gameAddReward();
- if(a==='game-remove-reward'){const reward=data.game.rewards.find(x=>x.id===ref);if(!reward||!confirm('Remove this reward? Past redemptions stay in your history.'))return;data.game.rewards=data.game.rewards.filter(x=>x.id!==ref);return commit('Reward removed')}
+ if(a==='game-remove-reward'){
+  const reward=data.game.rewards.find(x=>x.id===ref);
+  if(!reward||!confirm('Remove this reward? Past redemptions stay in your history.'))return;
+  return gameTransact(()=>{data.game.rewards=data.game.rewards.filter(x=>x.id!==ref);return true},'Reward removed');
+ }
  if(a==='game-claim'){
   const reward=[...GAME_REWARDS,...data.game.rewards].find(x=>x.id===ref),balance=gameTotals().coins;
   if(!data.game.enabled||!reward)return;
@@ -3324,7 +3346,9 @@ if(e.target.id==='game-reward-form'){
  e.preventDefault();const v=Object.fromEntries(new FormData(e.target)),title=String(v.title||'').trim(),cost=Number(v.cost);
  const error=$('game-reward-error');
  if(!title||title.length>120||!Number.isInteger(cost)||cost<1||cost>10000||data.game.rewards.length>=100){if(error){error.hidden=false;error.textContent='Enter a reward name and a whole coin cost from 1–10,000 (maximum 100 custom rewards).'}return}
- data.game.rewards.push({id:id(),title,cost});closeModal();return commit('Custom reward added');
+ const result=gameTransact(()=>{data.game.rewards.push({id:id(),title,cost});return true},'Custom reward added');
+ if(result===true)closeModal();
+ return result;
 }
 if(e.target.id==='ins-edit-form'){e.preventDefault();try{insSubmit(e.target)}catch(err){const target=$('ins-form-error');if(target){target.hidden=false;target.textContent=err.message}else showToast(err.message)}return}if(e.target.id==='cal-event-form'){e.preventDefault();try{calSaveEvent(e.target)}catch(err){const out=$('cal-error');if(out){out.hidden=false;out.textContent=err.message}}return}
 if(e.target.id==='cal-move-form'){e.preventDefault();try{const f=Object.fromEntries(new FormData(e.target));if(!calMove)throw Error('No item selected.');const {kind,ref,origin}=calMove;if(!f.date||!validDate(f.date))throw Error('Choose a valid date.');const value=byId(kind==='event'?data.calendarEvents:data.tasks,ref);const time=f.time||value?.scheduledTime||value?.startTime||'';if(time&&!calValidTime(time))throw Error('Invalid time.');const conflicts=calShowConflictsCandidate(f.date,time,value?.durationMins||30,(kind==='event'?ref+'|'+origin:'task|'+ref+'|'+f.date));if(conflicts.length&&!confirm('Time conflict with '+conflicts.slice(0,2).map(x=>x.title).join(', ')+'. Move anyway?'))return;calMove=null;closeModal();calMoveOccurrence(kind,ref,origin,f.date,f.time||'')}catch(err){const out=$('cal-error');if(out){out.hidden=false;out.textContent=err.message}}return}
