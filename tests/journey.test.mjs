@@ -46,8 +46,8 @@ test('Normalising Journey history retains valid entries and filters malformed or
  assert.equal(state.claims.length,1);
 });
 
-test('Journey preserves import safety and stays separate from ATLAS Link',()=>{
- assert.match(html,/if\(d\.game!==undefined&&\(!object\(d\.game\)\|\|!sameValue\(d\.game,normalized\.game\)\)\)/);
+test('Journey hooks into shared tasks, habits and navigation',()=>{
+ // Import safety is exercised against the validator in forge.test.mjs.
  assert.match(html,/const views=\{home,today,calendar[^}]*gameScreen/);
  assert.match(html,/gameAward\('habit','habit:'\+habit\.id\+':'\+today\)/);
  assert.match(html,/gameAward\('task','task:'\+t\.id,gameTaskReward\(t\)\)/);

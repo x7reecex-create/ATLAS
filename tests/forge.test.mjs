@@ -15,7 +15,7 @@ function harness(gameState={enabled:true,awards:[],claims:[],rewards:[],crafted:
   gameSkillTotals,gameFurnitureSprite,gameTotals,
   gamePlace:typeof gamePlace==='function'?gamePlace:null,
   gameUnplace:typeof gameUnplace==='function'?gameUnplace:null,
-  gameScreen,gameAction,setTab(tab){gameTab=tab}
+  gameScreen,gameAction,gameGoalProgress:typeof gameGoalProgress==='function'?gameGoalProgress:null,setTab(tab){gameTab=tab}
  };`)(data,message=>toasts.push(message),()=>`item-${++next}`,v=>String(v),()=>'2026-11-08',()=> '2026-11-02',v=>{
   if(failNextCommit){failNextCommit=false;return false;}
   savedGame=JSON.stringify(data.game);messages.push(v);renderCount++;return true;
@@ -177,6 +177,163 @@ test('failed room finish save rolls back without losing furniture and allows ret
  h.gameAction({dataset:{action:'game-style',style:'moss'}});
  assert.equal(h.data.game.roomStyle,'moss');
  assert.equal(h.data.game.crafted.length,1);
+});
+
+test('crafting goal survives a backup and rejects unknown or malformed recipe IDs',()=>{
+ const h=harness();
+ assert.equal(h.gameNormalize({}).craftGoal,'');
+ for(const craftGoal of ['missing',{},null,42,'<script>'])assert.equal(h.gameNormalize({craftGoal}).craftGoal,'');
+ h.gameAction({dataset:{action:'game-track',id:'bed'}});
+ assert.equal(h.data.game.craftGoal,'bed');
+ assert.equal(h.gameNormalize(JSON.parse(h.getSavedGame())).craftGoal,'bed');
+ h.gameAction({dataset:{action:'game-track',id:'missing'}});
+ assert.equal(h.data.game.craftGoal,'bed');
+});
+
+test('import discards an invalid optional goal while keeping reward history validation strict',()=>{
+ const {gameNormalize}=harness();
+ const importer=html.slice(html.indexOf('const IMPORT_COLLECTIONS='),html.indexOf('function mergeImport('));
+ // The collections are empty: isolate the real import validator's game boundary.
+ const names=['insNormalizeTransaction','insNormalizeTime','insNormalizeHabit','insNormalizeCheck','insNormalizeGoalLog','insNormalizeBalance'];
+ const validate=new Function('clone','normalizeData',...names,importer+';return validateImport;')(
+  v=>JSON.parse(JSON.stringify(v)),v=>({...v,game:gameNormalize(v.game)}),...names.map(()=>v=>v));
+ const history={enabled:true,awards:[{key:'task:old',kind:'task',xp:20,coins:5,at:1}],rewards:[],claims:[],crafted:[]};
+ for(const craftGoal of ['missing',null,{},42,'bed']){
+  const restored=validate({app:'ATLAS',schema:4,data:{tasks:[],money:[],goals:[],game:{...history,craftGoal}}});
+  assert.equal(restored.game.craftGoal,craftGoal==='bed'?'bed':'');
+  assert.deepEqual(restored.game.awards,history.awards);
+ }
+ assert.throws(()=>validate({app:'ATLAS',schema:4,data:{tasks:[],money:[],goals:[],game:{...history,craftGoal:'missing',awards:[{...history.awards[0],xp:-5}]}}}),/progress or reward history is invalid/);
+});
+
+test('goal progress caps each material and does not double-count one action supplying two resources',()=>{
+ const h=harness();
+ assert.equal(typeof h.gameGoalProgress,'function');
+ h.gameAction({dataset:{action:'game-track',id:'bed'}});
+ let p=h.gameGoalProgress();
+ assert.equal(p.collected,0);assert.equal(p.required,12);
+ assert.equal(p.needsTasks,true);assert.equal(p.needsHabits,true);assert.equal(p.ready,false);
+ h.gameAward('task','task:a');h.gameAward('task','task:b');
+ h.gameAward('habit','habit:a');
+ p=h.gameGoalProgress();
+ assert.equal(p.collected,8);assert.equal(p.percent,66);
+ assert.equal(p.needsTasks,true);assert.equal(p.needsHabits,true);
+ assert.deepEqual(p.missing,{timber:2,iron:0,fibre:2});
+ h.gameAward('task','task:c');h.gameAward('habit','habit:b');
+ p=h.gameGoalProgress();
+ assert.equal(p.ready,true);assert.equal(p.percent,100);assert.equal(p.collected,12);
+ assert.equal(p.needsTasks,false);assert.equal(p.needsHabits,false);
+});
+
+test('goal tracking and clearing roll back after failed saves and cannot mutate while paused',()=>{
+ const h=harness();h.gameAction({dataset:{action:'game-track',id:'stool'}});
+ h.failNextSave();h.gameAction({dataset:{action:'game-track',id:'bed'}});
+ assert.equal(h.data.game.craftGoal,'stool');
+ assert.equal(JSON.parse(h.getSavedGame()).craftGoal,'stool');
+ h.failNextSave();h.gameAction({dataset:{action:'game-track',id:''}});
+ assert.equal(h.data.game.craftGoal,'stool');
+ h.data.game.enabled=false;
+ h.gameAction({dataset:{action:'game-track',id:'bed'}});
+ assert.equal(h.data.game.craftGoal,'stool');
+ h.data.game.enabled=true;
+ h.gameAction({dataset:{action:'game-track',id:''}});
+ assert.equal(h.data.game.craftGoal,'');assert.equal(h.gameGoalProgress(),null);
+});
+
+test('first goal save failure preserves an old save exactly and a full inventory explains blocked crafting',()=>{
+ const h=harness(),old=JSON.stringify(h.data.game);
+ h.failNextSave();h.gameAction({dataset:{action:'game-track',id:'stool'}});
+ assert.equal(JSON.stringify(h.data.game),old);
+ for(let i=0;i<301;i++)h.gameAward('task','task:'+i);
+ for(let i=0;i<300;i++)assert.equal(h.gameCraft('stool'),true);
+ h.gameAction({dataset:{action:'game-track',id:'stool'}});
+ const full=JSON.stringify(h.data.game);
+ h.gameAction({dataset:{action:'game-craft',id:'stool'}});
+ assert.equal(JSON.stringify(h.data.game),full);
+ h.setTab('forge');
+ assert.match(h.gameScreen(),/Your inventory is full \(300 items\)/);
+ assert.match(h.gameScreen(),/data-id="stool" disabled>Craft Foundry stool/);
+});
+
+test('only successful target crafting clears a goal; other crafts recalculate its available stock',()=>{
+ const h=harness();
+ h.gameAction({dataset:{action:'game-track',id:'shelf'}});
+ h.gameAward('task','task:a');h.gameAward('task','task:b');
+ assert.equal(typeof h.gameGoalProgress,'function');
+ assert.equal(h.gameGoalProgress().ready,true);
+ h.gameAction({dataset:{action:'game-craft',id:'stool'}});
+ assert.equal(h.data.game.craftGoal,'shelf');
+ assert.equal(h.gameGoalProgress().needsTasks,true);
+ h.gameAward('task','task:c');
+ const before=JSON.stringify(h.data.game);
+ h.failNextSave();h.gameAction({dataset:{action:'game-craft',id:'shelf'}});
+ assert.equal(JSON.stringify(h.data.game),before);
+ h.gameAction({dataset:{action:'game-craft',id:'shelf'}});
+ assert.equal(h.data.game.craftGoal,'');
+ assert.equal(h.data.game.crafted.length,2);
+ h.gameAction({dataset:{action:'game-slot',slot:'6'}});
+ assert.equal(h.data.game.crafted[1].slot,'6');
+});
+
+test('surplus of one material cannot hide missing material or round an unfinished goal to 100 percent',()=>{
+ const h=harness();
+ assert.equal(typeof h.gameGoalProgress,'function');
+ h.gameAction({dataset:{action:'game-track',id:'lamp'}});
+ for(let i=0;i<4;i++)h.gameAward('task','task:'+i);
+ const p=h.gameGoalProgress();
+ assert.equal(p.ready,false);assert.equal(p.percent,50);
+ assert.equal(p.needsTasks,false);assert.equal(p.needsHabits,true);
+ assert.deepEqual(p.missing,{iron:0,essence:2});
+});
+
+test('landmark goals require discovery even with enough materials, then clear after crafting',()=>{
+ const h=harness();h.setTab('forge');
+ h.gameAction({dataset:{action:'game-track',id:'anvil'}});
+ for(let i=0;i<3;i++)h.gameAward('task','task:'+i);
+ for(const id of ['1','2'])h.gameAction({dataset:{action:'game-explore',id}});
+ assert.equal(h.gameGoalProgress().percent,100);
+ assert.equal(h.gameGoalProgress().ready,false,'materials alone cannot unlock a blueprint');
+ assert.match(h.gameScreen(),/Explore Copper Quarry to unlock this blueprint/);
+ assert.match(h.gameScreen(),/Explore the world/);
+ assert.equal(h.gameCraft('anvil'),false);
+ const before=JSON.stringify(h.data.game);
+ h.failNextSave();h.gameAction({dataset:{action:'game-explore',id:'6'}});
+ assert.equal(JSON.stringify(h.data.game),before,'failed exploration preserves goal, path and stock');
+ h.gameAction({dataset:{action:'game-explore',id:'6'}});
+ assert.equal(h.gameGoalProgress().ready,true);
+ h.gameAction({dataset:{action:'game-craft',id:'anvil'}});
+ assert.equal(h.data.game.craftGoal,'');assert.equal(h.data.game.crafted[0].recipeId,'anvil');
+ assert.deepEqual(h.data.game.explored,['1','2','6']);
+});
+
+test('tracked skill blueprint stays locked until its earned skill level reaches the requirement',()=>{
+ const h=harness();h.setTab('forge');
+ h.gameAction({dataset:{action:'game-track',id:'workbench'}});
+ for(let n=0;n<4;n++)h.gameAward('task','task:stock-'+n,{xp:20,coins:5,skill:'focus'});
+ assert.equal(h.gameGoalProgress().ready,false);
+ assert.match(h.gameScreen(),/Reach Craftsmanship level 2/);
+ h.gameAward('task','task:maker',{xp:50,coins:13,skill:'craft'});
+ assert.equal(h.gameGoalProgress().ready,true);
+ assert.match(h.gameScreen(),/Ready to craft/);
+});
+
+test('tracked deed blueprint unlocks from five earned actions without requiring map exploration',()=>{
+ const h=harness();h.setTab('forge');
+ h.gameAction({dataset:{action:'game-track',id:'books'}});
+ for(let n=0;n<3;n++)h.gameAward('task','task:real-'+n);
+ for(let n=0;n<2;n++)h.gameAward('habit','habit:real-'+n);
+ assert.equal(h.data.game.explored?.length||0,0);
+ assert.equal(h.gameGoalProgress().ready,true);
+ assert.match(h.gameScreen(),/Ready to craft/);
+});
+
+test('goal directions describe real actions and task effort bonuses without suggesting fabricated tasks',()=>{
+ const h=harness();h.setTab('forge');
+ h.gameAction({dataset:{action:'game-track',id:'lamp'}});
+ const screen=h.gameScreen();
+ assert.match(screen,/real tasks/);
+ assert.match(screen,/extra timber and iron/);
+ assert.doesNotMatch(screen,/new tasks? to gather/);
 });
 
 test('different actions supply different materials, making a habit-grown plant craftable',()=>{

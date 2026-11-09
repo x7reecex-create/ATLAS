@@ -1304,6 +1304,18 @@ h1,h2,h3{font-family:var(--atlas-display-font);font-optical-sizing:auto;letter-s
 @media(max-width:390px){.quest-hero{padding:18px 15px}.quest-avatar{width:79px;height:100px}.quest-avatar svg{width:68px;height:82px}.quest-profile{gap:12px}.quest-profile-main h2{font-size:20px}.quest-tabs button{font-size:10px}.quest-reward{padding:13px}}
 @media(prefers-reduced-motion:reduce){.quest-track>span{transition:none}}
 
+
+/* A single blueprint goal connects real activity to the workshop. */
+.forge-crafting-goal{margin:16px 0;padding:18px;border:1px solid color-mix(in srgb,var(--quest-gold) 45%,var(--border));border-radius:20px;background:linear-gradient(135deg,color-mix(in srgb,var(--quest-gold) 8%,var(--surface)),var(--surface))}
+.forge-goal-heading{display:flex;gap:12px;align-items:center}.forge-goal-heading>div:nth-child(2){flex:1;min-width:0}.forge-goal-heading h2{font-size:20px;margin:5px 0 0;overflow-wrap:anywhere}.forge-goal-heading .quest-kicker{font-size:9px;letter-spacing:.13em;font-weight:850;color:var(--quest-gold)}.forge-goal-heading .micro{min-width:44px;min-height:44px}
+.forge-goal-art{flex:none;width:56px;height:56px;padding:8px;border-radius:14px;background:var(--surface2);border:1px solid var(--border)}.forge-goal-art svg{width:100%;height:100%}
+.forge-goal-details>summary{min-height:44px;padding:13px 0 2px;cursor:pointer;font-size:12px;font-weight:750;color:var(--quest-gold)}.forge-goal-details>summary:focus-visible{outline:2px solid var(--accent-text);outline-offset:3px;border-radius:4px}
+.forge-goal-status{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:15px;font-size:12px}.forge-goal-status>span{color:var(--muted)}.forge-crafting-goal .quest-track{height:8px}
+.forge-goal-materials{display:grid;grid-template-columns:repeat(auto-fit,minmax(75px,1fr));gap:8px;margin-top:13px}.forge-goal-materials>div{display:grid;gap:4px;padding:9px;border:1px solid var(--border);border-radius:10px;min-width:0}.forge-goal-materials strong{text-transform:capitalize;font-size:11px}.forge-goal-materials span{font-size:15px;font-weight:800}.forge-goal-materials small{font-size:10px;color:var(--muted)}.forge-goal-materials .gathered small{color:var(--quest-mint)}
+.forge-crafting-goal p,.forge-goal-intro{font-size:12px;line-height:1.55;color:var(--muted);margin:13px 0}.forge-goal-actions{display:flex;flex-wrap:wrap;gap:8px}.forge-goal-actions button{min-height:44px;white-space:normal;max-width:100%;text-align:left}.forge-goal-actions button span{display:block;font-size:10px;font-weight:500;margin-top:4px}.forge-goal-note{display:block;font-size:10px;line-height:1.5;color:var(--muted);margin-top:10px}
+.forge-recipe-actions{display:flex;flex-direction:column;gap:6px}.forge-recipe-actions button{min-height:44px;white-space:normal}.forge-recipe-actions [aria-pressed="true"]{border-color:var(--quest-gold);color:var(--quest-gold)}
+@media(max-width:390px){.forge-recipe{grid-template-columns:48px minmax(0,1fr)}.forge-recipe-actions{grid-column:1/-1;flex-direction:row}.forge-recipe-actions button{flex:1}.forge-crafting-goal{padding:14px}.forge-goal-actions button{width:100%}}
+
 /* ATLAS / FORGE — a compact, original, local-first workshop. */
 .atlas-journey .quest-tabs{grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
 .atlas-journey .quest-tabs button{min-width:0;padding:8px 1px;font-size:11px}
@@ -1635,7 +1647,7 @@ function gameWorldAdjacent(tileId,explored){
  if(!Number.isInteger(n)||n<1||n>15)return false;
  return ['0',...explored].some(id=>Math.abs(Math.floor(Number(id)/4)-Math.floor(n/4))+Math.abs(Number(id)%4-n%4)===1);
 }
-const gameDefaults=()=>({enabled:true,awards:[],rewards:[],claims:[],crafted:[],explored:[],roomStyle:'foundry'});
+const gameDefaults=()=>({enabled:true,awards:[],rewards:[],claims:[],crafted:[],explored:[],roomStyle:'foundry',craftGoal:''});
 function gameSupply(awards,crafted,explored=[]){
  const total={timber:0,iron:0,fibre:0,essence:0};
  for(const award of awards){
@@ -1667,7 +1679,7 @@ function gameNormalize(raw){
   usedIds.add(item.id);if(item.slot)usedSlots.add(item.slot);
   crafted.push({id:item.id,recipeId:item.recipeId,at:item.at,slot:item.slot});
  }
- return {enabled:value.enabled!==false,awards:uniqueAwards,rewards:rewards.filter((x,i)=>rewards.findIndex(y=>y.id===x.id)===i),claims:claims.filter((x,i)=>claims.findIndex(y=>y.id===x.id)===i),crafted,explored,roomStyle:gameRoomStyleAllowed(value.roomStyle,restoredSkills)?value.roomStyle:'foundry'};
+ return {enabled:value.enabled!==false,awards:uniqueAwards,rewards:rewards.filter((x,i)=>rewards.findIndex(y=>y.id===x.id)===i),claims:claims.filter((x,i)=>claims.findIndex(y=>y.id===x.id)===i),crafted,explored,roomStyle:gameRoomStyleAllowed(value.roomStyle,restoredSkills)?value.roomStyle:'foundry',craftGoal:GAME_RECIPES.some(r=>r.id===value.craftGoal)?value.craftGoal:''};
 }
 const defaults=()=>({version:4,tasks:[],projects:[],notes:[],calendarEvents:[],money:[],goals:[],transactions:[],timeEntries:[],habits:[],habitLogs:[],goalHistory:[],balanceHistory:[],balance:null,widgets:[],theme:'midnight',displayName:'',appearance:atlasAppearanceDefaults(),game:gameDefaults()});
 const $=id=>document.getElementById(id);
@@ -2379,12 +2391,22 @@ function gameExplore(tileId){
  data.game.explored=[...explored,tileId];
  return true;
 }
+function gameGoalProgress(){
+ const recipe=GAME_RECIPES.find(r=>r.id===data.game.craftGoal);if(!recipe)return null;
+ const unlocked=gameRecipeUnlocked(recipe),stock=gameMaterials(),missing={};let required=0,collected=0;
+ for(const [material,count] of Object.entries(recipe.cost)){
+  required+=count;collected+=Math.min(count,stock[material]);
+  missing[material]=Math.max(0,count-stock[material]);
+ }
+ return {recipe,unlocked,stock,missing,required,collected,percent:Math.floor(collected/required*100),ready:unlocked&&collected===required,needsTasks:!!(missing.timber||missing.iron),needsHabits:!!(missing.fibre||missing.essence)};
+}
 function gameCraft(recipeId){
  if(!data.game.enabled||data.game.crafted.length>=300)return false;
  const recipe=GAME_RECIPES.find(r=>r.id===recipeId);if(!recipe||!gameRecipeUnlocked(recipe,data.game.awards,data.game.explored||[]))return false;
  const stock=gameMaterials();
  if(Object.entries(recipe.cost).some(([material,count])=>stock[material]<count))return false;
  data.game.crafted.push({id:id(),recipeId:recipe.id,at:Date.now(),slot:''});
+ if(data.game.craftGoal===recipe.id)data.game.craftGoal='';
  return true;
 }
 function gamePlace(itemId,slot){
@@ -2401,7 +2423,7 @@ function gameUnplace(itemId){
 // A storage failure must not leave unpersisted purchases or placements in memory.
 // Keep the existing screen in place so the user's next tap retries the same action.
 function gameTransact(change,message){
- const before=data.game.crafted.map(item=>({...item})),hadExplored=Object.hasOwn(data.game,'explored'),exploredBefore=[...(data.game.explored||[])],selectedBefore=gameSelectedCraft,styleBefore=data.game.roomStyle;
+ const before=data.game.crafted.map(item=>({...item})),hadExplored=Object.hasOwn(data.game,'explored'),exploredBefore=[...(data.game.explored||[])],selectedBefore=gameSelectedCraft,styleBefore=data.game.roomStyle,goalBefore=data.game.craftGoal;
  const claimsBefore=data.game.claims.map(claim=>({...claim}));
  if(!change())return false;
  if(!commit(message)){
@@ -2409,6 +2431,7 @@ function gameTransact(change,message){
   data.game.claims=claimsBefore;
   if(hadExplored)data.game.explored=exploredBefore;else delete data.game.explored;
   gameSelectedCraft=selectedBefore;
+  if(goalBefore===undefined)delete data.game.craftGoal;else data.game.craftGoal=goalBefore;
   data.game.roomStyle=styleBefore;
   return null;
  }
@@ -2479,6 +2502,26 @@ function gameFurnitureSprite(type){
  };
  return `<svg class="forge-sprite" viewBox="0 0 24 24" shape-rendering="crispEdges" aria-hidden="true" focusable="false">${parts[type]||''}</svg>`;
 }
+function gameGoalCard(){
+ const goal=gameGoalProgress();if(!goal)return '';
+ const {recipe,unlocked,stock,missing,percent,ready,needsTasks,needsHabits}=goal;
+ const full=data.game.crafted.length>=300,explored=data.game.explored||[];
+ const landmark=GAME_WORLD.find(t=>t.id===recipe.requires);
+ const skill=GAME_SKILLS.find(s=>s.id===recipe.required?.skill);
+ let blocker='',gateTab='';
+ if(!unlocked&&recipe.requires&&!explored.includes(recipe.requires)){
+  blocker=`Explore ${landmark.name} to unlock this blueprint.`;gateTab='world';
+ }else if(!unlocked&&recipe.required){
+  blocker=`Reach ${skill.name} level ${recipe.required.level} to unlock this blueprint. Choose that skill on a real task.`;gateTab='todos';
+ }else if(!unlocked&&recipe.unlockActions){
+  blocker=`Complete ${recipe.unlockActions} real tasks or daily habit check-ins to unlock this blueprint.`;gateTab='todos';
+ }
+ const directions=blocker||full?'':ready?'You have everything you need. Make it yours.':'Complete real tasks or check in to habits when they fit your day. Demanding tasks can earn extra timber and iron.';
+ const actions=!unlocked?`<button type="button" class="action ghost small" data-action="game-tab" data-tab="${gateTab}">${gateTab==='world'?'Explore the world':'Open real tasks'}</button>`:
+  ready?`<button type="button" class="action" data-action="game-craft" data-id="${recipe.id}" ${full?'disabled':''}>Craft ${esc(recipe.name)}</button>`:
+  `${needsTasks?'<button type="button" class="action ghost small" data-action="game-tab" data-tab="todos">Find a real task <span>+2 timber · +1 iron; demanding tasks can earn more</span></button>':''}${needsHabits?'<button type="button" class="action ghost small" data-action="game-tab" data-tab="habits">Check in to a habit <span>+2 fibre · +1 essence, once each day</span></button>':''}`;
+ return `<section class="forge-crafting-goal" aria-label="Tracked crafting goal"><div class="forge-goal-heading"><div class="forge-goal-art">${gameFurnitureSprite(recipe.id)}</div><div><span class="quest-kicker">YOUR NEXT CREATION</span><h2>${esc(recipe.name)}</h2></div><button type="button" class="micro" data-action="game-track" data-id="" aria-label="Stop tracking ${esc(recipe.name)}">×</button></div><div class="forge-goal-status"><strong>${!unlocked?'Blueprint locked':full?'Inventory full':ready?'Ready to craft':percent+'% gathered'}</strong><span>${goal.collected} / ${goal.required} materials</span></div><div class="quest-track" role="progressbar" aria-label="${esc(recipe.name)} materials gathered" aria-valuenow="${goal.collected}" aria-valuemin="0" aria-valuemax="${goal.required}"><span style="width:${percent}%"></span></div><details class="forge-goal-details" ${gameTab==='forge'?'open':''}><summary>${ready?'Materials ready · Craft your item':'View materials and next steps'}</summary><div class="forge-goal-materials">${Object.entries(recipe.cost).map(([m,n])=>`<div class="${missing[m]?'':'gathered'}"><strong>${esc(m)}</strong><span>${Math.min(stock[m],n)} / ${n}</span><small>${missing[m]?missing[m]+' to go':'Gathered ✓'}</small></div>`).join('')}</div><p>${blocker|| (full?'Your inventory is full (300 items). You can still decorate your rooms.':directions)}</p><div class="forge-goal-actions">${actions}</div>${!ready?'<small class="forge-goal-note">Only first-time task completions and first check-ins for each habit today earn materials.</small>':''}</details></section>`;
+}
 /* The board reads the existing COMMAND task list. It never creates a second quest record. */
 function gameQuestBoard(){
  const open=(data.tasks||[]).filter(t=>!t.done).sort((a,b)=>
@@ -2527,12 +2570,12 @@ function gameWorkshop(){
   const skill=GAME_SKILLS.find(s=>s.id===recipe.required?.skill),landmark=GAME_WORLD.find(t=>t.id===recipe.requires);
   const requirement=recipe.required?`${skill.name} · Lvl ${recipe.required.level}`:'';
   const status=recipe.required?`${unlocked?'Available · ':'Locked · '}${requirement}${unlocked?'':' · You’re Lvl '+skills[skill.id].level}`:recipe.requires?`${unlocked?'Discovered at ':'Explore '}${landmark?.name||'the valley'}${unlocked?'':' to unlock'}`:recipe.unlockActions?`${unlocked?'Available · ':'Locked · '}Complete ${recipe.unlockActions} real deeds`:'';
-  return `<div class="forge-recipe ${unlocked?'':'forge-recipe-locked locked'}"><div class="forge-recipe-art">${gameFurnitureSprite(recipe.id)}</div><div class="forge-recipe-copy"><strong>${esc(recipe.name)}${owned?` <span class="forge-owned">×${owned}</span>`:''}</strong><p>${esc(recipe.description)}</p>${status?`<span class="forge-recipe-status">${esc(status)}</span>`:''}<small>${Object.entries(recipe.cost).map(([m,n])=>`${n} ${m}`).join(' · ')}</small>${unlocked&&needs.length?`<span class="forge-recipe-short">Need ${needs.join(' · ')}</span>`:''}</div><button type="button" class="action small" data-action="game-craft" data-id="${recipe.id}" ${!unlocked||!affordable||data.game.crafted.length>=300?'disabled':''}>${unlocked?'Craft':'Locked'}</button></div>`;
+  return `<div class="forge-recipe ${unlocked?'':'forge-recipe-locked locked'}"><div class="forge-recipe-art">${gameFurnitureSprite(recipe.id)}</div><div class="forge-recipe-copy"><strong>${esc(recipe.name)}${owned?` <span class="forge-owned">×${owned}</span>`:''}</strong><p>${esc(recipe.description)}</p>${status?`<span class="forge-recipe-status">${esc(status)}</span>`:''}<small>${Object.entries(recipe.cost).map(([m,n])=>`${n} ${m}`).join(' · ')}</small>${unlocked&&needs.length?`<span class="forge-recipe-short">Need ${needs.join(' · ')}</span>`:''}</div><div class="forge-recipe-actions"><button type="button" class="action small" data-action="game-craft" data-id="${recipe.id}" ${!unlocked||!affordable||data.game.crafted.length>=300?'disabled':''}>${unlocked?'Craft':'Locked'}</button><button type="button" class="action ghost small" data-action="game-track" data-id="${data.game.craftGoal===recipe.id?'':recipe.id}" aria-pressed="${data.game.craftGoal===recipe.id}" aria-label="${data.game.craftGoal===recipe.id?'Stop tracking':'Track'} ${esc(recipe.name)}">${data.game.craftGoal===recipe.id?'Tracking ✓':'Track goal'}</button></div></div>`;
  }).join('');
  const inventory=loose.length?loose.map(item=>{const recipe=GAME_RECIPES.find(r=>r.id===item.recipeId);return `<button type="button" class="forge-inventory-item ${picked?.id===item.id?'selected':''}" data-action="game-select" data-id="${esc(item.id)}" aria-pressed="${picked?.id===item.id}">${gameFurnitureSprite(item.recipeId)}<span>${esc(recipe.name)}<small>${picked?.id===item.id?'Selected — tap a room space':'Tap to place'}</small></span></button>`}).join(''):'<p class="forge-empty-note">Craft a piece of furniture and it will appear here.</p>';
  const objectives=[{title:nextRoom?'Unlock '+nextRoom.name:'All rooms unlocked',current:nextRoom?actions:15,target:nextRoom?.unlockActions||15,detail:nextRoom?'Complete real tasks or daily habit check-ins':'Your settlement has all three rooms'},{title:'Furnish your room',current:roomCount,target:9,detail:'Choose what belongs in '+room.name},{title:'Discover the collection',current:builtTypes,target:GAME_RECIPES.length,detail:'Craft each blueprint at least once'}];
  const goals=objectives.map(o=>`<div class="forge-goal"><div class="forge-goal-top"><strong>${esc(o.title)}</strong><span>${Math.min(o.current,o.target)} / ${o.target}</span></div><div class="quest-track" role="progressbar" aria-label="${esc(o.title)}" aria-valuenow="${Math.min(o.current,o.target)}" aria-valuemin="0" aria-valuemax="${o.target}"><span style="width:${Math.min(100,Math.round(o.current/o.target*100))}%"></span></div><small>${esc(o.detail)}</small></div>`).join('');
- return `<section class="forge-screen"><div class="forge-intro"><span class="quest-kicker">ATLAS / FORGE · YOUR SETTLEMENT</span><h2>Build a world from real wins.</h2><p>Every finished task and daily habit check-in brings materials. Explore the valley for supplies, level your skills for special designs, then craft and decorate new rooms as you grow.</p></div><div class="forge-progress-summary"><div><strong>${actions}</strong><span>real deeds</span></div><div><strong>${data.game.crafted.length}</strong><span>crafted pieces</span></div><div><strong>${GAME_ROOMS.filter(r=>actions>=r.unlockActions).length} / ${GAME_ROOMS.length}</strong><span>rooms unlocked</span></div></div><div class="forge-materials" aria-label="Crafting materials">${materials}</div><div class="forge-next" aria-label="Next blueprints"><div class="forge-section-title"><h3>Next blueprints</h3><small>${GAME_RECIPES.filter(r=>gameRecipeUnlocked(r,data.game.awards,explored,skills)).length} / ${GAME_RECIPES.length} unlocked</small></div>${next?`<div class="forge-next-list">${next}</div>`:'<p class="forge-next-done">Every skill blueprint is unlocked. Explore the valley to discover rare designs.</p>'}</div><div class="forge-section-title"><h3>Your settlement</h3><small>Choose a room</small></div><div class="forge-room-tabs" role="tablist" aria-label="Workshop rooms">${rooms}</div><div class="forge-room-card forge-theme-${room.id}" data-room-style="${style}"><div class="forge-room-header"><div><span class="quest-kicker">YOUR SPACE</span><h3>${esc(room.name)}</h3><p>${esc(room.description)}</p></div><span class="forge-room-count">${roomCount} / 9 furnished</span></div><div class="forge-room-wall"><span class="forge-window" aria-hidden="true">${room.id==='grove'?'☼':room.id==='study'?'☾':'✦'}</span></div><div class="forge-room-grid" aria-label="Customisable ${esc(room.name)} room">${tiles}</div><p class="forge-room-hint" role="status">${picked?'Choose an empty space for your selected item.':roomCount?'Tap furniture to return it to your inventory.':'Your room is waiting for its first piece.'}</p></div><div class="forge-section-title"><h3>Room finishes</h3><small>Earn more with your skills</small></div><div class="forge-style-options" role="group" aria-label="Room finish">${styles}</div><div class="forge-section-title"><h3>Next milestones</h3><small>Every deed counts once</small></div><div class="forge-goals">${goals}</div><div class="forge-section-title"><h3>Inventory <span>${loose.length}</span></h3><small>Choose an item to place</small></div><div class="forge-inventory">${inventory}</div><div class="forge-section-title"><h3>Crafting bench</h3><small>${GAME_RECIPES.length} blueprints</small></div><div class="forge-recipes">${recipes}</div><p class="quest-help">Tasks yield timber and iron, habits yield fibre and essence, and first-time valley discoveries yield extra supplies. Materials are fictional, earned once, and never cost real money. Your rooms, finishes, map and collection stay in ATLAS backups.</p></section>`;
+ return `<section class="forge-screen"><div class="forge-intro"><span class="quest-kicker">ATLAS / FORGE · YOUR SETTLEMENT</span><h2>Build a world from real wins.</h2><p>Every finished task and daily habit check-in brings materials. Explore the valley for supplies, level your skills for special designs, then craft and decorate new rooms as you grow.</p></div>${!data.game.craftGoal?'<p class="forge-goal-intro">Choose <b>Track goal</b> on a blueprint below to see what to gather next.</p>':''}<div class="forge-progress-summary"><div><strong>${actions}</strong><span>real deeds</span></div><div><strong>${data.game.crafted.length}</strong><span>crafted pieces</span></div><div><strong>${GAME_ROOMS.filter(r=>actions>=r.unlockActions).length} / ${GAME_ROOMS.length}</strong><span>rooms unlocked</span></div></div><div class="forge-materials" aria-label="Crafting materials">${materials}</div><div class="forge-next" aria-label="Next blueprints"><div class="forge-section-title"><h3>Next blueprints</h3><small>${GAME_RECIPES.filter(r=>gameRecipeUnlocked(r,data.game.awards,explored,skills)).length} / ${GAME_RECIPES.length} unlocked</small></div>${next?`<div class="forge-next-list">${next}</div>`:'<p class="forge-next-done">Every skill blueprint is unlocked. Explore the valley to discover rare designs.</p>'}</div><div class="forge-section-title"><h3>Your settlement</h3><small>Choose a room</small></div><div class="forge-room-tabs" role="tablist" aria-label="Workshop rooms">${rooms}</div><div class="forge-room-card forge-theme-${room.id}" data-room-style="${style}"><div class="forge-room-header"><div><span class="quest-kicker">YOUR SPACE</span><h3>${esc(room.name)}</h3><p>${esc(room.description)}</p></div><span class="forge-room-count">${roomCount} / 9 furnished</span></div><div class="forge-room-wall"><span class="forge-window" aria-hidden="true">${room.id==='grove'?'☼':room.id==='study'?'☾':'✦'}</span></div><div class="forge-room-grid" aria-label="Customisable ${esc(room.name)} room">${tiles}</div><p class="forge-room-hint" role="status">${picked?'Choose an empty space for your selected item.':roomCount?'Tap furniture to return it to your inventory.':'Your room is waiting for its first piece.'}</p></div><div class="forge-section-title"><h3>Room finishes</h3><small>Earn more with your skills</small></div><div class="forge-style-options" role="group" aria-label="Room finish">${styles}</div><div class="forge-section-title"><h3>Next milestones</h3><small>Every deed counts once</small></div><div class="forge-goals">${goals}</div><div class="forge-section-title"><h3>Inventory <span>${loose.length}</span></h3><small>Choose an item to place</small></div><div class="forge-inventory">${inventory}</div><div class="forge-section-title"><h3>Crafting bench</h3><small>${GAME_RECIPES.length} blueprints</small></div><div class="forge-recipes">${recipes}</div><p class="quest-help">Tasks yield timber and iron, habits yield fibre and essence, and first-time valley discoveries yield extra supplies. Materials are fictional, earned once, and never cost real money. Your rooms, finishes, map and collection stay in ATLAS backups.</p></section>`;
 }
 function gameSkillsScreen(){
  const progress=gameSkillTotals();
@@ -2567,7 +2610,7 @@ function gameScreen(){
   const choices=[...GAME_REWARDS,...data.game.rewards.map(r=>({...r,icon:'★',custom:true}))];
   contents=`<div class="quest-section-head"><div><h2>Your rewards</h2><p>Spend coins on a treat you choose</p></div><button class="action ghost small" data-action="game-add-reward">＋ Reward</button></div><div class="quest-reward-grid">${choices.map(r=>`<div class="quest-reward"><div class="quest-reward-icon" aria-hidden="true">${r.icon}</div><strong>${esc(r.title)}</strong><div class="quest-reward-bottom"><span>◈ ${r.cost}</span><button data-action="game-claim" data-id="${esc(r.id)}" ${stats.coins<r.cost?'disabled':''}>Redeem</button></div>${r.custom?`<button type="button" class="quest-remove" data-action="game-remove-reward" data-id="${esc(r.id)}">Remove reward</button>`:''}</div>`).join('')}</div>${data.game.claims.length?`<div class="quest-history"><h2>Recently redeemed</h2><ul>${data.game.claims.slice(-5).reverse().map(c=>`<li>${esc(c.title)} · ${c.cost} coins · ${esc(calFormatDate(calWallParts(new Date(c.at)).date))}</li>`).join('')}</ul></div>`:''}<p class="quest-help">These are imaginary ATLAS coins, not money or purchases. You decide if and when to take a reward.</p>`;
  }
- return `<section class="atlas-journey"><span class="eyebrow">ATLAS / FORGE</span><h1>Progress is personal.</h1><p class="sub">Turn everyday effort into a little adventure — on your terms.</p>${data.game.enabled?`<div class="quest-hero"><div class="quest-profile"><div class="quest-avatar">${gameAvatar()}</div><div class="quest-profile-main"><span class="quest-kicker">YOUR ADVENTURER</span><h2>${esc(data.displayName||'You')} · Lvl ${stats.level}</h2><p>Every real step counts.<br>No penalties for missing a day.</p></div></div><div class="quest-resource"><span style="color:var(--quest-lilac)">✧ EXPERIENCE</span><strong>${stats.levelXP} / ${stats.levelNeeded} XP</strong></div><div class="quest-track" role="progressbar" aria-label="Level progress" aria-valuenow="${stats.levelXP}" aria-valuemin="0" aria-valuemax="${stats.levelNeeded}"><span style="width:${bar}%"></span></div><div class="quest-hero-footer"><small>${stats.xp} total XP earned</small><div class="quest-coins"><span>◈</span>${stats.coins} coins</div></div></div><div class="quest-objective"><div class="quest-objective-top"><strong>✦ First steps</strong><span>${objectiveDone?'✓ Bonus unlocked':'🎁 +50 XP · 30 coins'}</span></div><div class="quest-track" role="progressbar" aria-label="First five actions" aria-valuenow="${progress}" aria-valuemin="0" aria-valuemax="5"><span style="width:${progress/5*100}%"></span></div><p>${progress} / 5 tasks or habit check-ins · Each distinct action counts once</p></div><div class="quest-tabs" role="tablist" aria-label="Forge sections">${tabs.map(([key,label,icon])=>`<button type="button" role="tab" aria-selected="${gameTab===key}" data-action="game-tab" data-tab="${key}"><span aria-hidden="true">${icon}</span>${label}</button>`).join('')}</div><div role="tabpanel">${contents}</div><p class="quest-help">Your Journey stays in this browser and is included in ATLAS backups. You can turn it off in Settings. Your normal tasks and habits work either way.</p>`:`<div class="quest-disabled"><h2>Journey is paused</h2><p>Your tasks and habits are untouched. Switch Journey on whenever you like.</p><button class="action" data-action="game-toggle">Enable Journey</button></div>`}</section>`;
+ return `<section class="atlas-journey"><span class="eyebrow">ATLAS / FORGE</span><h1>Progress is personal.</h1><p class="sub">Turn everyday effort into a little adventure — on your terms.</p>${data.game.enabled?`<div class="quest-hero"><div class="quest-profile"><div class="quest-avatar">${gameAvatar()}</div><div class="quest-profile-main"><span class="quest-kicker">YOUR ADVENTURER</span><h2>${esc(data.displayName||'You')} · Lvl ${stats.level}</h2><p>Every real step counts.<br>No penalties for missing a day.</p></div></div><div class="quest-resource"><span style="color:var(--quest-lilac)">✧ EXPERIENCE</span><strong>${stats.levelXP} / ${stats.levelNeeded} XP</strong></div><div class="quest-track" role="progressbar" aria-label="Level progress" aria-valuenow="${stats.levelXP}" aria-valuemin="0" aria-valuemax="${stats.levelNeeded}"><span style="width:${bar}%"></span></div><div class="quest-hero-footer"><small>${stats.xp} total XP earned</small><div class="quest-coins"><span>◈</span>${stats.coins} coins</div></div></div><div class="quest-objective"><div class="quest-objective-top"><strong>✦ First steps</strong><span>${objectiveDone?'✓ Bonus unlocked':'🎁 +50 XP · 30 coins'}</span></div><div class="quest-track" role="progressbar" aria-label="First five actions" aria-valuenow="${progress}" aria-valuemin="0" aria-valuemax="5"><span style="width:${progress/5*100}%"></span></div><p>${progress} / 5 tasks or habit check-ins · Each distinct action counts once</p></div>${gameGoalCard()}<div class="quest-tabs" role="tablist" aria-label="Forge sections">${tabs.map(([key,label,icon])=>`<button type="button" role="tab" aria-selected="${gameTab===key}" data-action="game-tab" data-tab="${key}"><span aria-hidden="true">${icon}</span>${label}</button>`).join('')}</div><div role="tabpanel">${contents}</div><p class="quest-help">Your Journey stays in this browser and is included in ATLAS backups. You can turn it off in Settings. Your normal tasks and habits work either way.</p>`:`<div class="quest-disabled"><h2>Journey is paused</h2><p>Your tasks and habits are untouched. Switch Journey on whenever you like.</p><button class="action" data-action="game-toggle">Enable Journey</button></div>`}</section>`;
 }
 function gameAddReward(){
  modalState={type:'game-reward'};
@@ -2582,6 +2625,10 @@ function gameAction(element){
   gameRoom=room;return render();
  }
  if(a==='game-toggle'){data.game.enabled=!data.game.enabled;return commit(data.game.enabled?'Journey enabled':'Journey paused')}
+ if(a==='game-track'){
+  if(!data.game.enabled||typeof ref!=='string'||(ref&&!GAME_RECIPES.some(r=>r.id===ref))||data.game.craftGoal===ref)return false;
+  return gameTransact(()=>{data.game.craftGoal=ref;return true},ref?'Crafting goal tracked':'Crafting goal cleared');
+ }
  if(a==='game-explore'){
   const result=gameTransact(()=>gameExplore(ref),'New location discovered! Materials added to your pack.');
   if(result===false)showToast('Explore an adjacent location after earning a trail token.');
@@ -2600,7 +2647,8 @@ function gameAction(element){
    gameSelectedCraft=data.game.crafted[data.game.crafted.length-1].id;
    return true;
   },'Item crafted! Choose a room space to place it.');
-  if(result===false)showToast('Not enough materials yet. Complete a task or habit to gather more.');
+  if(result===true&&gameTab!=='forge'){gameTab='forge';render()}
+  if(result===false)showToast(data.game.crafted.length>=300?'Your inventory is full (300 items).':'Not enough materials yet. Complete a task or habit to gather more.');
   return result;
  }
  if(a==='game-select'){
@@ -3101,7 +3149,8 @@ function validateImport(source,{mode='backup'}={}){
   for(const kind of IMPORT_COLLECTIONS)if(normalized[kind].length!==d[kind].length)fail(kind,'normalization would drop records');
   const sameValue=(a,b)=>{if(a===b)return true;if(Array.isArray(a))return Array.isArray(b)&&a.length===b.length&&a.every((v,i)=>sameValue(v,b[i]));if(a&&typeof a==='object')return b&&typeof b==='object'&&Object.keys(a).every(k=>Object.hasOwn(b,k)&&sameValue(a[k],b[k]));return false;};
   // Journey is optional in older backups, but present game history must be lossless.
-  if(d.game!==undefined&&(!object(d.game)||!sameValue(d.game,normalized.game)))fail('Journey','progress or reward history is invalid');
+  // A blueprint preference can be discarded without losing earned history.
+  if(d.game!==undefined&&(!object(d.game)||!sameValue({...d.game,craftGoal:normalized.game.craftGoal},normalized.game)))fail('Journey','progress or reward history is invalid');
   for(const kind of IMPORT_COLLECTIONS)for(let i=0;i<d[kind].length;i++)for(const field of Object.keys(d[kind][i]))if(!sameValue(d[kind][i][field],normalized[kind][i][field]))fail(kind,'field '+field+' would be changed or discarded');
   return normalized;
 }

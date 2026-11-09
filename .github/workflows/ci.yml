@@ -23,3 +23,5 @@ jobs:
         run: node tests/forge-rewards-browser.mjs
       - name: Everyday experience (six viewports and visual evidence)
         run: node tests/everyday-browser.mjs
+      - name: FORGE crafting goals (six viewports, persistence and placement)
+        run: CHROMIUM_PATH=$(command -v google-chrome) node tests/forge-goals-browser.mjs
